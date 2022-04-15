@@ -37,5 +37,4 @@ for (let e of elements) {
 }
 crawl_urls = Object.keys(links);
 crawl_urls.sort((a, b) => links[a] <= links[b] ? 1 : -1);
-// eslint-disable-next-line
 return crawl_urls;
