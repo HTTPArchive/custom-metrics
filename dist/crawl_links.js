@@ -12,10 +12,7 @@ const intersectRect = function (r1, r2) {
 const sameOrigin = function(uri1, uri2){
     uri1 = new URL(uri1);
     uri2 = new URL(uri2);
-    if(uri1.host !== uri2.host) return false;
-    if(uri1.port !== uri2.port) return false;
-    if(uri1.protocol !== uri2.protocol) return false;
-    return true;
+    return uri1.origin == uri2.origin;
 }
 const viewport = {
     left: 0,
