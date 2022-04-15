@@ -428,7 +428,7 @@ function getImgData( img ) {
       o => o.url === img.currentSrc
     );
     if ( informationFromSrcsetAboutTheCurrentSrc &&
-         informationFromSrcsetAboutTheCurrentSrc.density ) {
+          informationFromSrcsetAboutTheCurrentSrc.density ) {
       imgData.currentSrcDensity = informationFromSrcsetAboutTheCurrentSrc.density;
     }
   }
@@ -446,8 +446,8 @@ function getImgData( img ) {
   if ( window.PerformanceResourceTiming ) {
     const performanceEntries = window.performance.getEntriesByName( imgData.url, 'resource' );
     if ( performanceEntries[ 0 ] &&
-         performanceEntries[ 0 ].decodedBodySize &&
-         performanceEntries[ 0 ].decodedBodySize > 0 ) {
+          performanceEntries[ 0 ].decodedBodySize &&
+          performanceEntries[ 0 ].decodedBodySize > 0 ) {
       imgData.byteSize = performanceEntries[ 0 ].decodedBodySize;
     } else {
       // ok that was fun, but we probably didn't get a Timing-Allow-Origin header on cross-origin resources to allow us to do it. So, look at WebPageTest's data.
