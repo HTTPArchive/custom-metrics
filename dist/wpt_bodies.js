@@ -15,7 +15,7 @@ function logError(context, messageOrException, exception = null) {
   try {
     if (typeof messageOrException === 'string') {
       error.message = messageOrException;
-    } 
+    }
     else if (messageOrException instanceof Object) {
       error.exception = messageOrException;
 
@@ -55,7 +55,7 @@ try { // whole process is placed in a try/catch so we can log uncaught errors
   // this provides access to a lot of WebPageTest data, including the raw html, headers and other requests involved
   var _wptBodies = [];
   try {
-    _wptBodies = $WPT_BODIES; 
+    _wptBodies = $WPT_BODIES;
   }
   catch (e) {
     logError("wptBodies", "Data returned was not valid", e);
@@ -64,7 +64,7 @@ try { // whole process is placed in a try/catch so we can log uncaught errors
   // string of the raw html
   let _rawHtml = null;
   function getRawHtml() {
-    if (!_rawHtml && _wptBodies.length > 0) {  
+    if (!_rawHtml && _wptBodies.length > 0) {
       _rawHtml = _wptBodies[0].response_body;
     }
     return _rawHtml;
@@ -74,7 +74,7 @@ try { // whole process is placed in a try/catch so we can log uncaught errors
   let _rawHtmlDocument = null;
   function getRawHtmlDocument() {
     if (!_rawHtmlDocument) {
-      
+
       let html = getRawHtml();
 
       if (html) {
@@ -83,23 +83,23 @@ try { // whole process is placed in a try/catch so we can log uncaught errors
 
         _rawHtmlDocument.documentElement.innerHTML = html;
       }
-    } 
+    }
     return _rawHtmlDocument;
   }
 
-  // the raw html placed in a div. This was needed for a special case where I need to test for content visibility. I temporarily add the div to the rendered page so that it can calculate things. 
+  // the raw html placed in a div. This was needed for a special case where I need to test for content visibility. I temporarily add the div to the rendered page so that it can calculate things.
   // Note that it seems the head is removed from this version, so it does not work for gathering meta data etc.
   let _rawHtmlDiv = null;
   function getRawHtmlDiv() {
     if (!_rawHtmlDiv) {
-      
+
       let html = getRawHtml();
 
       if (html) {
         _rawHtmlDiv = document.createElement('div');
         _rawHtmlDiv.innerHTML = html;
       }
-    } 
+    }
     return _rawHtmlDiv;
   }
 
@@ -139,10 +139,10 @@ try { // whole process is placed in a try/catch so we can log uncaught errors
 
   _custom_metrics = {
     // Looks at links and identifies internal, external or hashed as well as rel attributes and if a link is image only
-    // Used by: SEO, 2019/09_10 
+    // Used by: SEO, 2019/09_10
     // Backup: old version in almanac.js - does not detect same domain
     'anchors': (() => {
-      try {   
+      try {
         // area tags are also a form of link
 
         let link = document.createElement('a');
@@ -209,7 +209,7 @@ try { // whole process is placed in a try/catch so we can log uncaught errors
             protocols: {}
           };
 
-        
+
           let index = 0;
           if (nodes) {
             [...nodes].forEach((node) => {
@@ -231,9 +231,9 @@ try { // whole process is placed in a try/catch so we can log uncaught errors
 
                 protocol = link.protocol.replace(":", "").toLowerCase();
 
-                if (target.protocols[protocol]) 
+                if (target.protocols[protocol])
                   target.protocols[protocol]++;
-                else 
+                else
                   target.protocols[protocol] = 1;
 
                 switch(protocol) {
@@ -250,19 +250,19 @@ try { // whole process is placed in a try/catch so we can log uncaught errors
                     if (link.href.includes("void")) {
                       target.javascript_void_links++;
                     }
-                    break; 
+                    break;
                   default:
                     samePage = true;
                     target.same_page.total++;
-                    break;     
+                    break;
                 }
                 if (!samePage) { // was not set by protocol
                   if (hostname === link.hostname) {
-                    
+
                     if (location.pathname === link.pathname) {
                       // same page
                       target.same_page.total++;
-                      samePage = true; 
+                      samePage = true;
                     }
                     else {
                       // same site
@@ -272,7 +272,7 @@ try { // whole process is placed in a try/catch so we can log uncaught errors
                   }
                   else {
                     if (hostname.endsWith('.'+link.hostname) || link.hostname.endsWith('.'+hostname)) {
-                      // same property 
+                      // same property
                       target.same_property++;
                       dealtWith = true;
                     }
@@ -316,8 +316,8 @@ try { // whole process is placed in a try/catch so we can log uncaught errors
                   //else // # link with no clue
 
                 }
-                //else // link to self           
-      
+                //else // link to self
+
               }
               else {
                 // no href so class as same page
@@ -339,7 +339,7 @@ try { // whole process is placed in a try/catch so we can log uncaught errors
                   target.same_page.dynamic.onclick_attributes.total++;
 
                   let onclick = node.getAttribute("onclick");
-                  
+
                   if (onclick.includes("window.location")) {
                     target.same_page.dynamic.onclick_attributes.window_location++;
                   } else if (onclick.includes("window.open")) {
@@ -347,7 +347,7 @@ try { // whole process is placed in a try/catch so we can log uncaught errors
                   }
                   else {
                     target.same_page.dynamic.onclick_attributes.unknown_action++;
-                  }           
+                  }
                 }
 
                 if (protocol.trim().toLowerCase() === "javascript") {
@@ -368,7 +368,7 @@ try { // whole process is placed in a try/catch so we can log uncaught errors
                   if (hashBased) {
                     target.same_page.other.hash_link++;
                   }
-                }          
+                }
               }
 
               // other stuff
@@ -376,7 +376,7 @@ try { // whole process is placed in a try/catch so we can log uncaught errors
               let current_noopener = false;
               let current_noreferrer = false;
               let follow = true;
-              // Checking rel attribute values 
+              // Checking rel attribute values
               // https://support.google.com/webmasters/answer/96569?hl=en
               if (node.rel) {
                   node.rel.split(" ").forEach(n1 => {
@@ -431,9 +431,9 @@ try { // whole process is placed in a try/catch so we can log uncaught errors
                   }
                 }
 
-                if (target.targets[targetAttribute]) 
+                if (target.targets[targetAttribute])
                   target.targets[targetAttribute]++;
-                else 
+                else
                   target.targets[targetAttribute] = 1;
               }
 
@@ -447,7 +447,7 @@ try { // whole process is placed in a try/catch so we can log uncaught errors
                     target.image_links++;
                   }
                   else {
-                      // invisible link? 
+                      // invisible link?
                       target.invisible_links++;
                   }
               }
@@ -487,11 +487,11 @@ try { // whole process is placed in a try/catch so we can log uncaught errors
     })(),
 
 
-    // Extract the real title tag contents  
+    // Extract the real title tag contents
     // Used by: SEO
-    // Backup: old version in almanac.js 
+    // Backup: old version in almanac.js
     'title': (() => {
-      try {    
+      try {
         let result = {};
 
         function getTitles(d) {
@@ -536,22 +536,22 @@ try { // whole process is placed in a try/catch so we can log uncaught errors
           result.title_changed_on_render = renderedPrimaryTitle != rawPrimaryTitle;
         }
 
-        return result; 
+        return result;
       }
       catch(e) {
         return logError("title", e);
       }
     })(),
 
-    // Extract the real meta description tag contents  
+    // Extract the real meta description tag contents
     // Used by: SEO
-    // Backup: meta nodes in almanac.js 
+    // Backup: meta nodes in almanac.js
     'meta_description': (() => {
-      try {    
+      try {
         let result = {};
 
         function getMetaDescriptions(d) {
-          let target = {all: {text: "", words: 0, characters: 0}};       
+          let target = {all: {text: "", words: 0, characters: 0}};
           target.total = [...d.querySelectorAll('head meta[name="description"i]')].map(e => {
             let text = e.getAttribute("content") ?? "";
             let characters = text.length;
@@ -592,19 +592,19 @@ try { // whole process is placed in a try/catch so we can log uncaught errors
           result.raw = getMetaDescriptions(rawHtmlDocument);
         }
 
-        return result; 
+        return result;
       }
       catch(e) {
         return logError("meta_description", e);
       }
     })(),
 
-    // Extract hreflang info  
+    // Extract hreflang info
     // https://support.google.com/webmasters/answer/189077?hl=en
     // Used by: SEO
-    // Backup: link nodes in almanac.js 
+    // Backup: link nodes in almanac.js
     'hreflangs': (() => {
-      try {    
+      try {
         let result = {http_header: {values: []}};
 
         function getHreflangValues(d) {
@@ -633,24 +633,24 @@ try { // whole process is placed in a try/catch so we can log uncaught errors
             for (const match of matches) {
               let c =match[1];
               result.http_header.values.push(c);
-            }  
+            }
           })
         }
 
-        return result; 
+        return result;
       }
       catch(e) {
         return logError("hreflangs", e);
       }
     })(),
 
-    // heading information from H1 to H8 
+    // heading information from H1 to H8
     // Used by: SEO, Markup
     // Backup: heading order and length of h1s in almanac.js - not much
     // maybe in the future this could not retun zeroed values, to save space.
-    'headings': (() => { 
-      try {  
-      
+    'headings': (() => {
+      try {
+
         function processHeading(d, target, n, level) {
           let html  = n.innerHTML;
           let text = seoText(n);
@@ -661,10 +661,10 @@ try { // whole process is placed in a try/catch so we can log uncaught errors
             if (text.length > 0) { // make this primary
               let primaryTitle = "";
               if (d == document) {
-                primaryTitle = renderedPrimaryTitle; 
+                primaryTitle = renderedPrimaryTitle;
               }
               else {
-                primaryTitle = rawPrimaryTitle; 
+                primaryTitle = rawPrimaryTitle;
               }
 
               let snippet = text;
@@ -687,7 +687,7 @@ try { // whole process is placed in a try/catch so we can log uncaught errors
           }
           return {characters: text.length, words: words ?? 0};
         }
-        
+
         function processHeadings(d) {
           let target = {first_non_empty_heading_hidden: false};
           for(let l=1; l < 9; l++) {
@@ -696,14 +696,14 @@ try { // whole process is placed in a try/catch so we can log uncaught errors
             let characters = 0;
             let words = 0;
             // if don't have a primary heading yet, search for one.
-            
+
             var hs = nodes.map(n => {
               let h = processHeading(d, target, n, l);
               characters += h.characters;
               words += h.words;
               return h;
             });
-      
+
             target["h"+l] = {
               total: nodes.length,
               non_empty_total: nodes.filter(e => seoText(e).length > 0).length,
@@ -725,8 +725,8 @@ try { // whole process is placed in a try/catch so we can log uncaught errors
         }
 
 
-    
-        return result; 
+
+        return result;
       }
       catch(e) {
         return logError("headings", e);
@@ -736,13 +736,13 @@ try { // whole process is placed in a try/catch so we can log uncaught errors
     // Structured Data use
     // Used by: SEO
     // Backup: old data in almanac.js - not very good
-    'structured_data': (() => {  
-      try { 
+    'structured_data': (() => {
+      try {
         var link = document.createElement('a'); // Maybe new URL will be neater?
 
         function nestedJsonldLookup(target, jsonldIds, items, depth, context) {
           if (items instanceof Array) {
-            // loop array and process any objects in it 
+            // loop array and process any objects in it
             items.forEach((item) => {
               if (item instanceof Object) {
                 nestedJsonldLookup(target, jsonldIds, item, depth+1, context);
@@ -768,12 +768,12 @@ try { // whole process is placed in a try/catch so we can log uncaught errors
                     target.same_as_values.push(s);
                   }
                 })
-              }             
+              }
             }
-            
+
             if (items['@id']) {
               if (typeof items['@id'] === 'string') {
-                
+
                 link.href = items['@id'];
                 let id = link.href;
 
@@ -791,7 +791,7 @@ try { // whole process is placed in a try/catch so we can log uncaught errors
 
             if (items['@context']) {
               let c = null;
-              if (typeof items['@context'] === 'string') { 
+              if (typeof items['@context'] === 'string') {
                 c = items['@context'];
               }
               else {
@@ -806,7 +806,7 @@ try { // whole process is placed in a try/catch so we can log uncaught errors
                 catch (e) {
                   context = "http://invalid-context.com/";
                 }
-                
+
               }
             }
 
@@ -815,7 +815,7 @@ try { // whole process is placed in a try/catch so we can log uncaught errors
             if (items['@type']) {
               let t =null;
 
-              if (typeof items['@type'] === 'string') { 
+              if (typeof items['@type'] === 'string') {
                 t = items['@type'];
               }
               else {
@@ -838,7 +838,7 @@ try { // whole process is placed in a try/catch so we can log uncaught errors
             }
 
             addType(target, target.jsonld_and_microdata_types, type, true);
-  
+
             // process any properties that have arrays or objects
             Object.keys(items).forEach((key) => {
               var item = items[key];
@@ -857,34 +857,34 @@ try { // whole process is placed in a try/catch so we can log uncaught errors
           link.href = type;
           let www = false;
           let hostname = link.hostname;
-          
+
 
           if (hostname.startsWith("www.")) {
             www = true;
             hostname = hostname.substring("www.".length);
           }
 
-          let name = hostname + link.pathname; 
+          let name = hostname + link.pathname;
 
-          let item = array.find(i => i.name === name);       
+          let item = array.find(i => i.name === name);
           if (!item) {
             item = {name: name, count: 0, jsonld: 0, microdata: 0, https: 0, http: 0, www: 0};
             array.push(item);
-          }  
+          }
 
           item.count++;
 
-          if (link.protocol === 'https:') 
-            item.https++;        
-          else 
+          if (link.protocol === 'https:')
+            item.https++;
+          else
             item.http++;
 
-          if (www) 
-            item.www++;   
+          if (www)
+            item.www++;
 
-          if (jsonld) 
+          if (jsonld)
             item.jsonld++;
-          else 
+          else
             item.microdata++;
 
           if (!target.context_hostnames.includes(hostname)) {
@@ -945,15 +945,15 @@ try { // whole process is placed in a try/catch so we can log uncaught errors
 
             let type = link.href;
 
-            addType(target, target.jsonld_and_microdata_types, type, false);  
+            addType(target, target.jsonld_and_microdata_types, type, false);
 
-            target.items_by_format.microdata++;    
+            target.items_by_format.microdata++;
           });
 
           if (d.querySelector("[itemprop$='logo']")){
             target.logo = true;
           }
-          
+
           if (d.querySelector("[itemtype$='SearchAction']")){
             target.sitelinks_search_box = true;
           }
@@ -982,7 +982,7 @@ try { // whole process is placed in a try/catch so we can log uncaught errors
           });
 
           [...d.querySelectorAll('[itemprop="sameAs"]')].forEach((n) => {
-            let href = n.getAttribute('href'); 
+            let href = n.getAttribute('href');
 
             if (href) {
               if (!target.same_as_values.includes(href)) {
@@ -1015,8 +1015,8 @@ try { // whole process is placed in a try/catch so we can log uncaught errors
         if (rawHtmlDocument) {
           result.raw = gatherStructuredData(rawHtmlDocument);
         }
-        
-        return result; 
+
+        return result;
       }
       catch(e) {
         return logError("structured_data", e);
@@ -1024,9 +1024,9 @@ try { // whole process is placed in a try/catch so we can log uncaught errors
     })(),
 
     // data from the original html
-    // Used by: SEO, Markup  
+    // Used by: SEO, Markup
     // Backup: queiries on the body - expensive
-    'raw_html': (() => {  
+    'raw_html': (() => {
       try {
         let result = {};
 
@@ -1076,12 +1076,12 @@ try { // whole process is placed in a try/catch so we can log uncaught errors
     'canonicals': (() => {
       try {
         function processCanonical(c) {
-          if (c === result.url) 
+          if (c === result.url)
             result.self_canonical = true;
-          else 
+          else
             result.other_canonical = true;
 
-          if (!result.canonicals.includes(c)) 
+          if (!result.canonicals.includes(c))
             result.canonicals.push(c);
         }
 
@@ -1100,7 +1100,7 @@ try { // whole process is placed in a try/catch so we can log uncaught errors
               let c = match[1];
               canonicalLinkHeaders.push(c);
               processCanonical(c);
-            }       
+            }
           })
         }
         result.http_header_link_canoncials = canonicalLinkHeaders;
@@ -1132,7 +1132,7 @@ try { // whole process is placed in a try/catch so we can log uncaught errors
       }
     })(),
 
-    // Calculates robots status per type of robot 
+    // Calculates robots status per type of robot
     // Used by: SEO
     // Backup: meta nodes in almanac.js
     'robots': (() => {
@@ -1208,7 +1208,7 @@ try { // whole process is placed in a try/catch so we can log uncaught errors
               let content = e.getAttribute("content");
               robots.via_meta_tag = true;
               result.has_robots_meta_tag = true;
-              processRobotsValue(robots, content)    
+              processRobotsValue(robots, content)
             }
           });
 
@@ -1239,7 +1239,7 @@ try { // whole process is placed in a try/catch so we can log uncaught errors
                   result.has_x_robots_tag = true;
                   processRobotsValue(robots, t);
                 }
-            
+
             });
           }
 
@@ -1328,7 +1328,7 @@ if (!_custom_metrics) { // should not be possible
   logError("general", "custom metrics object was missing");
 }
 
-// add any logged errors to the almanac 
+// add any logged errors to the almanac
 if (_logs.length > 0) {
   _custom_metrics.log = _logs;
 }

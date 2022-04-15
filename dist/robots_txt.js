@@ -93,9 +93,9 @@ return fetchWithTimeout('/robots.txt')
   .then(r => {
     let result = {};
     result.redirected = !!r.redirected;
-    result.status = r.status;  
+    result.status = r.status;
     return r.text().then(t => {
-    
+
       // Overall Metrics
       result.size = t.length;
       result.size_kib = t.length / 1024;
@@ -121,7 +121,7 @@ return fetchWithTimeout('/robots.txt')
 
           if (record.record_type == 'user-agent') {
 
-              // If empty build 
+              // If empty build
               if (!(record.record_value in counts_by_useragent)) {
                   counts_by_useragent[record.record_value] = Object.values(BY_USERAGENT_TYPES).reduce((a,v)=>({
                       ...a,
@@ -149,8 +149,8 @@ return fetchWithTimeout('/robots.txt')
 
       result.record_counts.by_useragent = counts_by_useragent;
 
-      return JSON.stringify(result); 
-    });        
+      return JSON.stringify(result);
+    });
   })
   .catch(error => {
     return JSON.stringify({message: error.message, error: error});
