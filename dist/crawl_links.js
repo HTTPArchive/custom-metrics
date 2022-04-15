@@ -1,3 +1,8 @@
+/*
+Collects same-origin in-viewport links from img, h[1-6] tags,
+sorted by size from largest to smallest.
+This is the seed for generating a list of URLs to crawl from the given page.
+*/
 const intersectRect = function (r1, r2) {
     return !(r2.left > r1.right || 
               r2.right < r1.left || 
