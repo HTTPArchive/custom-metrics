@@ -6,7 +6,7 @@ return JSON.stringify(
         let tag = el.tagName.toLowerCase()
         acc[tag] = (typeof acc[tag] !== 'undefined') ? acc[tag] : 0
         acc[tag]++
-        return acc 
+        return acc
       }, {}
   )
 )

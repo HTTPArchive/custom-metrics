@@ -1,16 +1,16 @@
 
-/* 
-  What we're looking for here is elements with non-native, 
+/*
+  What we're looking for here is elements with non-native,
   author-created shadow roots.
 
-  ShadowRoots can be author-created on either 
-  
-  * the elements specifically in the allowed list 
-  
-  * on things parsed with valid custom element name productions. 
-  
+  ShadowRoots can be author-created on either
+
+  * the elements specifically in the allowed list
+
+  * on things parsed with valid custom element name productions.
+
   (see https://dom.spec.whatwg.org/#dom-element-attachshadow)
-  Since we are using the parsed DOM, we can simplify the second part a little 
+  Since we are using the parsed DOM, we can simplify the second part a little
 */
 
 var allowed = /^(article|aside|blockquote|body|div|footer|h1|h2|h3|h4|h5|h6|header|main|nav|p|section|span)$/i
@@ -32,11 +32,11 @@ function isValidCustomElementName(el) {
 function hasAuthorShadowRoot(el) {
     return (
         (
-            isValidCustomElementName(el) 
-            || 
+            isValidCustomElementName(el)
+            ||
             allowed.test(el.tagName)
-        ) 
-        && 
+        )
+        &&
         el.shadowRoot
     )
 }
