@@ -4,8 +4,8 @@ sorted by size from largest to smallest.
 This is the seed for generating a list of URLs to crawl from the given page.
 */
 const intersectRect = function (r1, r2) {
-    return !(r2.left > r1.right || 
-              r2.right < r1.left || 
+    return !(r2.left > r1.right ||
+              r2.right < r1.left ||
               r2.top > r1.bottom ||
               r2.bottom < r1.top);
 };
