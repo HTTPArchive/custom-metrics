@@ -33,7 +33,7 @@ const SassFunctions = [
 
   ...[
     "append", "index", "is-bracketed", "join",
-   "length", "set-nth", "nth", "zip"
+    "length", "set-nth", "nth", "zip"
   ].flatMap(n => ["list." + n, n]),
 
   // Map

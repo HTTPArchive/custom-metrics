@@ -245,7 +245,7 @@ function imgFeatures( img ) {
     hasWidth: img.hasAttribute( 'width' ) &&
               parseInt( img.getAttribute( 'width' ) ) > 0,
     hasHeight: img.hasAttribute( 'height' ) &&
-               parseInt( img.getAttribute( 'height' ) ) > 0
+              parseInt( img.getAttribute( 'height' ) ) > 0
   }
 
 }
@@ -353,10 +353,10 @@ function getImgData( img ) {
     https://html.spec.whatwg.org/multipage/images.html#updating-the-source-set
     */
     if ( imgData.hasSrc &&
-         img.getAttribute( 'src' ) !== '' &&
-         !( srcsetCandidates.filter( c => c.d === 1 ).length > 0 ) &&
-         !isFromSource &&
-         !( imgData.srcsetHasWDescriptors ) ) {
+          img.getAttribute( 'src' ) !== '' &&
+          !( srcsetCandidates.filter( c => c.d === 1 ).length > 0 ) &&
+          !isFromSource &&
+          !( imgData.srcsetHasWDescriptors ) ) {
       srcsetCandidates.push( {
         url: img.getAttribute( 'src' )
       } )

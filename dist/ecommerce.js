@@ -17,9 +17,9 @@ function fetchWithTimeout(url) {
 return Promise.all([
   fetchWithTimeout('/.well-known/assetlinks.json').then(function(r) {
     if(!r.redirected && r.status === 200) {
-     return 1;
+      return 1;
     } else {
-     return 0;
+      return 0;
     }
   }),
   fetchWithTimeout('/.well-known/apple-app-site-association').then(function(r) {
