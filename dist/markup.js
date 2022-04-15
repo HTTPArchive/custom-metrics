@@ -15,7 +15,7 @@ function logError(context, messageOrException, exception = null) {
   try {
     if (typeof messageOrException === 'string') {
       error.message = messageOrException;
-    } 
+    }
     else if (messageOrException instanceof Object) {
       error.exception = messageOrException;
 
@@ -59,8 +59,8 @@ try { // whole process is placed in a try/catch so we can log uncaught errors
 
     // noscript tag use
     // Used by SEO, Markup, 2019/09_28
-    'noscripts': (() => {   
-      try {   
+    'noscripts': (() => {
+      try {
         let result = {iframe_googletagmanager_count: 0};
 
         var nodes = [...document.querySelectorAll('noscript')];
@@ -68,7 +68,7 @@ try { // whole process is placed in a try/catch so we can log uncaught errors
         result.total = nodes.length;
 
         nodes.forEach((n) => {
-          if (n.innerHTML.match(/googletagmanager\.com/gi)) 
+          if (n.innerHTML.match(/googletagmanager\.com/gi))
             result.iframe_googletagmanager_count++;
         });
 
@@ -81,8 +81,8 @@ try { // whole process is placed in a try/catch so we can log uncaught errors
 
     // buttons
     // Used by Markup, 2019/09_28
-    'buttons': (() => {   
-      try {   
+    'buttons': (() => {
+      try {
         let result = {types: {}};
 
         var nodes = [...document.querySelectorAll('button')];
@@ -95,7 +95,7 @@ try { // whole process is placed in a try/catch so we can log uncaught errors
           if (type) {
               if (result.types[type])
                 result.types[type]++;
-              else 
+              else
                 result.types[type] = 1;
           }
         });
@@ -108,48 +108,48 @@ try { // whole process is placed in a try/catch so we can log uncaught errors
     })(),
 
     // forms
-    'form': (() => {   
-      try {   
+    'form': (() => {
+      try {
         let result = { target: {}, method: {}, elements: [] };
 
         var nodes = [...document.querySelectorAll("form")];
-        
+
         result.total = nodes.length;
-        
+
         nodes.forEach((n) => {
           let target = n.getAttribute("target");
-        
+
           if (target) {
             if (result.target[target]) result.target[target]++;
             else result.target[target] = 1;
           }
-        
+
           let method = n.getAttribute("method");
-        
+
           if (method) {
             if (result.method[method]) result.method[method]++;
             else result.method[method] = 1;
           }
-        
+
           var inputs = { tagNames: {}, types: {} };
-        
+
           var elements = [
             ...n.querySelectorAll(
               "input, label, select, textarea, button, fieldset, legend, datalist, output, option, optgroup"
             ),
           ];
-        
+
           elements.forEach((m) => {
             let tagName = m.tagName.toLowerCase();
-            
+
             if (inputs.tagNames[tagName]) {
               inputs.tagNames[tagName]++;
             } else {
               inputs.tagNames[tagName] = 1;
             }
-            
+
             let type = m.getAttribute("type");
-        
+
             if (type) {
               if (inputs.types[type]) {
                 inputs.types[type]++;
@@ -158,9 +158,9 @@ try { // whole process is placed in a try/catch so we can log uncaught errors
               }
             }
           });
-        
+
           result.elements.push({ ...inputs, total: elements.length });
-        });              
+        });
 
         return result;
       }
@@ -171,8 +171,8 @@ try { // whole process is placed in a try/catch so we can log uncaught errors
 
     // dir attributes
     // Used by Markup, 2019/09_28
-    'dirs': (() => {   
-      try {   
+    'dirs': (() => {
+      try {
         let result = {html_dir: null};
 
         function findDirs(selector) {
@@ -180,17 +180,17 @@ try { // whole process is placed in a try/catch so we can log uncaught errors
           var nodes = [...document.querySelectorAll(selector)];
 
           target.total = nodes.length;
-    
+
           nodes.forEach((n) => {
             let dir = n.getAttribute("dir");
-    
+
             if (dir) {
               if (target.values[dir])
                 target.values[dir]++;
-              else 
+              else
                 target.values[dir] = 1;
             }
-    
+
           });
           return target;
         };
@@ -199,7 +199,7 @@ try { // whole process is placed in a try/catch so we can log uncaught errors
 
         if (dir === "" || dir)
           result.html_dir = dir;
-        
+
         result.body_nodes_dir = findDirs('body *[dir]');
 
         return result;
@@ -213,8 +213,8 @@ try { // whole process is placed in a try/catch so we can log uncaught errors
     // Used by Markup, 2019/09_28
     // refactor: https://github.com/HTTPArchive/legacy.httparchive.org/pull/177#discussion_r461976290
     // probably not needed as almanac.js covers this
-    'inputs': (() => {   
-      try {   
+    'inputs': (() => {
+      try {
         let result = {types: {}};
 
         var nodes = [...document.querySelectorAll('input')];
@@ -227,7 +227,7 @@ try { // whole process is placed in a try/catch so we can log uncaught errors
           if (type) {
               if (result.types[type])
                 result.types[type]++;
-              else 
+              else
                 result.types[type] = 1;
           }
         });
@@ -254,7 +254,7 @@ try { // whole process is placed in a try/catch so we can log uncaught errors
 
           if (result.autoplay[autoplay])
             result.autoplay[autoplay]++;
-          else 
+          else
             result.autoplay[autoplay] = 1;
           });
 
@@ -316,10 +316,10 @@ try { // whole process is placed in a try/catch so we can log uncaught errors
               result.duplicate_ids_total++;
             }
             else {
-              ids[n.id] = 1; 
-              result.unique_ids_total++;         
+              ids[n.id] = 1;
+              result.unique_ids_total++;
             }
-        
+
         });
 
         return result;
@@ -330,16 +330,16 @@ try { // whole process is placed in a try/catch so we can log uncaught errors
     })(),
 
     // data on img tags including alt, loading, width & height attribute use
-    // Used by: SEO, Markup 
-    'images': (() => {   
-      try { 
+    // Used by: SEO, Markup
+    'images': (() => {
+      try {
         // pictures that contain img and multiple source elements
         // source elements in pictures (media and srcset attributes)
 
         // img also supports srcset
 
         // map with area attributes are also links (href, alt). Does google see them? An img references a map via the usemap attribute
-  
+
         let result = {
           picture: {
             total: 0
@@ -459,9 +459,9 @@ try { // whole process is placed in a try/catch so we can log uncaught errors
     })(),
 
     // data on iframe tags including loading
-    // Used by: SEO  
-    'iframes': (() => {   
-      try { 
+    // Used by: SEO
+    'iframes': (() => {
+      try {
         var nodes = document.querySelectorAll('iframe');
 
         let result = {
@@ -514,8 +514,8 @@ try { // whole process is placed in a try/catch so we can log uncaught errors
     })(),
 
     // amp related data
-    // Used by: SEO  
-    'amp': (() => {  
+    // Used by: SEO
+    'amp': (() => {
       try {
         let result = {};
 
@@ -549,10 +549,10 @@ try { // whole process is placed in a try/catch so we can log uncaught errors
       }
     })(),
 
-    // data-nosnippet use 
+    // data-nosnippet use
     // Used by: SEO
-    'data_nosnippet': (() => { 
-      try {    
+    'data_nosnippet': (() => {
+      try {
         // https://support.google.com/webmasters/answer/79812?hl=en
         // https://developers.google.com/search/reference/robots_meta_tag
         var validNodes = document.querySelectorAll('span[data-nosnippet], div[data-nosnippet], section[data-nosnippet]');
@@ -564,10 +564,10 @@ try { // whole process is placed in a try/catch so we can log uncaught errors
       }
     })(),
 
-    // markup info 
+    // markup info
     // Used by: Markup
-    'obsolete_elements': (() => {  
-      try {   
+    'obsolete_elements': (() => {
+      try {
         // https://html.spec.whatwg.org/multipage/obsolete.html#non-conforming-features
         // Array.from(document.querySelectorAll('dfn[data-dfn-type] code')).map(e => e.innerText).join(',')
         let result = {};
@@ -593,8 +593,8 @@ try { // whole process is placed in a try/catch so we can log uncaught errors
 
     // svg use
     // Used by Markup
-    'svgs': (() => {   
-      try {   
+    'svgs': (() => {
+      try {
         let result = {};
 
         result.svg_element_total = document.querySelectorAll('svg').length;
@@ -614,14 +614,14 @@ try { // whole process is placed in a try/catch so we can log uncaught errors
 
     // app
     // Used by Markup
-    'app': (() => {   
-      try {   
+    'app': (() => {
+      try {
         let result = {};
 
-        //  `<div id="app">` 
+        //  `<div id="app">`
         result.app_id_present = !!document.getElementById("app");
 
-        // `<meta name="theme-color">` 
+        // `<meta name="theme-color">`
         result.meta_theme_color = document.querySelector('meta[name="theme-color"i]')?.getAttribute('content') ?? null;
 
         return result;
@@ -637,7 +637,7 @@ catch(e) { // probably an un caught exception
   _custom_metrics = {};
 }
 
-// add any logged errors to the almanac 
+// add any logged errors to the almanac
 if (_logs.length > 0) {
   _custom_metrics.log = _logs;
 }

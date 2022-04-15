@@ -125,7 +125,7 @@ return JSON.stringify({
     }),
     //returns an array of the number of source files per video tag.
     'video_source_format_count': Array.from(document.querySelectorAll('video')).map(video => video.querySelectorAll('source').length),
-    //Returns all of the video types for each source file 
+    //Returns all of the video types for each source file
     'video_source_format_type': Array.from(document.querySelectorAll('video')).map(video => {
       return Array.from(video.querySelectorAll('source')).map(source => {
         return source.getAttribute('type')
