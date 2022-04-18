@@ -33,9 +33,9 @@ const getLinks = function(visibleOnly){
             const rect = e.getBoundingClientRect();
             const style = window.getComputedStyle(e);
             const is_visible = e.offsetParent !== null &&
-                               style.visibility !== 'hidden' &&
-                               style.display !== 'none' &&
-                               intersectRect(rect, viewport);
+                                style.visibility !== 'hidden' &&
+                                style.display !== 'none' &&
+                                intersectRect(rect, viewport);
             if (rect.width > 1 && rect.height > 1 && (is_visible || !visibleOnly) ) {
                 if (e && e.href.split('#')[0] != documentOrigin && sameOrigin(e.href, documentOrigin)) {
                     let size = rect.width * rect.height;
