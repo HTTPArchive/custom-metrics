@@ -16,11 +16,10 @@ name: Lint Code Base
 #############################
 on:
   workflow_dispatch:
-  push:
-    branches-ignore: [master, main]
-    # Remove the line above to run when pushing to master
   pull_request:
-    branches: [master, main]
+  push:
+    branches:
+      - main
 
 ###############
 # Set the Job #
@@ -65,7 +64,7 @@ jobs:
         env:
           DEFAULT_BRANCH: main
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          VALIDATE_ES: true
+          VALIDATE_JAVASCRIPT_ES: true
           VALIDATE_EDITORCONFIG: true
-          VALIDATE_MD: true
+          VALIDATE_MARKDOWN: true
           VALIDATE_YAML: true
