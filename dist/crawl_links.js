@@ -56,7 +56,7 @@ const getLinks = function(visibleOnly){
 let sortedLinks = getLinks(true);
 if (sortedLinks.length < 20) {
     let hiddenLinks = getLinks(false);
-    for (link of hiddenLinks) {
+    for (let link of hiddenLinks) {
         if (!sortedLinks.includes(link)) {
             sortedLinks.push(link);
         }
