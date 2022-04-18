@@ -24,30 +24,42 @@ const viewport = {
     right: (window.innerWidth || document.documentElement.clientWidth),
     bottom: (window.innerHeight || document.documentElement.clientHeight)
 };
-let links = {};
-const documentOrigin = window.location.href;
-const elements = document.links;
-for (let e of elements) {
-    try {
-        const rect = e.getBoundingClientRect();
-        const style = window.getComputedStyle(e);
-        if (rect.width > 1 && rect.height > 1 &&
-                e.offsetParent !== null &&
-                style.visibility !== 'hidden' &&
-                style.display !== 'none' &&
-                intersectRect(rect, viewport)) {
-            if (e && e.href.split('#')[0] != documentOrigin && sameOrigin(e.href, documentOrigin)) {
-                let size = rect.width * rect.height;
-                if (links[e.href] === undefined) {
-                    links[e.href] = size;
-                } else {
-                    links[e.href] += size;
+const getLinks = function(visibleOnly){
+    let links = {};
+    const documentOrigin = window.location.href;
+    const elements = document.links;
+    for (let e of elements) {
+        try {
+            const rect = e.getBoundingClientRect();
+            const style = window.getComputedStyle(e);
+            const is_visible = e.offsetParent !== null &&
+                               style.visibility !== 'hidden' &&
+                               style.display !== 'none' &&
+                               intersectRect(rect, viewport);
+            if (rect.width > 1 && rect.height > 1 && (is_visible || !visibleOnly) ) {
+                if (e && e.href.split('#')[0] != documentOrigin && sameOrigin(e.href, documentOrigin)) {
+                    let size = rect.width * rect.height;
+                    if (links[e.href] === undefined) {
+                        links[e.href] = size;
+                    } else {
+                        links[e.href] += size;
+                    }
                 }
             }
+        } catch (e) {
         }
-    } catch (e) {
+    }
+    let sortedLinks = Object.keys(links);
+    sortedLinks.sort((a, b) => links[a] <= links[b] ? 1 : -1);
+    return sortedLinks;
+}
+let sortedLinks = getLinks(true);
+if (sortedLinks.length < 20) {
+    let hiddenLinks = getLinks(false);
+    for (link of hiddenLinks) {
+        if (!sortedLinks.includes(link)) {
+            sortedLinks.push(link);
+        }
     }
 }
-let sortedLinks = Object.keys(links);
-sortedLinks.sort((a, b) => links[a] <= links[b] ? 1 : -1);
 return sortedLinks.slice(0, 20);
