@@ -36,7 +36,7 @@ for (let e of elements) {
                 style.visibility !== 'hidden' &&
                 style.display !== 'none' &&
                 intersectRect(rect, viewport)) {
-            if (e && e.href != documentOrigin && sameOrigin(e.href, documentOrigin)) {
+            if (e && e.href.split('#')[0] != documentOrigin && sameOrigin(e.href, documentOrigin)) {
                 let size = rect.width * rect.height;
                 if (links[e.href] === undefined) {
                     links[e.href] = size;
