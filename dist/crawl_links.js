@@ -3,7 +3,6 @@ Collects up to 20 same-origin in-viewport links from img, h[1-6] tags,
 sorted by size from largest to smallest.
 This is the seed for generating a list of URLs to crawl from the given page.
 */
-(function(){
 const intersectRect = function (r1, r2) {
     return !(r2.left > r1.right ||
               r2.right < r1.left ||
@@ -27,22 +26,28 @@ const viewport = {
 };
 let links = {};
 const documentOrigin = window.location.href;
-const elements = document.querySelectorAll('img, svg, h1, h2, h3, h4, h5, h6, a');
+const elements = document.links;
 for (let e of elements) {
-    const rect = e.getBoundingClientRect();
-    if (rect.width > 1 && rect.height > 1 && intersectRect(rect, viewport)) {
-        let link = e.nodeName == 'A' ? e : e.querySelector('a[href]') || e.closest('a[href]');
-        if (link && link.href != documentOrigin && sameOrigin(link.href, documentOrigin)) {
-            let size = rect.width * rect.height;
-            if (links[link.href] === undefined) {
-                links[link.href] = size;
-            } else {
-                links[link.href] += size;
+    try {
+        const rect = e.getBoundingClientRect();
+        const style = window.getComputedStyle(e);
+        if (rect.width > 1 && rect.height > 1 &&
+                e.offsetParent !== null &&
+                style.visibility !== 'hidden' &&
+                style.display !== 'none' &&
+                intersectRect(rect, viewport)) {
+            if (e && e.href != documentOrigin && sameOrigin(e.href, documentOrigin)) {
+                let size = rect.width * rect.height;
+                if (links[e.href] === undefined) {
+                    links[e.href] = size;
+                } else {
+                    links[e.href] += size;
+                }
             }
         }
+    } catch (e) {
     }
 }
 let sortedLinks = Object.keys(links);
 sortedLinks.sort((a, b) => links[a] <= links[b] ? 1 : -1);
 return sortedLinks.slice(0, 20);
-})();
