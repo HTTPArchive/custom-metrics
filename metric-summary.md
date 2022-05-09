@@ -2,7 +2,7 @@
 
 Here you will find a summary of all the metrics used in their respective custom metrics file
 
-## [almanac.js](https://github.com/HTTPArchive/legacy.httparchive.org/blob/master/custom_metrics/almanac.js) metrics
+## [almanac.js](https://github.com/HTTPArchive/custom-metrics/blob/main/dist/almanac.js) metrics
 
 ## 01.12
 Whether the page contains any instances of <script type=module>.
@@ -115,7 +115,7 @@ Example response:
 
 ## 10.5
 
-*DEPRECATED*. [See wpt_bodies.js](https://github.com/HTTPArchive/legacy.httparchive.org/blob/master/custom_metrics/wpt_bodies.js)
+*DEPRECATED*. [See wpt_bodies.js](https://github.com/HTTPArchive/custom-metrics/blob/main/dist/wpt_bodies.js)
 
 Extracts schema.org elements and finds all @context and @type usage.
 
@@ -135,7 +135,7 @@ Example response:
 
 ## seo-anchor-elements
 
-*DEPRECATED*. [See wpt_bodies.js](https://github.com/HTTPArchive/legacy.httparchive.org/blob/master/custom_metrics/wpt_bodies.js)
+*DEPRECATED*. [See wpt_bodies.js](https://github.com/HTTPArchive/custom-metrics/blob/main/dist/wpt_bodies.js)
 
 Finds the total number of internal, external and hash links.
 
@@ -723,7 +723,7 @@ Example response:
 [5, 12, 11]
 ```
 
-## [Images.js](https://github.com/HTTPArchive/legacy.httparchive.org/blob/master/custom_metrics/Images.js) metrics
+## [Images.js](https://github.com/HTTPArchive/custom-metrics/blob/main/dist/Images.js) metrics
 
 A JSON array of `<img>` elements on the page.
 
