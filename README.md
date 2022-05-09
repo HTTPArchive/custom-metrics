@@ -6,7 +6,7 @@ HTTP Archive uses WebPageTest (WPT) to collect information about how web pages a
 
 To add a new custom metric to HTTP Archive:
 
-0. Select the appropriate `js` file. Some custom metrics are small and single-purpose while others return many metrics for a given topic, like [`media.js`](./media.js) and [`almanac.js`](./almanac.js). Create a new file if you're not sure where your script belongs.
+0. Select the appropriate `js` file. Some custom metrics are small and single-purpose while others return many metrics for a given topic, like [`media.js`](./dist/media.js) and [`almanac.js`](./dist/almanac.js). Create a new file if you're not sure where your script belongs.
 
 1. For scripts that return a JSON object, the key should be named according to what it's measuring, for example `meta-nodes` returns an array of all `<meta>` nodes and their attributes:
 
@@ -46,7 +46,7 @@ To see the custom metric results, select a run, first click on "Details", and th
 
 ![image](https://user-images.githubusercontent.com/1120896/88727208-24beaa80-d0fd-11ea-8ae1-57df2c8505e4.png)
 
-For complex metrics like [almanac.js](./almanac.js) you can more easily explore the results by copy/pasting the JSON into your browser console.
+For complex metrics like [almanac.js](./dist/almanac.js) you can more easily explore the results by copy/pasting the JSON into your browser console.
 
 ## Linting
 
