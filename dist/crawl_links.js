@@ -26,7 +26,7 @@ const viewport = {
 };
 const getLinks = function(visibleOnly){
     let links = {};
-    const documentOrigin = $WPT_URL;
+    const documentOrigin = $WPT_TEST_URL;
     const elements = document.links;
     for (let e of elements) {
         try {
