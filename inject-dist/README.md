@@ -1,6 +1,6 @@
-<img width="648" alt="image" src="https://user-images.githubusercontent.com/1120896/169384297-79bf6cb5-b0e5-4476-8b66-fce1fc87c765.png">
-
 # Script injection
+
+<img width="648" alt="image" src="https://user-images.githubusercontent.com/1120896/169384297-79bf6cb5-b0e5-4476-8b66-fce1fc87c765.png">
 
 Scripts injected by WebPageTest onto each page.
 
