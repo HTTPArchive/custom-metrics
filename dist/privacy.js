@@ -311,4 +311,6 @@ return JSON.stringify({
       'navigator.+geolocation.+watchPosition'
     ),
   },
+  
+  userAgent: observers.userAgent
 });
