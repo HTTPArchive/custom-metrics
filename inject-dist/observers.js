@@ -16,4 +16,4 @@ Object.defineProperty(navigator, 'userAgent', {
         // Return the original feature.
         return httparchive_init.navigator.userAgent;
     }
-})
+});
