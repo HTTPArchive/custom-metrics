@@ -312,5 +312,5 @@ return JSON.stringify({
     ),
   },
   
-  userAgent: observers.userAgent
+  userAgent: httparchive_observers.userAgent
 });
