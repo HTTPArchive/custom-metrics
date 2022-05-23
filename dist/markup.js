@@ -625,6 +625,20 @@ try { // whole process is placed in a try/catch so we can log uncaught errors
       catch(e) {
         return logError("app", e);
       }
+    })(),
+
+    'anchors': (() => {
+      // https://url.spec.whatwg.org/#special-scheme
+      const SPECIAL_SCHEMES = new Set(['ftp:', 'file:', 'http:', 'https:', 'ws:', 'wss:']);
+
+      const hrefs_without_special_scheme = Array.from(document.querySelectorAll('a[href]')).filter(a => {
+        const url = new URL(a.href);
+        return !SPECIAL_SCHEMES.has(url.protocol);
+      }).map(a => a.href);
+      
+      return {
+        hrefs_without_special_scheme
+      };
     })()
   };
 }
