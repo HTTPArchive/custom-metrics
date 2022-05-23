@@ -1,10 +1,6 @@
 //[markup]
 // Uncomment the previous line for testing on webpagetest.org
 
-// Instructions for adding a new custom metric are in almanac.js.
-
-// output size ~ 1.5k to 2k
-
 var _logs = [];
 // saves the error details in the results log property.
 // returns the same error object so that it can be also used as the return value for a property.
