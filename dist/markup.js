@@ -638,10 +638,10 @@ try { // whole process is placed in a try/catch so we can log uncaught errors
         } catch (e) {
           return false;
         }
-        
+
         return !SPECIAL_SCHEMES.has(url.protocol);
       }).map(a => a.href);
-      
+
       return {
         hrefs_without_special_scheme
       };
