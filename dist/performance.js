@@ -3,13 +3,13 @@
 const response_bodies = $WPT_BODIES;
 
 function getRawHtmlDocument() {
-    let _rawHtml;
-    if (_wptBodies.length > 0) {
-        _rawHtml = _wptBodies[0].response_body;
+    let rawHtml;
+    if (response_bodies.length > 0) {
+        rawHtml = response_bodies[0].response_body;
     }
 
     rawHtmlDocument = document.implementation.createHTMLDocument("New Document");
-    rawHtmlDocument.documentElement.innerHTML = html;
+    rawHtmlDocument.documentElement.innerHTML = rawHtml;
 
     return rawHtmlDocument;
 }
@@ -51,14 +51,22 @@ function getWebVitalsJS() {
 return Promise.all([getLcpElement()]).then(lcp_elem_stats => {
     const rawDoc = getRawHtmlDocument();
     const isLcpDiscoverable = !!Array.from(rawDoc.querySelectorAll('img')).find(img => {
-        return img.src == lcp_elem_stats.url;
+        return img.src == lcp_elem_stats[0].url;
     });
     const isLcpPreloaded = !!Array.from(rawDoc.querySelectorAll('head link')).find(link => {
-        return link.rel == 'preload' && link.href == lcp_elem_stats.url;
+        return link.rel == 'preload' && link.href == lcp_elem_stats[0].url;
     });
+    const responseObject = response_bodies.find(r => {
+        return r.url == lcp_elem_stats[0].url;
+    });
+    if (responseObject) {
+        // Don't write the response body to custom metrics.
+        responseObject.response_body = undefined;
+    }
 
     return {
         lcp_elem_stats,
+        lcp_resource: responseObject,
         is_lcp_discoverable: isLcpDiscoverable,
         is_lcp_preloaded: isLcpPreloaded,
         web_vitals_js: getWebVitalsJS()
