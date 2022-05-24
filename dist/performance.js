@@ -50,18 +50,24 @@ function getWebVitalsJS() {
 
 return Promise.all([getLcpElement()]).then(lcp_elem_stats => {
     const rawDoc = getRawHtmlDocument();
-    const isLcpDiscoverable = !!Array.from(rawDoc.querySelectorAll('img')).find(img => {
-        return img.src == lcp_elem_stats[0].url;
-    });
-    const isLcpPreloaded = !!Array.from(rawDoc.querySelectorAll('head link')).find(link => {
-        return link.rel == 'preload' && link.href == lcp_elem_stats[0].url;
-    });
-    const responseObject = response_bodies.find(r => {
-        return r.url == lcp_elem_stats[0].url;
-    });
-    if (responseObject) {
-        // Don't write the response body to custom metrics.
-        responseObject.response_body = undefined;
+    let isLcpDiscoverable = null;
+    let isLcpPreloaded = null;
+    let responseObject = null;
+    const isLcpExternalResource = lcp_elem_stats[0].url != '';
+    if (isLcpExternalResource) {
+        isLcpDiscoverable = !!Array.from(rawDoc.querySelectorAll('img')).find(img => {
+            return img.src == lcp_elem_stats[0].url;
+        });
+        isLcpPreloaded = !!Array.from(rawDoc.querySelectorAll('head link')).find(link => {
+            return link.rel == 'preload' && link.href == lcp_elem_stats[0].url;
+        });
+        const responseObject = response_bodies.find(r => {
+            return r.url == lcp_elem_stats[0].url;
+        });
+        if (responseObject) {
+            // Don't write the response body to custom metrics.
+            responseObject.response_body = undefined;
+        }
     }
 
     return {
