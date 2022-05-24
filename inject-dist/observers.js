@@ -13,7 +13,10 @@ const OBSERVERS = [
   'performance.timing.__proto__.*',
   'Array.prototype.*',
   'String.prototype.*',
-  'Object.prototype.*'
+  'Object.prototype.*',
+  'requestIdleCallback',
+  'queueMicrotask',
+  'scheduler.postTask'
 ];
 
 
