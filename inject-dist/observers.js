@@ -52,7 +52,7 @@ function initializeObserver(pathname) {
   const prop = props.at(-1);
   let parentPathname;
   let original;
-  
+
   if (props.at(-2) == '__proto__') {
     // Omit __proto__ for observation purposes.
     parentPathname = props.slice(0, -2).join('.');
