@@ -2,6 +2,18 @@
 
 const response_bodies = $WPT_BODIES;
 
+function getRawHtmlDocument() {
+    let _rawHtml;
+    if (_wptBodies.length > 0) {
+        _rawHtml = _wptBodies[0].response_body;
+    }
+
+    rawHtmlDocument = document.implementation.createHTMLDocument("New Document");
+    rawHtmlDocument.documentElement.innerHTML = html;
+
+    return rawHtmlDocument;
+}
+
 function getLcpElement() {
     return new Promise((resolve) => {
         new PerformanceObserver((entryList) => {
@@ -37,8 +49,18 @@ function getWebVitalsJS() {
 }
 
 return Promise.all([getLcpElement()]).then(lcp_elem_stats => {
+    const rawDoc = getRawHtmlDocument();
+    const isLcpDiscoverable = !!Array.from(rawDoc.querySelectorAll('img')).find(img => {
+        return img.src == lcp_elem_stats.url;
+    });
+    const isLcpPreloaded = !!Array.from(rawDoc.querySelectorAll('head link')).find(link => {
+        return link.rel == 'preload' && link.href == lcp_elem_stats.url;
+    });
+
     return {
         lcp_elem_stats,
+        is_lcp_discoverable: isLcpDiscoverable,
+        is_lcp_preloaded: isLcpPreloaded,
         web_vitals_js: getWebVitalsJS()
     };
 });
