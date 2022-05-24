@@ -61,7 +61,7 @@ return Promise.all([getLcpElement()]).then(lcp_elem_stats => {
         isLcpPreloaded = !!Array.from(rawDoc.querySelectorAll('head link')).find(link => {
             return link.rel == 'preload' && link.href == lcp_elem_stats[0].url;
         });
-        const responseObject = response_bodies.find(r => {
+        responseObject = response_bodies.find(r => {
             return r.url == lcp_elem_stats[0].url;
         });
         if (responseObject) {
