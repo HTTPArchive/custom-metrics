@@ -53,7 +53,7 @@ try {
 
 	function getHeaderRobotsMeta(headers) {
 		let common_bots_set = new Set(common_bots);
-		let parsed_headers = getResponseHeaders(headers, "x-robots-tag");
+		let parsed_headers = getResponseHeaders(headers, "x-robots-tag") || [];
 		return Object.fromEntries(Array.from(parsed_headers).map(robots=>{
 			let parts = robots.trim().toLowerCase().split(":");
 			return [parts.shift(), parts.join(":")];
