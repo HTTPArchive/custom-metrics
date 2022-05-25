@@ -14,10 +14,15 @@ const OBSERVERS = [
   'Array.prototype.*',
   'String.prototype.*',
   'Object.prototype.*',
+  'document.featurePolicy',
   'requestIdleCallback',
   'queueMicrotask',
   'scheduler.postTask'
 ];
+
+const PROPERTIES_TO_TRACE = new Set([
+  'navigator.userAgent'
+]);
 
 
 function resolveObject(pathname) {
@@ -77,7 +82,25 @@ function initializeObserver(pathname) {
     Object.defineProperty(parentObj, prop, {
       configurable: true,
       get: () => {
-        if (httparchive_enable_observations) {
+        if (!httparchive_enable_observations) {
+          return original;
+        }
+
+        if (PROPERTIES_TO_TRACE.has(pathname)) {
+          // Construct a stack trace.
+          console.log('RAV constructing a trace for', pathname)
+          let stack;
+          try {
+            throw new Error();
+          } catch (e) {
+            stack = e.stack;
+          }
+          let stackCounter = httparchive_observers[pathname];
+          if (!stackCounter[stack]) {
+            stackCounter[stack] = 0;
+          }
+          stackCounter[stack]++;
+        } else {
           // Increment the feature counter.
           httparchive_observers[pathname]++;
         }
@@ -91,7 +114,11 @@ function initializeObserver(pathname) {
     return;
   }
 
-  httparchive_observers[pathname] = 0;
+  if (PROPERTIES_TO_TRACE.has(pathname)) {
+    httparchive_observers[pathname] = {};
+  } else {
+    httparchive_observers[pathname] = 0;
+  }
 }
 
 OBSERVERS.forEach(pathname => {
