@@ -193,7 +193,7 @@ return JSON.stringify({
    *
    * Test site: https://www.theverge.com/
    */
-  navigator_doNotTrack: testPropertyStringInResponseBodies('navigator.+doNotTrack'),
+  navigator_doNotTrack: httparchive_observers.doNotTrack,
 
   /**
    * Global Privacy Control
@@ -201,9 +201,7 @@ return JSON.stringify({
    *
    * Test site: https://global-privacy-control.glitch.me/
    */
-  navigator_globalPrivacyControl: testPropertyStringInResponseBodies(
-    'navigator.+globalPrivacyControl'
-  ),
+  document_globalPrivacyControl: httparchive_observers.globalPrivacyControl,
 
   // Sensitive resources
 
@@ -217,7 +215,7 @@ return JSON.stringify({
    * Feature policy
    * (previous name of Permission policy: https://www.w3.org/TR/permissions-policy-1/#introduction)
    */
-  document_featurePolicy: testPropertyStringInResponseBodies('document.+featurePolicy'),
+  document_featurePolicy: httparchive_observers.featurePolicy,
 
   // Permissions Policy / Feature Policy on iframes already implemented in `security.js` custom metrics.
 
