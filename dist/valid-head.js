@@ -13,10 +13,9 @@ try {
     if (pe.length > 0) {
         pe[0].remove()
     }
-    
+
     var head = xmlDoc.getElementsByTagName("head")[0]
     var nodes = head.getElementsByTagName("*")
-    
 
     let data = {
         "invalidElements":  [],
