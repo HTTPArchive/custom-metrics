@@ -1314,6 +1314,65 @@ try { // whole process is placed in a try/catch so we can log uncaught errors
       catch(e) {
         return logError("visible_words", e);
       }
+    })(),
+
+    'web_components': (() => {
+      function getNodeName(el) {
+        return el.nodeName.toLowerCase();
+      }
+
+      function getStats(elements) {
+        // Checking which web comp spec is used by found web_components (template, shadow_dom, custom_elements)
+        var shadowRoots = elements.filter(e => e.shadowRoot);
+        var templates = elements.flatMap(e => {
+          let templates = Array.from(e.querySelectorAll('template'));
+
+          return templates.map(t => {
+            return Object.fromEntries(t.getAttributeNames().map(a => ([a, t.getAttribute(a)])));
+          });
+        });
+        var slots = elements.map(e => e.querySelectorAll('slot').length);
+
+        return {
+          names: elements.map(getNodeName),
+          shadowRoots: shadowRoots.map(getNodeName),
+          templates,
+          slots
+        };
+      }
+
+      function getWebComponents(d) {
+        var elements_with_hyphen = Array.from(d.getElementsByTagName('*')).filter(e => {
+          return e.nodeName.includes('-');
+        });
+
+        var unique_elements_with_hyphen = [...new Set(elements_with_hyphen.map(e => e.nodeName))].map(element => {
+          return elements_with_hyphen.find(e => e.nodeName === element);
+        });
+
+        var web_components = unique_elements_with_hyphen.filter(e => {
+          return customElements.get(e.nodeName.toLowerCase());
+        });
+
+        return {
+          customElements: getStats(web_components),
+          hyphenatedElements: getStats(unique_elements_with_hyphen)
+        };
+      }
+
+      let rendered, raw;
+
+      rendered = getWebComponents(document);
+
+      let rawHtmlDocument = getRawHtmlDocument();
+      if (rawHtmlDocument){
+        raw = getWebComponents(rawHtmlDocument);
+      }
+
+      return {
+        rendered,
+        raw
+      };
     })()
   };
 

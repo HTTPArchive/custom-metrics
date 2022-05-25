@@ -1,10 +1,6 @@
 //[markup]
 // Uncomment the previous line for testing on webpagetest.org
 
-// Instructions for adding a new custom metric are in almanac.js.
-
-// output size ~ 1.5k to 2k
-
 var _logs = [];
 // saves the error details in the results log property.
 // returns the same error object so that it can be also used as the return value for a property.
@@ -629,6 +625,26 @@ try { // whole process is placed in a try/catch so we can log uncaught errors
       catch(e) {
         return logError("app", e);
       }
+    })(),
+
+    'anchors': (() => {
+      // https://url.spec.whatwg.org/#special-scheme
+      const SPECIAL_SCHEMES = new Set(['ftp:', 'file:', 'http:', 'https:', 'ws:', 'wss:']);
+
+      const hrefs_without_special_scheme = Array.from(document.querySelectorAll('a[href]')).filter(a => {
+        let url;
+        try {
+          url = new URL(a.href);
+        } catch (e) {
+          return false;
+        }
+
+        return !SPECIAL_SCHEMES.has(url.protocol);
+      }).map(a => a.href);
+
+      return {
+        hrefs_without_special_scheme
+      };
     })()
   };
 }
