@@ -215,7 +215,7 @@ return JSON.stringify({
   'priority-hints': (() => {
     // Returns a JSON array of prioritized nodes and their key/value attributes.
     // Used by 19.8, 19.9, and 19.10.
-    var nodes = document.querySelectorAll('link[importance], img[importance], script[importance], iframe[importance]');
+    var nodes = document.querySelectorAll('link[importance], link[fetchpriority], img[importance], img[fetchpriority], script[importance], script[fetchpriority], iframe[importance], iframe[fetchpriority]');
     return parseNodes(nodes);
   })(),
   'meta-nodes': (() => {
