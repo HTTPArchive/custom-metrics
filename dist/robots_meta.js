@@ -8,12 +8,13 @@
 try {
 
 	const response_bodies = $WPT_BODIES;
-
+  
+  // This block can be edited later without further code adjustments.
+  const common_bots = ["bingbot", "msnbot", "google", "googlebot", "googlebot-news", "googleweblight", "robots", "otherbot"];
 	const valid_types = ["noindex", "index", "follow", "none", "nofollow", "noarchive", "nosnippet", "unavailable_after", "max-snippet", "max-image-preview", "max-video-preview", "notranslate", "noimageindex", "nocache", "indexifembedded"];
 	const noindex_types = ["noindex", "none"];
 	const nofollow_types = ["noindex", "none", "nofollow"];
-	const common_bots = ["bingbot", "msnbot", "google", "googlebot", "googlebot-news", "googleweblight", "robots", "otherbot"];
-
+  // End block
 
 	function getDocumentIframes() {
 		return new Set(Array.from(document.querySelectorAll('iframe')).map(iframe=>iframe.src).filter(url=>url.length));
