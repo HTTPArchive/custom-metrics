@@ -17,8 +17,9 @@ const OBSERVERS = [
   'String.prototype.*',
   'Object.prototype.*',
   'document.featurePolicy',
-  'requestIdleCallback',
+  'document.write',
   'queueMicrotask',
+  'requestIdleCallback',
   'scheduler.postTask'
 ];
 
@@ -118,7 +119,7 @@ function initializeObserver(pathname) {
   if (PROPERTIES_TO_TRACE.has(pathname)) {
     httparchive_observers.call_stacks[pathname] = {};
   }
-  
+
   httparchive_observers[pathname] = 0;
 }
 
