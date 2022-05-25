@@ -52,7 +52,7 @@ function parseResponseWithRedirects(url, parser) {
   return fetchWithTimeout(url)
     .then(request => {
       let resultObj = {};
-      resultObj['found'] = true;
+
       if (parser) {
         let promise = parser(request);
         if (promise) {
