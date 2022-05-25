@@ -110,7 +110,7 @@ try {
         }
         [...Object.entries(robots_headers[bot])].forEach(item=>{
         result_headers[bot][item[0]] += item[1] ? 1 : 0;
-       });
+        });
       }
     });
 
@@ -123,7 +123,7 @@ try {
 
   function formatCrawlData(processed){
     const nofollow_types_set = new Set(nofollow_types);
-    const noindex_types_set = new Set(noindex_types);	
+    const noindex_types_set = new Set(noindex_types);
     return Object.fromEntries(Object
                               .entries(processed)
                               .map(item => {
