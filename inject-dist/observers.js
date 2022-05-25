@@ -1,6 +1,8 @@
 // Note: Using prefixed variable to avoid naming collisions in the global scope.
 // This name must exactly match the one referenced in custom metrics.
-const httparchive_observers = {};
+const httparchive_observers = {
+  call_stacks: {}
+};
 let httparchive_enable_observations = false;
 
 // Local scope.
@@ -94,15 +96,15 @@ function initializeObserver(pathname) {
           } catch (e) {
             stack = e.stack;
           }
-          let stackCounter = httparchive_observers[pathname];
+          let stackCounter = httparchive_observers.call_stacks[pathname];
           if (!stackCounter[stack]) {
             stackCounter[stack] = 0;
           }
           stackCounter[stack]++;
-        } else {
-          // Increment the feature counter.
-          httparchive_observers[pathname]++;
         }
+
+        // Increment the feature counter.
+        httparchive_observers[pathname]++;
 
         // Return the original feature.
         return original;
@@ -114,10 +116,10 @@ function initializeObserver(pathname) {
   }
 
   if (PROPERTIES_TO_TRACE.has(pathname)) {
-    httparchive_observers[pathname] = {};
-  } else {
-    httparchive_observers[pathname] = 0;
+    httparchive_observers.call_stacks[pathname] = {};
   }
+  
+  httparchive_observers[pathname] = 0;
 }
 
 OBSERVERS.forEach(pathname => {
