@@ -49,25 +49,22 @@ function getWebVitalsJS() {
 }
 
 return Promise.all([getLcpElement()]).then(lcp_elem_stats => {
+    const lcpUrl = lcp_elem_stats[0].url;
     const rawDoc = getRawHtmlDocument();
     let isLcpDiscoverable = null;
     let isLcpPreloaded = null;
     let responseObject = null;
-    const isLcpExternalResource = lcp_elem_stats[0].url != '';
+    const isLcpExternalResource = lcpUrl != '';
     if (isLcpExternalResource) {
-        isLcpDiscoverable = !!Array.from(rawDoc.querySelectorAll('picture source, img')).find(img => {
-            let lcpUrl = img.src;
-            if (img.tagName == 'SOURCE') {
-                lcpUrl = img.srcset;
-            }
-
-            return lcpUrl == lcp_elem_stats[0].url;
+        isLcpDiscoverable = !!Array.from(rawDoc.querySelectorAll('picture source, img')).find(i => {
+            const src = i.src || i.srcset;
+            return src == lcpUrl;
         });
         isLcpPreloaded = !!Array.from(rawDoc.querySelectorAll('head link')).find(link => {
-            return link.rel == 'preload' && link.href == lcp_elem_stats[0].url;
+            return link.rel == 'preload' && link.href == lcpUrl;
         });
         responseObject = response_bodies.find(r => {
-            return r.url == lcp_elem_stats[0].url;
+            return r.url == lcpUrl;
         });
         if (responseObject) {
             // Don't write the response body to custom metrics.
