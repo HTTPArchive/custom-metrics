@@ -88,7 +88,6 @@ function initializeObserver(pathname) {
 
         if (PROPERTIES_TO_TRACE.has(pathname)) {
           // Construct a stack trace.
-          console.log('RAV constructing a trace for', pathname)
           let stack;
           try {
             throw new Error();
