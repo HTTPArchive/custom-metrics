@@ -17,3 +17,11 @@ Object.defineProperty(navigator, 'userAgent', {
         return httparchive_init.navigator.userAgent;
     }
 });
+
+let httparchive_longTasks = [];
+new PerformanceObserver(function(list) {
+    let entries = list.getEntries();
+    for (let i = 0; i < entries.length; i++) {
+        httparchive_longTasks = [...httparchive_longTasks, entries[i].duration];
+    }
+}).observe({entryTypes: ["longtask"]});

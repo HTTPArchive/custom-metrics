@@ -91,6 +91,18 @@ return JSON.stringify({
         };
 
         return noscript_data;
-    })()
+    })(),
+
+    longTasks: (() => {
+      if (httparchive_longTasks) {
+        return {
+          count: httparchive_longTasks.length,
+          total: httparchive_longTasks.reduce((acc, n) => acc + n, 0),
+          max: Math.max(0, ...httparchive_longTasks),
+        };
+      }
+  
+      return null;
+    })(),
 
 });
