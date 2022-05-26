@@ -1,7 +1,8 @@
 // Note: Using prefixed variable to avoid naming collisions in the global scope.
 // This name must exactly match the one referenced in custom metrics.
 const httparchive_observers = {
-  call_stacks: {}
+  call_stacks: {},
+  function_values: {}
 };
 let httparchive_enable_observations = false;
 
@@ -20,12 +21,24 @@ const OBSERVERS = [
   'document.write',
   'queueMicrotask',
   'requestIdleCallback',
-  'scheduler.postTask'
+  'scheduler.postTask',
+  'window.matchMedia'
 ];
 
 const PROPERTIES_TO_TRACE = new Set([
   'navigator.userAgent'
 ]);
+
+// for each observer: custom function to determine which part of the argument should be captured
+const FUNCTION_CALL_ARGUMENTS_TO_CAPTURE = {
+  "window.matchMedia": function (arg) {
+    const m = arg.match(/\(([^:)]+)[:)]/);
+    if (m) {
+      return m[1];
+    }
+    return null;
+  }
+}
 
 
 function resolveObject(pathname) {
@@ -73,9 +86,11 @@ function initializeObserver(pathname) {
 
   pathname = `${parentPathname}.${prop}`;
   const parentObj = resolveObject(parentPathname);
+  let toReturn;
 
   try {
     original = parentObj[prop];
+    toReturn = original;
   } catch (e) {
     // The property is not accessible.
     return;
@@ -86,7 +101,7 @@ function initializeObserver(pathname) {
       configurable: true,
       get: () => {
         if (!httparchive_enable_observations) {
-          return original;
+          return toReturn;
         }
 
         if (PROPERTIES_TO_TRACE.has(pathname)) {
@@ -104,11 +119,22 @@ function initializeObserver(pathname) {
           stackCounter[stack]++;
         }
 
+        if (pathname in FUNCTION_CALL_ARGUMENTS_TO_CAPTURE) {
+          toReturn = function () {
+            const function_value = FUNCTION_CALL_ARGUMENTS_TO_CAPTURE[pathname].apply(this, arguments);
+            if (!httparchive_observers.function_values[pathname][function_value]) {
+              httparchive_observers.function_values[pathname][function_value] = 0;
+            }
+            httparchive_observers.function_values[pathname][function_value]++;
+            return original.apply(this, arguments);
+          }
+        }
+
         // Increment the feature counter.
         httparchive_observers[pathname]++;
 
         // Return the original feature.
-        return original;
+        return toReturn;
       }
     });
   } catch (e) {
@@ -118,6 +144,10 @@ function initializeObserver(pathname) {
 
   if (PROPERTIES_TO_TRACE.has(pathname)) {
     httparchive_observers.call_stacks[pathname] = {};
+  }
+
+  if (pathname in FUNCTION_CALL_ARGUMENTS_TO_CAPTURE) {
+    httparchive_observers.function_values[pathname] = {};
   }
 
   httparchive_observers[pathname] = 0;
