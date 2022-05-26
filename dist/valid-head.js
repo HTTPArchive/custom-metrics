@@ -20,7 +20,7 @@ try {
         "invalidHead": false
     }
     var valid_elements = ['title', 'meta', 'link', 'script', 'style', 'base', 'noscript', 'template']
-        for (var i=0; i<nodes.length;i++) {
+    for (var i = 0; i < nodes.length; i++) {
         let tagname = nodes[i].tagName.toLowerCase()
         if (!valid_elements.includes(tagname)) {
             data.invalidElements.push(tagname);
