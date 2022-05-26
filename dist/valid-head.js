@@ -8,7 +8,7 @@ try {
     // create in interrupt element which prevents truncation.
     html = html.replace('</head>', "<interrupt />\n</head>");
 
-    var doc = document.implementation.createHTMLDocument("New Document"); 
+    var doc = document.implementation.createHTMLDocument("New Document");
     var head = doc.createElement("div");
     head.innerHTML = html;
 
