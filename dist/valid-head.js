@@ -29,7 +29,6 @@ try {
     }
     return data;
 } catch (err) {
-    console.log(err);
   {
       return {error: err.toString()};
   }
