@@ -87,7 +87,7 @@ function getWebVitalsJS() {
 return Promise.all([getLcpElement()]).then(([lcp_elem_stats]) => {
     const lcpUrl = lcp_elem_stats.url;
     const rawDoc = getRawHtmlDocument();
-    let isLcpDiscoverable = null;
+    let isLcpStaticallyDiscoverable = null;
     let isLcpPreloaded = null;
     let responseObject = null;
     let rawLcpElement = null;
@@ -102,7 +102,7 @@ return Promise.all([getLcpElement()]).then(([lcp_elem_stats]) => {
 
             return src == lcpUrl;
         });
-        isLcpDiscoverable = !!rawLcpElement;
+        isLcpStaticallyDiscoverable = !!rawLcpElement;
         isLcpPreloaded = !!Array.from(rawDoc.querySelectorAll('link')).find(link => {
             return link.rel == 'preload' && link.href == lcpUrl;
         });
@@ -119,7 +119,7 @@ return Promise.all([getLcpElement()]).then(([lcp_elem_stats]) => {
         lcp_elem_stats,
         raw_lcp_element: summarizeLcpElement(rawLcpElement),
         lcp_resource: responseObject,
-        is_lcp_discoverable: isLcpDiscoverable,
+        is_lcp_statically_discoverable: isLcpStaticallyDiscoverable,
         is_lcp_preloaded: isLcpPreloaded,
         web_vitals_js: getWebVitalsJS()
     };
