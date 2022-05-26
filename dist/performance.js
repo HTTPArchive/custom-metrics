@@ -93,6 +93,7 @@ return Promise.all([getLcpElement()]).then(([lcp_elem_stats]) => {
     let rawLcpElement = null;
     const isLcpExternalResource = lcpUrl != '';
     if (isLcpExternalResource) {
+        // Check if LCP resource reference is in the raw HTML (as opposed to being injected later by JS)
         rawLcpElement = Array.from(rawDoc.querySelectorAll('picture source, img')).find(i => {
             let src = i.src;
             if (i.nodeName == 'SOURCE') {
@@ -102,7 +103,7 @@ return Promise.all([getLcpElement()]).then(([lcp_elem_stats]) => {
             return src == lcpUrl;
         });
         isLcpDiscoverable = !!rawLcpElement;
-        isLcpPreloaded = !!Array.from(rawDoc.querySelectorAll('head link')).find(link => {
+        isLcpPreloaded = !!Array.from(rawDoc.querySelectorAll('link')).find(link => {
             return link.rel == 'preload' && link.href == lcpUrl;
         });
         responseObject = response_bodies.find(r => {
