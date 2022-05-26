@@ -23,22 +23,58 @@ function getLcpElement() {
             resolve(naiveLcpEntry);
         }).observe({ type: "largest-contentful-paint", buffered: true });
     }).then(({ startTime, element, url, size, loadTime, renderTime }) => {
-        let attributes = [];
-        for (let index = 0; index < element.attributes.length; index++) {
-            const ele = element.attributes.item(index);
-            attributes[index] = { name: ele.name, value: ele.value };
-        }
-
+        const attributes = getAttributes(element);
+        const styles = getComputedStyles(element, ['background-image']);
         return {
             startTime,
-            nodeName: element.nodeName,
+            nodeName: element?.nodeName,
             url,
             size,
             loadTime,
             renderTime,
             attributes,
+            boundingClientRect: element?.getBoundingClientRect().toJSON(),
+            naturalWidth: element?.naturalWidth,
+            naturalHeight: element?.naturalHeight,
+            styles
         };
     });
+}
+
+function getAttributes(element) {
+    if (!element) {
+        return null;
+    }
+
+    return Array.from(element.attributes).map(attr => {
+        return {
+            name: attr.name,
+            value: attr.value
+        };
+    });
+}
+
+function getComputedStyles(element, properties) {
+    if (!element) {
+        return null;
+    }
+
+    const styles = getComputedStyle(element);
+    return Object.fromEntries(properties.map(prop => ([prop, styles.getPropertyValue(prop)])));
+}
+
+function summarizeLcpElement(element) {
+    if (!element) {
+        return null;
+    }
+
+    const nodeName = element.nodeName;
+    const attributes = getAttributes(element);
+
+    return {
+        nodeName,
+        attributes
+    }
 }
 
 function getWebVitalsJS() {
@@ -48,18 +84,24 @@ function getWebVitalsJS() {
     }).map(har => har.url);
 }
 
-return Promise.all([getLcpElement()]).then(lcp_elem_stats => {
-    const lcpUrl = lcp_elem_stats[0].url;
+return Promise.all([getLcpElement()]).then(([lcp_elem_stats]) => {
+    const lcpUrl = lcp_elem_stats.url;
     const rawDoc = getRawHtmlDocument();
     let isLcpDiscoverable = null;
     let isLcpPreloaded = null;
     let responseObject = null;
+    let rawLcpElement = null;
     const isLcpExternalResource = lcpUrl != '';
     if (isLcpExternalResource) {
-        isLcpDiscoverable = !!Array.from(rawDoc.querySelectorAll('picture source, img')).find(i => {
-            const src = i.src || i.srcset;
+        rawLcpElement = Array.from(rawDoc.querySelectorAll('picture source, img')).find(i => {
+            let src = i.src;
+            if (i.nodeName == 'SOURCE') {
+                src = new URL(i.srcset, location.href).href;
+            }
+
             return src == lcpUrl;
         });
+        isLcpDiscoverable = !!rawLcpElement;
         isLcpPreloaded = !!Array.from(rawDoc.querySelectorAll('head link')).find(link => {
             return link.rel == 'preload' && link.href == lcpUrl;
         });
@@ -74,9 +116,12 @@ return Promise.all([getLcpElement()]).then(lcp_elem_stats => {
 
     return {
         lcp_elem_stats,
+        raw_lcp_element: summarizeLcpElement(rawLcpElement),
         lcp_resource: responseObject,
         is_lcp_discoverable: isLcpDiscoverable,
         is_lcp_preloaded: isLcpPreloaded,
         web_vitals_js: getWebVitalsJS()
     };
+}).catch(error => {
+    return {error};
 });
