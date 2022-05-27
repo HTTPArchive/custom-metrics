@@ -21,6 +21,7 @@ const OBSERVERS = [
   'document.write',
   'queueMicrotask',
   'requestIdleCallback',
+  'navigator.scheduling.isInputPending',
   'scheduler.postTask'
 ];
 
