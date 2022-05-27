@@ -91,6 +91,9 @@ return JSON.stringify({
         };
 
         return noscript_data;
-    })()
+    })(),
 
+    workers: (() => {
+        return httparchive_observers.constructor_stacks["Worker"];
+    })()
 });
