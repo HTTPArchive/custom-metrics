@@ -566,10 +566,10 @@ function getImgData( img ) {
 
     // how does this resource differ from the actual selected resource? determine and log.
     if ( idealSizesSelectedResource.hasOwnProperty( 'w' ) &&
-         imgData.approximateResourceWidth > 0 &&
-         imgData.approximateResourceHeight > 0 &&
-         imgData.byteSize > 0 &&
-         imgData.bitsPerPixel > 0 ) {
+        imgData.approximateResourceWidth > 0 &&
+        imgData.approximateResourceHeight > 0 &&
+        imgData.byteSize > 0 &&
+        imgData.bitsPerPixel > 0 ) {
       imgData.idealSizesSelectedResourceW = idealSizesSelectedResource.w;
       const aspectRatio = imgData.approximateResourceWidth / imgData.approximateResourceHeight;
       const estimatedHeight = Math.round( idealSizesSelectedResource.w / aspectRatio );
