@@ -23,7 +23,7 @@ const OBSERVERS = [
   'queueMicrotask',
   'requestIdleCallback',
   'scheduler.postTask',
-  'window.matchMedia'
+  'window.matchMedia',
   'navigator.scheduling.isInputPending'
 ];
 
