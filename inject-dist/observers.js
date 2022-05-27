@@ -8,9 +8,6 @@ let httparchive_enable_observations = false;
 // Local scope.
 (() => {
 
-// Additional logging.
-const DEBUG_MODE = false;
-
 // Add the pathnames of any functions/properties you want to observe.
 const OBSERVERS = [
   'navigator.__proto__.*',
@@ -25,8 +22,7 @@ const OBSERVERS = [
   'queueMicrotask',
   'requestIdleCallback',
   'navigator.scheduling.isInputPending',
-  'scheduler.postTask',
-  'eval'
+  'scheduler.postTask'
 ];
 
 const PROPERTIES_TO_TRACE = new Set([
@@ -59,16 +55,9 @@ function getAllProperties(pathname, depth=1) {
   const parentPathname = props.slice(0, -1).join('.');
   const parentObj = resolveObject(parentPathname);
 
-  try {
-    return Object.getOwnPropertyNames(parentObj).flatMap(prop => {
-      return getAllProperties(`${parentPathname}.${prop}`, depth - 1);
-    });
-  } catch (e) {
-    if (DEBUG_MODE) {
-      console.debug(`Cannot get property names of ${parentPathname}, parent object: ${parentObj}, error: ${e}`);
-    }
-    return pathname;
-  }
+  return Object.getOwnPropertyNames(parentObj).flatMap(prop => {
+    return getAllProperties(`${parentPathname}.${prop}`, depth - 1);
+  });
 }
 
 function initializeObserver(pathname) {
@@ -84,19 +73,13 @@ function initializeObserver(pathname) {
     parentPathname = props.slice(0, -1).join('.');
   }
 
-  let parentObj = window;
-  if (parentPathname) {
-    pathname = `${parentPathname}.${prop}`;
-    parentObj = resolveObject(parentPathname);
-  }
+  pathname = `${parentPathname}.${prop}`;
+  const parentObj = resolveObject(parentPathname);
 
   try {
     original = parentObj[prop];
   } catch (e) {
     // The property is not accessible.
-    if (DEBUG_MODE) {
-      console.debug(`${pathname} is not accessible: ${e}`)
-    }
     return;
   }
 
@@ -132,9 +115,6 @@ function initializeObserver(pathname) {
     });
   } catch (e) {
     // The property is not observable.
-    if (DEBUG_MODE) {
-      console.debug(`${pathname} is not observable: ${e}`)
-    }
     return;
   }
 
