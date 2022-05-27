@@ -1,7 +1,8 @@
 // Note: Using prefixed variable to avoid naming collisions in the global scope.
 // This name must exactly match the one referenced in custom metrics.
 const httparchive_observers = {
-  call_stacks: {}
+  call_stacks: {},
+  constructor_stacks: {}
 };
 let httparchive_enable_observations = false;
 
@@ -29,6 +30,8 @@ const PROPERTIES_TO_TRACE = new Set([
   'navigator.userAgent'
 ]);
 
+// observe number of times a constructor is called
+const CONSTRUCTORS = ["Worker"];
 
 function resolveObject(pathname) {
   let obj = window;
@@ -137,6 +140,26 @@ OBSERVERS.forEach(pathname => {
   }
 
   initializeObserver(pathname);
+});
+
+CONSTRUCTORS.forEach((n) => {
+  // keep a reference to the original prototype
+  const original_proto = window[n].prototype;
+
+  // initialise the counter
+  httparchive_observers.constructor_stacks[n] = 0;
+
+  // override the constructor
+  window[n] = function (...args) {
+    // increment the counter
+    httparchive_observers.constructor_stacks[n] =
+      httparchive_observers.constructor_stacks[n] + 1;
+    // return the original constructor with the arguments
+    return new original_proto.constructor(args);
+  };
+
+  // restore the original prototype
+  window[n].prototype = original_proto;
 });
 
 httparchive_enable_observations = true;
