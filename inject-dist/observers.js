@@ -17,12 +17,14 @@ const OBSERVERS = [
   'Array.prototype.*',
   'String.prototype.*',
   'Object.prototype.*',
+  'CSSStyleDeclaration.prototype.*',
   'document.featurePolicy',
   'document.write',
   'queueMicrotask',
   'requestIdleCallback',
   'scheduler.postTask',
   'window.matchMedia'
+  'navigator.scheduling.isInputPending'
 ];
 
 const PROPERTIES_TO_TRACE = new Set([
@@ -39,7 +41,6 @@ const FUNCTION_CALL_ARGUMENTS_TO_CAPTURE = {
     return null;
   }
 }
-
 
 function resolveObject(pathname) {
   let obj = window;
@@ -118,7 +119,6 @@ function initializeObserver(pathname) {
           }
           stackCounter[stack]++;
         }
-
         if (pathname in FUNCTION_CALL_ARGUMENTS_TO_CAPTURE) {
           toReturn = function () {
             const function_value = FUNCTION_CALL_ARGUMENTS_TO_CAPTURE[pathname].apply(this, arguments);
@@ -129,7 +129,6 @@ function initializeObserver(pathname) {
             return original.apply(this, arguments);
           }
         }
-
         // Increment the feature counter.
         httparchive_observers[pathname]++;
 
@@ -149,7 +148,6 @@ function initializeObserver(pathname) {
   if (pathname in FUNCTION_CALL_ARGUMENTS_TO_CAPTURE) {
     httparchive_observers.function_values[pathname] = {};
   }
-
   httparchive_observers[pathname] = 0;
 }
 
