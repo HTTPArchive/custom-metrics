@@ -428,6 +428,10 @@ function getImgData( img ) {
       o => o.url === img.currentSrc
     );
     if ( informationFromSrcsetAboutTheCurrentSrc &&
+          informationFromSrcsetAboutTheCurrentSrc.w ) {
+      imgData.currentSrcWDescriptor = informationFromSrcsetAboutTheCurrentSrc.w;
+    }
+    if ( informationFromSrcsetAboutTheCurrentSrc &&
           informationFromSrcsetAboutTheCurrentSrc.density ) {
       imgData.currentSrcDensity = informationFromSrcsetAboutTheCurrentSrc.density;
     }
@@ -476,6 +480,13 @@ function getImgData( img ) {
     imgData.byteSize
   ) {
     imgData.bitsPerPixel = ( imgData.byteSize * 8 ) / ( imgData.approximateResourceWidth * imgData.approximateResourceHeight );
+  }
+
+  // if there was a w descriptor -- was it accurate?
+  if ( imgData.currentSrcWDescriptor &&
+      imgData.approximateResourceWidth ) {
+    imgData.wDesciptorAbsoluteError = imgData.currentSrcWDescriptor - imgData.approximateResourceWidth;
+    imgData.wDesciptorRelativeError = imgData.wDesciptorAbsoluteError / imgData.approximateResourceWidth;
   }
 
   // get the server-reported mime type of the image
@@ -568,15 +579,17 @@ function getImgData( img ) {
     if ( idealSizesSelectedResource.hasOwnProperty( 'w' ) &&
         imgData.approximateResourceWidth > 0 &&
         imgData.approximateResourceHeight > 0 &&
-        imgData.byteSize > 0 &&
+        imgData.currentSrcWDescriptor &&
         imgData.bitsPerPixel > 0 ) {
       imgData.idealSizesSelectedResourceW = idealSizesSelectedResource.w;
       const aspectRatio = imgData.approximateResourceWidth / imgData.approximateResourceHeight;
-      const estimatedHeight = Math.round( idealSizesSelectedResource.w / aspectRatio );
-      imgData.idealSizesSelectedResourceEstimatedPixels = Math.round( idealSizesSelectedResource.w ) * estimatedHeight;
-      imgData.actualSizesEstimatedWastedLoadedPixels = ( imgData.approximateResourceWidth * imgData.approximateResourceHeight ) - imgData.idealSizesSelectedResourceEstimatedPixels;
+      const idealEstimatedHeight = Math.round( idealSizesSelectedResource.w / aspectRatio );
+      const currentSrcEstimatedHDescriptor = Math.round( imgData.currentSrcWDescriptor / aspectRatio ); // could be different from approximateResourceHeight if w descriptor is wrong!
+      const currentSrcPixelsBasedOnDescriptors = imgData.currentSrcWDescriptor * currentSrcEstimatedHDescriptor;
+      imgData.idealSizesSelectedResourceEstimatedPixels = Math.round( idealSizesSelectedResource.w ) * idealEstimatedHeight;
+      imgData.actualSizesEstimatedWastedLoadedPixels = currentSrcPixelsBasedOnDescriptors - imgData.idealSizesSelectedResourceEstimatedPixels;
       imgData.idealSizesSelectedResourceEstimatedBytes = ( imgData.idealSizesSelectedResourceEstimatedPixels * imgData.bitsPerPixel ) / 8;
-      imgData.actualSizesEstimatedWastedLoadedBytes = imgData.byteSize - imgData.idealSizesSelectedResourceEstimatedBytes;
+      imgData.actualSizesEstimatedWastedLoadedBytes = ( ( imgData.bitsPerPixel * currentSrcPixelsBasedOnDescriptors) / 8 ) - imgData.idealSizesSelectedResourceEstimatedBytes;
 
     }
   }
