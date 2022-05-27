@@ -310,7 +310,5 @@ return JSON.stringify({
     navigator_geolocation_watchPosition: testPropertyStringInResponseBodies(
       'navigator.+geolocation.+watchPosition'
     ),
-  },
-
-  userAgent: httparchive_observers.userAgent
+  }
 });
