@@ -16,6 +16,7 @@ let httparchive_enable_observations = false;
     "Array.prototype.*",
     "String.prototype.*",
     "Object.prototype.*",
+    "CSSStyleDeclaration.prototype.*",
     "document.featurePolicy",
     "document.write",
     "queueMicrotask",
@@ -23,10 +24,10 @@ let httparchive_enable_observations = false;
     "scheduler.postTask",
   ];
 
+  const PROPERTIES_TO_TRACE = new Set(["navigator.userAgent"]);
+
   // observe number of times a constructor is called
   const CONSTRUCTORS = ["Worker"];
-
-  const PROPERTIES_TO_TRACE = new Set(["navigator.userAgent"]);
 
   function resolveObject(pathname) {
     let obj = window;
@@ -137,17 +138,18 @@ let httparchive_enable_observations = false;
     initializeObserver(pathname);
   });
 
-  CONSTRUCTORS.forEach(n => {
+  CONSTRUCTORS.forEach((n) => {
     // keep a reference to the original prototype
     const original_proto = window[n].prototype;
 
     // initialise the counter
     httparchive_observers.constructor_stacks[n] = 0;
-  
+
     // override the constructor
     window[n] = function (...args) {
       // increment the counter
-      httparchive_observers.constructor_stacks[n] = httparchive_observers.constructor_stacks[n] + 1;
+      httparchive_observers.constructor_stacks[n] =
+        httparchive_observers.constructor_stacks[n] + 1;
       // return the original constructor with the arguments
       return new original_proto.constructor(args);
     };
@@ -155,6 +157,6 @@ let httparchive_enable_observations = false;
     // restore the original prototype
     window[n].prototype = original_proto;
   });
-  
+
   httparchive_enable_observations = true;
 })();
