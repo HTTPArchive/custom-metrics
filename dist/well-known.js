@@ -48,6 +48,35 @@ function parseResponse(url, parser) {
   });
 }
 
+function parseResponseWithRedirects(url, parser) {
+  return fetchWithTimeout(url)
+    .then(request => {
+      let resultObj = {};
+
+      if (parser) {
+        let promise = parser(request);
+        if (promise) {
+          return promise
+            .then(data => {
+              resultObj['data'] = data;
+              return [url, resultObj];
+            })
+            .catch(error => {
+              return [url, { 'error': error.message }];
+            });
+        } else {
+          resultObj['error'] = 'parser did not return a promise';
+          return [url, resultObj];
+        }
+      } else {
+        return [url, resultObj];
+      }
+    })
+    .catch(error => {
+      return [url, { 'error': error.message }];
+    });
+}
+
 return Promise.all([
   // ecommerce
   parseResponse('/.well-known/assetlinks.json'),
@@ -116,6 +145,20 @@ return Promise.all([
         }
       }
       return data;
+    });
+  }),
+  parseResponseWithRedirects('/.well-known/change-password', r => {
+    return Promise.resolve({
+      status: r.status,
+      redirected: r.redirected,
+      url: r.url
+    });
+  }),
+  parseResponseWithRedirects('/.well-known/resource-that-should-not-exist-whose-status-code-should-not-be-200/', r => {
+    return Promise.resolve({
+      status: r.status,
+      redirected: r.redirected,
+      url: r.url
     });
   })
 ]).then((all_data) => {
