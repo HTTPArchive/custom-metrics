@@ -16,6 +16,7 @@ const OBSERVERS = [
   'Array.prototype.*',
   'String.prototype.*',
   'Object.prototype.*',
+  'CSSStyleDeclaration.prototype.*',
   'document.featurePolicy',
   'document.write',
   'queueMicrotask',
