@@ -797,7 +797,7 @@ function parseSrcset(input) {
     // 3. Let candidates be an initially empty source set.
     candidates = [];
     // eric added this
-    parseError = false;
+    let parseError = false;
 
   // 4. Splitting loop: Collect a sequence of characters that are space
   //    characters or U+002C COMMA characters. If any U+002C COMMA characters
