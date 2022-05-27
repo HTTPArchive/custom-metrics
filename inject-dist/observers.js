@@ -23,6 +23,9 @@ let httparchive_enable_observations = false;
     "scheduler.postTask",
   ];
 
+  // observe number of times a constructor is called
+  const CONSTRUCTORS = ["Worker"];
+
   const PROPERTIES_TO_TRACE = new Set(["navigator.userAgent"]);
 
   function resolveObject(pathname) {
@@ -134,20 +137,17 @@ let httparchive_enable_observations = false;
     initializeObserver(pathname);
   });
 
-  // observe number of times a constructor is called
-  const CONSTRUCTORS = ["Worker"];
-  
   CONSTRUCTORS.forEach(n => {
     // keep a reference to the original prototype
     const original_proto = window[n].prototype;
 
     // initialise the counter
-    constructor_stacks[n] = 0;
+    httparchive_observers.constructor_stacks[n] = 0;
   
     // override the constructor
     window[n] = function (...args) {
       // increment the counter
-      constructor_stacks[n] = constructor_stacks[n] + 1;
+      httparchive_observers.constructor_stacks[n] = httparchive_observers.constructor_stacks[n] + 1;
       // return the original constructor with the arguments
       return new original_proto.constructor(args);
     };
