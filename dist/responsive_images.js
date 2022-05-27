@@ -499,6 +499,88 @@ function getImgData( img ) {
     Object.values( imgData.intrinsicOrExtrinsicSizing ).includes( 'intrinsic' )
   );
 
+  // what was the impact of incorrect sizes values?
+
+  // helpers...
+  function geometricDistance(a, b) {
+    if (a > b) {
+      return a / b;
+    } else {
+      return b / a;
+    }
+  }
+
+  const smallestResourceThatsLarger = function( annotatedCandidates ) {
+    const distances = annotatedCandidates.map( c => c.linearDistance );
+    const larger = distances.filter( (d) => { return d >= 0 } );
+    let selectedDistance;
+    if ( larger.length === 0 ) {
+      selectedDistance = Math.max( ...distances );
+    } else {
+      selectedDistance = Math.min( ...larger );
+    }
+    return annotatedCandidates.find( c => c.linearDistance === selectedDistance );
+  }
+
+  const closestResource = function( annotatedCandidates ) {
+    const distances = annotatedCandidates.map( c => c.geometricDistance );
+    const minDistance = Math.min( ...distances );
+    return annotatedCandidates.find( c => c.geometricDistance === minDistance );
+  }
+
+  const selectResourceFromSrcset = function( annotatedCandidates, dpr ) {
+    if ( dpr > 1 ) {
+      return closestResource( annotatedCandidates );
+    } else {
+      return smallestResourceThatsLarger( annotatedCandidates );
+    }
+  }
+
+  // main
+  // only run if there is an (explicit or implied) sizes value, and more than one resource in the srcset
+  // (ie, if sizes errors could matter)
+  if ( imgData.sizesWidth && srcsetCandidates && srcsetCandidates.length > 1 ) {
+
+    // determine the effective densities of the srcset resources
+    // using ideal (rather than actual) sizes value
+
+    // deep copy
+    idealSizesSrcsetCandidates = JSON.parse( JSON.stringify( srcsetCandidates ) );
+    // modify in place (just like before) TODO: turn this into a function, use in both places...
+    // overwriting densities that we copied
+    idealSizesSrcsetCandidates.forEach( i => {
+      if ( i.hasOwnProperty( 'd' ) ) {
+        i.density = i.d;
+      } else if ( i.hasOwnProperty( 'w' ) && imgData.clientWidth > 0 ) {
+        i.density = i.w / imgData.clientWidth;
+      } else {
+        i.density = 1;
+      }
+      // in addition to densities, annotate candidates with distances from DPR, used in srcset selection
+      i.geometricDistance = geometricDistance( i.density, window.devicePixelRatio );
+      i.linearDistance = i.density - window.devicePixelRatio;
+    } );
+
+    // what resource would have been picked, if the sizes value had been correct?
+    const idealSizesSelectedResource = selectResourceFromSrcset( idealSizesSrcsetCandidates, window.devicePixelRatio );
+
+    // how does this resource differ from the actual selected resource? determine and log.
+    if ( idealSizesSelectedResource.hasOwnProperty( 'w' ) &&
+         imgData.approximateResourceWidth > 0 &&
+         imgData.approximateResourceHeight > 0 &&
+         imgData.byteSize > 0 &&
+         imgData.bitsPerPixel > 0 ) {
+      imgData.idealSizesSelectedResourceW = idealSizesSelectedResource.w;
+      const aspectRatio = imgData.approximateResourceWidth / imgData.approximateResourceHeight;
+      const estimatedHeight = Math.round( idealSizesSelectedResource.w / aspectRatio );
+      imgData.idealSizesSelectedResourceEstimatedPixels = Math.round( idealSizesSelectedResource.w ) * estimatedHeight;
+      imgData.actualSizesEstimatedWastedLoadedPixels = ( imgData.approximateResourceWidth * imgData.approximateResourceHeight ) - imgData.idealSizesSelectedResourceEstimatedPixels;
+      imgData.idealSizesSelectedResourceEstimatedBytes = ( imgData.idealSizesSelectedResourceEstimatedPixels * imgData.bitsPerPixel ) / 8;
+      imgData.actualSizesEstimatedWastedLoadedBytes = imgData.byteSize - imgData.idealSizesSelectedResourceEstimatedBytes;
+
+    }
+  }
+
   return imgData;
 
 }
