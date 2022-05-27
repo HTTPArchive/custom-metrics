@@ -29,7 +29,5 @@ try {
     }
     return data;
 } catch (err) {
-  {
-      return {error: err.toString()};
-  }
+    return {error: err.toString()};
 }
