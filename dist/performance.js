@@ -112,8 +112,8 @@ function getGamingMetrics(rawDoc) {
     let elements = rawDoc.getElementsByTagName('img');
     for (let i = 0; i < elements.length; i++) {
         let el = elements[i];
-        if (el.onload !== null) {
-            let onloadVal = el.onload;
+        let onloadVal = el.getAttribute('onload');
+        if (onloadVal !== null) {
             if(regexForCheckfadeInAnimation.test(onloadVal)) {
                 returnObj['lcpAnimation'] = true;
             }
