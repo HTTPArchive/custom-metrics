@@ -96,7 +96,8 @@ function testPropertyStringInResponseBodies(regex) {
             }
         });
     } catch (error) {
-        return error.toString();
+        //return error.toString();
+        return false;
     }
 }
 
