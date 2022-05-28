@@ -125,7 +125,7 @@ function getGamingMetrics(rawDoc) {
         }
     }
 
-    //check external scripts response bodies  
+    //check external scripts response bodies
     if(testPropertyStringInResponseBodies(regexForCheckChromeLH))
     {
         returnObj['detectUA-ChromeLH'] = true;
@@ -178,8 +178,8 @@ function getGamingMetrics(rawDoc) {
 
     //fid iframe hack
     let iframeTags = document.getElementsByTagName('iframe');
-    for (let i = 0; i < iframeTags.length; i++) { 
-        let  ifreameElement = iframeTags[i]; 
+    for (let i = 0; i < iframeTags.length; i++) {
+        let  ifreameElement = iframeTags[i];
         let iframeTransparencyVal = ifreameElement.getAttribute('transparency');
         if (iframeTransparencyVal !== null && iframeTransparencyVal) {
             styleObj = getComputedStyles(ifreameElement, ['position','width','top','z-index','left','height']) ;
