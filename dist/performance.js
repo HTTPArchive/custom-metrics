@@ -163,7 +163,7 @@ function getGamingMetrics(rawDoc) {
 
 
     //fid iframe hack
-    Array.from(rawDoc.getElementsByTagName('iframe')).forEach(iframeElement => {
+    Array.from(document.getElementsByTagName('iframe')).forEach(iframeElement => {
         let iframeTransparencyVal = iframeElement.getAttribute('transparency');
         if (iframeTransparencyVal) {
             styleObj = getComputedStyles(iframeElement, ['position','width','top','z-index','left','height']) ;
