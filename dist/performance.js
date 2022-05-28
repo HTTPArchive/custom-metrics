@@ -87,16 +87,13 @@ function getWebVitalsJS() {
 
 function testPropertyStringInResponseBodies(regex) {
     try {
-        return script_response_bodies
-        .some(body => {
-            if (body.response_body) {
-                return regex.test(body.response_body);
-            } else {
+        return script_response_bodies.some(body => {
+            if (!body.response_body) {
                 return false;
             }
+            return regex.test(body.response_body);
         });
     } catch (error) {
-        //return error.toString();
         return false;
     }
 }
@@ -108,12 +105,8 @@ function getGamingMetrics(rawDoc) {
     const regexForCheckPageSpeed = new RegExp(/.{1}userAgent.{1,100}(?:PageSpeed).{2}/)
 
     //inline scripts check
-    let scripts = rawDoc.getElementsByTagName('script');
-    for (let i = 0; i < scripts.length; i++) {
-        if (scripts[i].src) {
-            continue;
-        }
-        let scriptTagCode = scripts[i].innerHTML;
+    Array.from(rawDoc.querySelectorAll('script:not([src])')).forEach(script => {
+        let scriptTagCode = script.innerHTML;
         if (regexForCheckChromeLH.test(scriptTagCode)){
             returnObj['detectUA-ChromeLH'] = true;
         }
@@ -123,30 +116,25 @@ function getGamingMetrics(rawDoc) {
         if(regexForCheckPageSpeed.test(scriptTagCode)){
             returnObj['detectUA-PageSpeed'] = true;
         }
-    }
+    });
 
     //check external scripts response bodies
-    if(testPropertyStringInResponseBodies(regexForCheckChromeLH))
-    {
+    if (testPropertyStringInResponseBodies(regexForCheckChromeLH)) {
         returnObj['detectUA-ChromeLH'] = true;
     }
 
-    if(testPropertyStringInResponseBodies(regexForCheckGTmetrix))
-    {
+    if (testPropertyStringInResponseBodies(regexForCheckGTmetrix)) {
         returnObj['detectUA-GTmetrix'] = true;
     }
 
-    if(testPropertyStringInResponseBodies(regexForCheckPageSpeed))
-    {
+    if (testPropertyStringInResponseBodies(regexForCheckPageSpeed)) {
         returnObj['detectUA-PageSpeed'] = true;
     }
 
     //https://www.debugbear.com/blog/optimizing-web-vitals-without-improving-performance
     //catch lcp animation / cls animation & overlay hack
     const regexForCheckfadeInAnimation = new RegExp(/this.style.animation.{1,10}.fadein.{1,20}.forwards/)
-    let elements = rawDoc.getElementsByTagName('img');
-    for (let i = 0; i < elements.length; i++) {
-        let el = elements[i];
+    Array.from(rawDoc.querySelectorAll('img')).forEach(el => {
         let onloadVal = el.getAttribute('onload');
         if (onloadVal !== null) {
             if(regexForCheckfadeInAnimation.test(onloadVal)) {
@@ -160,12 +148,10 @@ function getGamingMetrics(rawDoc) {
                 styleObj['height'] == '99vh') {
             returnObj['lcpOverlay'] = true;
         }
-    }
+    });
 
     //add logic for svg & body overlay
-    let svgTags = rawDoc.getElementsByTagName('svg');
-    for (let i = 0; i < svgTags.length; i++) {
-        const svg = svgTags[i];
+    Array.from(rawDoc.querySelectorAll('svg')).forEach(svg => {
         if (svg.clientHeight == 99999 &&
                 svg.clientWidth == 99999 &&
                 svg.clientLeft == 0 &&
@@ -173,21 +159,22 @@ function getGamingMetrics(rawDoc) {
             //additional check required
             returnObj['lcpSvgOverlay'] = true;
         }
-    }
+    });
 
 
     //fid iframe hack
-    let iframeTags = document.getElementsByTagName('iframe');
-    for (let i = 0; i < iframeTags.length; i++) {
-        let  ifreameElement = iframeTags[i];
-        let iframeTransparencyVal = ifreameElement.getAttribute('transparency');
-        if (iframeTransparencyVal !== null && iframeTransparencyVal) {
-            styleObj = getComputedStyles(ifreameElement, ['position','width','top','z-index','left','height']) ;
-            if(styleObj['position'] == 'absolute' && styleObj['top'] == '0px' && styleObj['left'] == '0px' && styleObj['z-index'] == '999'){
+    Array.from(rawDoc.getElementsByTagName('iframe')).forEach(iframeElement => {
+        let iframeTransparencyVal = iframeElement.getAttribute('transparency');
+        if (iframeTransparencyVal) {
+            styleObj = getComputedStyles(iframeElement, ['position','width','top','z-index','left','height']) ;
+            if(styleObj['position'] == 'absolute' &&
+                    styleObj['top'] == '0px' &&
+                    styleObj['left'] == '0px' &&
+                    styleObj['z-index'] == '999'){
                 returnObj['fidIframeOverlay'] = true;
             }
         }
-    }
+    });
 
     return returnObj;
 }
