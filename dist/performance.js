@@ -89,53 +89,56 @@ function getGamingMetrics(rawDoc) {
     const regexForCheckChromeLH = new RegExp(/.{1}userAgent.{1,100}(?:Chrome-Lighthouse|Google Lighthouse).{2}/)
     const regexForCheckGTmetrix = new RegExp(/.{1}userAgent.{1,100}(?:GTmetrix|gtmetrix.com).{2}/)
     const regexForCheckPageSpeed = new RegExp(/.{1}userAgent.{1,100}(?:PageSpeed).{2}/)
-    let scripts =rawDoc.getElementsByTagName("script");
+    let scripts = rawDoc.getElementsByTagName('script');
      for (let i = 0; i < scripts.length; i++) {
-        if (!scripts[i].src) {
-            let scriptTagCode = scripts[i].innerHTML;
-            if(regexForCheckChromeLH.test(scriptTagCode)){
-                returnObj['detectUA-ChromeLH'] = true;
-            }
-            if(regexForCheckGTmetrix.test(scriptTagCode)){
-                returnObj['detectUA-GTmetrix'] = true;
-            }
-            if(regexForCheckPageSpeed.test(scriptTagCode)){
-                returnObj['detectUA-PageSpeed'] = true;
-            }
+        if (scripts[i].src) {
+            continue;
+        }
+        let scriptTagCode = scripts[i].innerHTML;
+        if (regexForCheckChromeLH.test(scriptTagCode)){
+            returnObj['detectUA-ChromeLH'] = true;
+        }
+        if(regexForCheckGTmetrix.test(scriptTagCode)){
+            returnObj['detectUA-GTmetrix'] = true;
+        }
+        if(regexForCheckPageSpeed.test(scriptTagCode)){
+            returnObj['detectUA-PageSpeed'] = true;
         }
     }
+    
     //https://www.debugbear.com/blog/optimizing-web-vitals-without-improving-performance
-    //https://cdpn.io/pen/debug/oNEwJNw?authentication_hash=LQMExNggGWOk
     //catch lcp animation / cls animation & overlay hack
     const regexForCheckfadeInAnimation = new RegExp(/this.style.animation.{1,10}.fadein.{1,20}.forwards/)
-    let elements = rawDoc.getElementsByTagName("IMG");
+    let elements = rawDoc.getElementsByTagName('img');
     for (let i = 0; i < elements.length; i++) {
         let el = elements[i];
-        if( el.onload !== null) {
+        if (el.onload !== null) {
             let onloadVal = el.onload;
-            if(regexForCheckfadeInAnimation.test(onloadVal) ) {
-                returnObj['lcpAnimation'] = "true";
+            if(regexForCheckfadeInAnimation.test(onloadVal)) {
+                returnObj['lcpAnimation'] = true;
             }
         }
         let styleObj = el.style;
-        if(styleObj['pointer-events'] == "none" && styleObj['position'] == "absolute" &&  styleObj['width'] == "99vw" && styleObj['height'] == "99vh") {
-            returnObj['lcpOverlay'] = "true"
+        if(styleObj['pointer-events'] == 'none' &&
+                styleObj['position'] == 'absolute' &&
+                styleObj['width'] == '99vw' &&
+                styleObj['height'] == '99vh') {
+            returnObj['lcpOverlay'] = true;
         }
     }
  
     //add logic for svg & body overlay
-    //https://cdpn.io/pen/debug/XWZzgoo?authentication_hash=NQAzYoKKXPyr
-    let svgTags  =rawDoc.getElementsByTagName("svg");
+    let svgTags = rawDoc.getElementsByTagName('svg');
     for (let i = 0; i < svgTags.length; i++) {
         const svg = svgTags[i];
         if(svg.clientHeight == 99999 && svg.clientWidth == 99999 &&  svg.clientLeft == 0 && svg.clientTop == 0) {
             //additional check required
-            returnObj['lcpSvgOverlay'] = "true"
+            returnObj['lcpSvgOverlay'] = true;
         }
     }
     //fid iframe hack
     
-    return returnObj
+    return returnObj;
 }
 
 return Promise.all([getLcpElement()]).then(([lcp_elem_stats]) => {
