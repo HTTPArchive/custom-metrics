@@ -1,6 +1,7 @@
 //[performance]
 
 const response_bodies = $WPT_BODIES;
+const script_response_bodies = $WPT_BODIES.filter(body => body.type === 'Script');
 
 function getRawHtmlDocument() {
     let rawHtml;
@@ -84,11 +85,28 @@ function getWebVitalsJS() {
     }).map(har => har.url);
 }
 
+function testPropertyStringInResponseBodies(regex) {
+    try {
+        return script_response_bodies
+        .some(body => {
+            if (body.response_body) {
+                return regex.test(body.response_body);
+            } else {
+                return false;
+            }
+        });
+    } catch (error) {
+        return error.toString();
+    }
+}
+
 function getGamingMetrics(rawDoc) {
     let returnObj = {};
     const regexForCheckChromeLH = new RegExp(/.{1}userAgent.{1,100}(?:Chrome-Lighthouse|Google Lighthouse).{2}/)
     const regexForCheckGTmetrix = new RegExp(/.{1}userAgent.{1,100}(?:GTmetrix|gtmetrix.com).{2}/)
     const regexForCheckPageSpeed = new RegExp(/.{1}userAgent.{1,100}(?:PageSpeed).{2}/)
+
+    //inline scripts check
     let scripts = rawDoc.getElementsByTagName('script');
     for (let i = 0; i < scripts.length; i++) {
         if (scripts[i].src) {
@@ -104,6 +122,22 @@ function getGamingMetrics(rawDoc) {
         if(regexForCheckPageSpeed.test(scriptTagCode)){
             returnObj['detectUA-PageSpeed'] = true;
         }
+    }
+
+    //check external scripts response bodies  
+    if(testPropertyStringInResponseBodies(regexForCheckChromeLH))
+    {
+        returnObj['detectUA-ChromeLH'] = true;
+    }
+
+    if(testPropertyStringInResponseBodies(regexForCheckGTmetrix))
+    {
+        returnObj['detectUA-GTmetrix'] = true;
+    }
+
+    if(testPropertyStringInResponseBodies(regexForCheckPageSpeed))
+    {
+        returnObj['detectUA-PageSpeed'] = true;
     }
 
     //https://www.debugbear.com/blog/optimizing-web-vitals-without-improving-performance
