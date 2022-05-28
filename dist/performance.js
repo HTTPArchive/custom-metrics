@@ -90,7 +90,7 @@ function getGamingMetrics(rawDoc) {
     const regexForCheckGTmetrix = new RegExp(/.{1}userAgent.{1,100}(?:GTmetrix|gtmetrix.com).{2}/)
     const regexForCheckPageSpeed = new RegExp(/.{1}userAgent.{1,100}(?:PageSpeed).{2}/)
     let scripts = rawDoc.getElementsByTagName('script');
-     for (let i = 0; i < scripts.length; i++) {
+    for (let i = 0; i < scripts.length; i++) {
         if (scripts[i].src) {
             continue;
         }
@@ -105,7 +105,7 @@ function getGamingMetrics(rawDoc) {
             returnObj['detectUA-PageSpeed'] = true;
         }
     }
-    
+
     //https://www.debugbear.com/blog/optimizing-web-vitals-without-improving-performance
     //catch lcp animation / cls animation & overlay hack
     const regexForCheckfadeInAnimation = new RegExp(/this.style.animation.{1,10}.fadein.{1,20}.forwards/)
@@ -119,25 +119,28 @@ function getGamingMetrics(rawDoc) {
             }
         }
         let styleObj = el.style;
-        if(styleObj['pointer-events'] == 'none' &&
+        if (styleObj['pointer-events'] == 'none' &&
                 styleObj['position'] == 'absolute' &&
                 styleObj['width'] == '99vw' &&
                 styleObj['height'] == '99vh') {
             returnObj['lcpOverlay'] = true;
         }
     }
- 
+
     //add logic for svg & body overlay
     let svgTags = rawDoc.getElementsByTagName('svg');
     for (let i = 0; i < svgTags.length; i++) {
         const svg = svgTags[i];
-        if(svg.clientHeight == 99999 && svg.clientWidth == 99999 &&  svg.clientLeft == 0 && svg.clientTop == 0) {
+        if (svg.clientHeight == 99999 &&
+                svg.clientWidth == 99999 &&
+                svg.clientLeft == 0 &&
+                svg.clientTop == 0) {
             //additional check required
             returnObj['lcpSvgOverlay'] = true;
         }
     }
     //fid iframe hack
-    
+
     return returnObj;
 }
 
