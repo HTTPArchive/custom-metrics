@@ -174,7 +174,20 @@ function getGamingMetrics(rawDoc) {
             returnObj['lcpSvgOverlay'] = true;
         }
     }
+
+
     //fid iframe hack
+    let iframeTags = document.getElementsByTagName('iframe');
+    for (let i = 0; i < iframeTags.length; i++) { 
+        let  ifreameElement = iframeTags[i]; 
+        let iframeTransparencyVal = ifreameElement.getAttribute('transparency');
+        if (iframeTransparencyVal !== null && iframeTransparencyVal) {
+            styleObj = getComputedStyles(ifreameElement, ['position','width','top','z-index','left','height']) ;
+            if(styleObj['position'] == 'absolute' && styleObj['top'] == '0px' && styleObj['left'] == '0px' && styleObj['z-index'] == '999'){
+                returnObj['fidIframeOverlay'] = true;
+            }
+        }
+    }
 
     return returnObj;
 }
