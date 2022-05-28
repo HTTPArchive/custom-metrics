@@ -94,6 +94,6 @@ return JSON.stringify({
     })(),
 
     workers: (() => {
-        return httparchive_observers.constructor_stacks["Worker"];
+        return httparchive_observers["Worker"];
     })()
 });
