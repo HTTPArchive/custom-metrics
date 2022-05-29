@@ -93,11 +93,7 @@ return JSON.stringify({
         return noscript_data;
     })(),
 
-    requestIdleCallback: (() => {
-        return httparchive_observers["requestIdleCallback"];
-    })(),
+    requestIdleCallback: httparchive_observers['requestIdleCallback'],
 
-    queueMicrotask: (() => {
-        return httparchive_observers["queueMicrotask"];
-    })()
+    queueMicrotask: httparchive_observers['queueMicrotask']
 });
