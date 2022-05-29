@@ -24,8 +24,10 @@ function getLcpElement() {
             resolve(naiveLcpEntry);
         }).observe({ type: "largest-contentful-paint", buffered: true });
     }).then(({ startTime, element, url, size, loadTime, renderTime }) => {
+        const cover90viewport = false;
+        doesElementCoverPercentageOfViewport(element, 90);
         const attributes = getAttributes(element);
-        const styles = getComputedStyles(element, ['background-image']);
+        const styles = getComputedStyles(element, ['background-image', 'pointer-events', 'position', 'width', 'height']);
         return {
             startTime,
             nodeName: element?.nodeName,
@@ -37,7 +39,8 @@ function getLcpElement() {
             boundingClientRect: element?.getBoundingClientRect().toJSON(),
             naturalWidth: element?.naturalWidth,
             naturalHeight: element?.naturalHeight,
-            styles
+            styles,
+            cover90viewport
         };
     });
 }
@@ -132,37 +135,23 @@ function getGamingMetrics(rawDoc) {
     }
 
     //https://www.debugbear.com/blog/optimizing-web-vitals-without-improving-performance
-    //catch lcp animation / cls animation & overlay hack
+    //Catch image animation & overlay hack (used for LCP and CLS)
     const regexForCheckfadeInAnimation = new RegExp(/this.style.animation.{1,10}.fadein.{1,20}.forwards/)
     Array.from(rawDoc.querySelectorAll('img')).forEach(el => {
         let onloadVal = el.getAttribute('onload');
         if (onloadVal !== null) {
             if(regexForCheckfadeInAnimation.test(onloadVal)) {
-                returnObj['lcpAnimation'] = true;
+                returnObj['imgAnimationStrict'] = true;
+            }
+
+            const computedStyles = getComputedStyles(el, ['opacity']);
+            if(computedStyles['opacity'] === '0') {
+                returnObj['imgAnimationSoft'] = true;
             }
         }
-        let styleObj = el.style;
-        if (styleObj['pointer-events'] == 'none' &&
-                styleObj['position'] == 'absolute' &&
-                styleObj['width'] == '99vw' &&
-                styleObj['height'] == '99vh') {
-            returnObj['lcpOverlay'] = true;
-        }
     });
 
-    //add logic for svg & body overlay
-    Array.from(rawDoc.querySelectorAll('svg')).forEach(svg => {
-        if (svg.clientHeight == 99999 &&
-                svg.clientWidth == 99999 &&
-                svg.clientLeft == 0 &&
-                svg.clientTop == 0) {
-            //additional check required
-            returnObj['lcpSvgOverlay'] = true;
-        }
-    });
-
-
-    //fid iframe hack
+    //FID iframe hack
     Array.from(document.getElementsByTagName('iframe')).forEach(iframeElement => {
         let iframeTransparencyVal = iframeElement.getAttribute('transparency');
         if (iframeTransparencyVal) {
@@ -171,24 +160,70 @@ function getGamingMetrics(rawDoc) {
                     styleObj['top'] == '0px' &&
                     styleObj['left'] == '0px' &&
                     styleObj['z-index'] == '999'){
-                returnObj['fidIframeOverlay'] = true;
+                returnObj['fidIframeOverlayStrict'] = true;
             }
         }
+
+        let cover90viewport = false;
+        doesElementCoverPercentageOfViewport(iframeElement, 90)
+        returnObj['fidIframeOverlaySoft'] = cover90viewport && styleObj['z-index'] === findHighestZ(rawDoc);
+
     });
 
     return returnObj;
 }
 
+// Source: https://stackoverflow.com/questions/57786082/determine-how-much-of-the-viewport-is-covered-by-element-intersectionobserver
+// percentage is a whole number (ex: 90, not .9)
+const doesElementCoverPercentageOfViewport = (element, percentage) => {
+
+    const observer = new IntersectionObserver(function (entries) {
+        entries.forEach(function (entry) {
+            const entryBCR = entry.target.getBoundingClientRect();
+            const percentOfViewport = ((entryBCR.width * entryBCR.height) * entry.intersectionRatio) / ((window.innerWidth * window.innerHeight) / 100);
+            if (percentOfViewport > percentage) {
+                cover90viewport = true;
+            }
+        });
+    },);
+
+    observer.observe(element);
+}
+
+// Source: https://stackoverflow.com/a/63698925
+function findHighestZ (doc) {
+    return [...doc.querySelectorAll('body *')]
+    .map(elt => parseFloat(getComputedStyle(elt).zIndex))
+    .reduce((highest, z) => z > highest ? z : highest, 1);
+}
+
+
 return Promise.all([getLcpElement()]).then(([lcp_elem_stats]) => {
     const lcpUrl = lcp_elem_stats.url;
     const rawDoc = getRawHtmlDocument();
-    let isLcpStaticallyDiscoverable = null;
+    // Start out with true, only if LCP element is an external resource will we eval & potentially set to false.
+    // Let's make sure we're not artificially deflating this metric with LCP elements that aren't external.
+    let isLcpStaticallyDiscoverable = true;
     let isLcpPreloaded = null;
     let responseObject = null;
     let rawLcpElement = null;
+    let gamingMetrics = getGamingMetrics(rawDoc);
     const isLcpExternalResource = lcpUrl != '';
+    const styles = lcp_elem_stats.styles;
+
+    // Detect LCP Overlay Hack
+    if (styles['pointer-events'] == 'none' &&
+        styles['position'] == 'absolute' &&
+        styles['width'] == '99vw' &&
+        styles['height'] == '99vh') {
+            gamingMetrics['lcpOverlayStrict'] = true;
+    }
+
+    gamingMetrics['lcpOverlaySoft'] =  lcp_elem_stats.cover90viewport && styles['pointer-events'] == 'none';
+
     if (isLcpExternalResource) {
         // Check if LCP resource reference is in the raw HTML (as opposed to being injected later by JS)
+        // TODO: This assumes LCP is an image or picture element. Do we care about video or anything else?
         rawLcpElement = Array.from(rawDoc.querySelectorAll('picture source, img')).find(i => {
             let src = i.src;
             if (i.nodeName == 'SOURCE') {
@@ -217,7 +252,7 @@ return Promise.all([getLcpElement()]).then(([lcp_elem_stats]) => {
         is_lcp_statically_discoverable: isLcpStaticallyDiscoverable,
         is_lcp_preloaded: isLcpPreloaded,
         web_vitals_js: getWebVitalsJS(),
-        gamingMetrics: getGamingMetrics(rawDoc)
+        gaming_metrics: gamingMetrics,
     };
 }).catch(error => {
     return {error};
