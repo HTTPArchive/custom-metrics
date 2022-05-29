@@ -92,4 +92,5 @@ return JSON.stringify({
 
         return noscript_data;
     })()
+
 });
