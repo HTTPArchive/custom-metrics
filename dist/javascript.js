@@ -1,4 +1,4 @@
-// [javascript]
+//[javascript]
 // Uncomment the previous line for testing on webpagetest.org
 
 // Please, refer to instructions for adding a custom metric in almanac.js.
