@@ -24,10 +24,9 @@ function getLcpElement() {
             resolve(naiveLcpEntry);
         }).observe({ type: "largest-contentful-paint", buffered: true });
     }).then(({ startTime, element, url, size, loadTime, renderTime }) => {
-        const cover90viewport = false;
-        doesElementCoverPercentageOfViewport(element, 90);
+        const cover90viewport = doesElementCoverPercentageOfViewport(element, 90);
         const attributes = getAttributes(element);
-        const styles = getComputedStyles(element, ['background-image', 'pointer-events', 'position', 'width', 'height']);
+        const styles = getAllStyles(element, ['background-image', 'pointer-events', 'position', 'width', 'height']);
         return {
             startTime,
             nodeName: element?.nodeName,
@@ -65,6 +64,31 @@ function getComputedStyles(element, properties) {
 
     const styles = getComputedStyle(element);
     return Object.fromEntries(properties.map(prop => ([prop, styles.getPropertyValue(prop)])));
+}
+
+function getInlineStyles (element, properties) {
+    if (!element) {
+        return null;
+    }
+
+    const styles = element.style;
+    return Object.fromEntries(properties.map(prop => ([prop, styles.getPropertyValue(prop)])));
+}
+
+// Merge Inline styles with Computed styles.
+// Inline has higher specificty, unless '!important' exists in computed styles.
+function getAllStyles(element, properties) {
+    const inlineStyles = getInlineStyles(element, properties);
+    const computedStyles = getComputedStyles(element, properties);
+    const allStyles = {};
+    for (const styleName in inlineStyles) {
+        if (!inlineStyles[styleName].includes('!important') && computedStyles.hasOwnProperty(styleName) && computedStyles[styleName].includes('!important')) {
+            allStyles[styleName] = computedStyles[styleName];
+        } else {
+            allStyles[styleName] = inlineStyles[styleName];
+        }
+    }
+    return allStyles;
 }
 
 function summarizeLcpElement(element) {
@@ -144,7 +168,7 @@ function getGamingMetrics(rawDoc) {
                 returnObj['imgAnimationStrict'] = true;
             }
 
-            const computedStyles = getComputedStyles(el, ['opacity']);
+            const computedStyles = getAllStyles(el, ['opacity']);
             if(computedStyles['opacity'] === '0') {
                 returnObj['imgAnimationSoft'] = true;
             }
@@ -153,20 +177,18 @@ function getGamingMetrics(rawDoc) {
 
     //FID iframe hack
     Array.from(document.getElementsByTagName('iframe')).forEach(iframeElement => {
-        let iframeTransparencyVal = iframeElement.getAttribute('transparency');
+        let iframeTransparencyVal = iframeElement.getAttribute('allowtransparency');
         if (iframeTransparencyVal) {
-            styleObj = getComputedStyles(iframeElement, ['position','width','top','z-index','left','height']) ;
-            if(styleObj['position'] == 'absolute' &&
-                    styleObj['top'] == '0px' &&
-                    styleObj['left'] == '0px' &&
-                    styleObj['z-index'] == '999'){
+            const allStyles = getAllStyles(iframeElement, ['position','top','z-index','left']);
+            if (allStyles['position'] == 'absolute' &&
+                allStyles['top'] == '0px' &&
+                allStyles['left'] == '0px' &&
+                allStyles['z-index'] == '999') {
                 returnObj['fidIframeOverlayStrict'] = true;
             }
         }
 
-        let cover90viewport = false;
-        doesElementCoverPercentageOfViewport(iframeElement, 90)
-        returnObj['fidIframeOverlaySoft'] = cover90viewport && styleObj['z-index'] === findHighestZ(rawDoc);
+        returnObj['fidIframeOverlaySoft'] = doesElementCoverPercentageOfViewport(iframeElement, 90);
 
     });
 
@@ -175,28 +197,35 @@ function getGamingMetrics(rawDoc) {
 
 // Source: https://stackoverflow.com/questions/57786082/determine-how-much-of-the-viewport-is-covered-by-element-intersectionobserver
 // percentage is a whole number (ex: 90, not .9)
-const doesElementCoverPercentageOfViewport = (element, percentage) => {
+function doesElementCoverPercentageOfViewport(element, percentage) {
+        const elementBCR = element.getBoundingClientRect();
+        const percentOfViewport = ((elementBCR.width * elementBCR.height) * calcOcclusion(elementBCR)) / ((window.innerWidth * window.innerHeight) / 100);
 
-    const observer = new IntersectionObserver(function (entries) {
-        entries.forEach(function (entry) {
-            const entryBCR = entry.target.getBoundingClientRect();
-            const percentOfViewport = ((entryBCR.width * entryBCR.height) * entry.intersectionRatio) / ((window.innerWidth * window.innerHeight) / 100);
-            if (percentOfViewport > percentage) {
-                cover90viewport = true;
-            }
-        });
-    });
-
-    observer.observe(element);
+        if (percentOfViewport > percentage) {
+            return true;
+        }
+        return false;
 }
 
-// Source: https://stackoverflow.com/a/63698925
-function findHighestZ (doc) {
-    return [...doc.querySelectorAll('body *')]
-    .map(elt => parseFloat(getComputedStyle(elt).zIndex))
-    .reduce((highest, z) => z > highest ? z : highest, 1);
+// Calculate Element : Viewport Intersection ratio without Intersection Observer
+// Source: https://stackoverflow.com/questions/54540602/match-if-visible-on-70-with-getboundingclientrect-js
+function clipRect(rect){
+	return {
+		left: Math.max(0, rect.left),
+		top: Math.max(0, rect.top),
+		right: Math.min(window.innerWidth, rect.right),
+		bottom: Math.min(window.innerHeight, rect.bottom)
+	}
 }
 
+function calcArea(rect){
+	return (rect.right-rect.left) * (rect.bottom-rect.top)
+}
+
+function calcOcclusion(rect){
+	var clipped_rect = clipRect(rect)
+	return Math.max(0, calcArea(clipped_rect)/calcArea(rect))
+}
 
 return Promise.all([getLcpElement()]).then(([lcp_elem_stats]) => {
     const lcpUrl = lcp_elem_stats.url;
@@ -223,7 +252,6 @@ return Promise.all([getLcpElement()]).then(([lcp_elem_stats]) => {
 
     if (isLcpExternalResource) {
         // Check if LCP resource reference is in the raw HTML (as opposed to being injected later by JS)
-        // TODO: This assumes LCP is an image or picture element. Do we care about video or anything else?
         rawLcpElement = Array.from(rawDoc.querySelectorAll('picture source, img')).find(i => {
             let src = i.src;
             if (i.nodeName == 'SOURCE') {
