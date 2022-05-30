@@ -14,21 +14,52 @@ const OBSERVERS = [
   'navigator.__proto__.*',
   'performance.__proto__.*',
   'performance.timing.__proto__.*',
+  'Math.__proto__.*',
   'Array.prototype.*',
   'String.prototype.*',
   'Object.prototype.*',
   'CSSStyleDeclaration.prototype.*',
+  'MimeType.prototype.*',
+  'Plugin.prototype.*',
+  'Screen.prototype.*',
   'document.featurePolicy',
   'document.write',
   'queueMicrotask',
   'requestIdleCallback',
   'scheduler.postTask',
   'matchMedia',
-  'navigator.scheduling.isInputPending'
+  'navigator.scheduling.isInputPending',
+  'OfflineAudioContext',
+  'OfflineAudioContext.prototype.createOscillator',
+  'OfflineAudioContext.prototype.createDynamicsCompressor',
+  'HTMLCanvasElement.prototype.getContext',
+  'CanvasRenderingContext2D.prototype.rect',
+  'CanvasRenderingContext2D.prototype.fillRect',
+  'CanvasRenderingContext2D.prototype.fillText',
+  'CanvasRenderingContext2D.prototype.beginPath',
+  'CanvasRenderingContext2D.prototype.arc',
+  'CanvasRenderingContext2D.prototype.fill',
+  'HTMLCanvasElement.prototype.toDataURL',
+  'screen.colorDepth',
+  'DOMRect.prototype.width',
+  'DOMRect.prototype.height',
+  'HTMLSpanElement.prototype.offsetHeight',
+  'HTMLSpanElement.prototype.offsetWidth',
+  'indexedDB',
+  'openDatabase',
+  'DateTimeFormat.prototype.resolvedOptions',
+  'chrome',
+  'navigator.userAgent'
 ];
 
 const PROPERTIES_TO_TRACE = new Set([
-  'navigator.userAgent'
+  'navigator.userAgent',
+  'navigator.vendor',
+  'OfflineAudioContext',
+  'OfflineAudioContext.prototype.createOscillator',
+  'OfflineAudioContext.prototype.createDynamicsCompressor',
+  'HTMLCanvasElement.prototype.getContext',
+  'HTMLCanvasElement.prototype.toDataURL',
 ]);
 
 // for each observer: custom function to determine which part of the argument should be captured
@@ -91,7 +122,6 @@ function initializeObserver(pathname) {
 
   try {
     original = parentObj[prop];
-    toReturn = original;
   } catch (e) {
     // The property is not accessible.
     return;
@@ -102,7 +132,7 @@ function initializeObserver(pathname) {
       configurable: true,
       get: () => {
         if (!httparchive_enable_observations) {
-          return toReturn;
+          return original;
         }
 
         if (PROPERTIES_TO_TRACE.has(pathname)) {
@@ -134,7 +164,7 @@ function initializeObserver(pathname) {
         }
 
         // Return the original feature.
-        return toReturn;
+        return original;
       }
     });
   } catch (e) {
