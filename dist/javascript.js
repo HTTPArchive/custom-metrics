@@ -272,4 +272,5 @@ return Promise.all([getSourceMaps]).then(([sourceMaps]) =>
 
         return Object.entries(bundler).filter(n => n[1]).map(n => n[0]);
     })()
-});
+  })
+);
