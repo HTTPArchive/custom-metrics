@@ -485,8 +485,8 @@ function getImgData( img ) {
   // if there was a w descriptor -- was it accurate?
   if ( imgData.currentSrcWDescriptor &&
       imgData.approximateResourceWidth ) {
-    imgData.wDesciptorAbsoluteError = imgData.currentSrcWDescriptor - imgData.approximateResourceWidth;
-    imgData.wDesciptorRelativeError = imgData.wDesciptorAbsoluteError / imgData.approximateResourceWidth;
+    imgData.wDescriptorAbsoluteError = imgData.currentSrcWDescriptor - imgData.approximateResourceWidth;
+    imgData.wDescriptorRelativeError = imgData.wDescriptorAbsoluteError / imgData.approximateResourceWidth;
   }
 
   // get the server-reported mime type of the image
