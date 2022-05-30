@@ -23,7 +23,7 @@ const OBSERVERS = [
   'queueMicrotask',
   'requestIdleCallback',
   'scheduler.postTask',
-  'window.matchMedia',
+  'matchMedia',
   'navigator.scheduling.isInputPending'
 ];
 
@@ -33,10 +33,10 @@ const PROPERTIES_TO_TRACE = new Set([
 
 // for each observer: custom function to determine which part of the argument should be captured
 const FUNCTION_CALL_ARGUMENTS_TO_CAPTURE = {
-  "window.matchMedia": function (arg) {
-    const m = arg.match(/\(([^:)]+)[:)]/);
-    if (m) {
-      return m[1];
+  'matchMedia': function (mediaQueryString) {
+    const match = mediaQueryString.match(/\(([^:)]+)[:)]/);
+    if (match) {
+      return match[1];
     }
     return null;
   }
@@ -119,8 +119,11 @@ function initializeObserver(pathname) {
           }
           stackCounter[stack]++;
         }
+        // Increment the feature counter.
+        httparchive_observers[pathname]++;
+        
         if (pathname in FUNCTION_CALL_ARGUMENTS_TO_CAPTURE) {
-          toReturn = function () {
+          return function () {
             const function_value = FUNCTION_CALL_ARGUMENTS_TO_CAPTURE[pathname].apply(this, arguments);
             if (!httparchive_observers.function_values[pathname][function_value]) {
               httparchive_observers.function_values[pathname][function_value] = 0;
@@ -129,8 +132,6 @@ function initializeObserver(pathname) {
             return original.apply(this, arguments);
           }
         }
-        // Increment the feature counter.
-        httparchive_observers[pathname]++;
 
         // Return the original feature.
         return toReturn;
