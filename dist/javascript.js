@@ -94,7 +94,6 @@ let getSourceMaps = (async () => {
 
         return url;
       });
-        
       if(babel > 0) {
         results.babel = true;
       }
