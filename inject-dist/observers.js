@@ -17,7 +17,7 @@ const OBSERVERS = [
   'navigator.__proto__.*',
   'performance.__proto__.*',
   'performance.timing.__proto__.*',
-  'Math.__proto__.*',
+  'Math.*',
   'Array.prototype.*',
   'String.prototype.*',
   'Object.prototype.*',
