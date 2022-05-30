@@ -52,7 +52,7 @@ const OBSERVERS = [
   'openDatabase',
   'DateTimeFormat.prototype.resolvedOptions',
   'chrome',
-  'navigator.userAgent'
+  'navigator.userAgent',
   'eval',
   'Worker'
 ];
