@@ -210,21 +210,21 @@ function doesElementCoverPercentageOfViewport(element, percentage) {
 // Calculate Element : Viewport Intersection ratio without Intersection Observer
 // Source: https://stackoverflow.com/questions/54540602/match-if-visible-on-70-with-getboundingclientrect-js
 function clipRect(rect){
-	return {
-		left: Math.max(0, rect.left),
-		top: Math.max(0, rect.top),
-		right: Math.min(window.innerWidth, rect.right),
-		bottom: Math.min(window.innerHeight, rect.bottom)
-	}
+    return {
+        left: Math.max(0, rect.left),
+        top: Math.max(0, rect.top),
+        right: Math.min(window.innerWidth, rect.right),
+        bottom: Math.min(window.innerHeight, rect.bottom)
+    }
 }
 
 function calcArea(rect){
-	return (rect.right-rect.left) * (rect.bottom-rect.top)
+    return (rect.right-rect.left) * (rect.bottom-rect.top)
 }
 
 function calcOcclusion(rect){
-	var clipped_rect = clipRect(rect)
-	return Math.max(0, calcArea(clipped_rect)/calcArea(rect))
+    const clipped_rect = clipRect(rect)
+    return Math.max(0, calcArea(clipped_rect)/calcArea(rect))
 }
 
 return Promise.all([getLcpElement()]).then(([lcp_elem_stats]) => {
