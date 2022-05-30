@@ -521,29 +521,35 @@ function getImgData( img ) {
     }
   }
 
-  const smallestResourceThatsLarger = function( annotatedCandidates ) {
-    const distances = annotatedCandidates.map( c => c.linearDistance );
-    const larger = distances.filter( (d) => { return d >= 0 } );
-    let selectedDistance;
-    if ( larger.length === 0 ) {
-      selectedDistance = Math.max( ...distances );
-    } else {
-      selectedDistance = Math.min( ...larger );
+  const smallestResourceThatsLargerThanDPR = function( annotatedCandidates ) {
+    if ( !annotatedCandidates || !annotatedCandidates.length || annotatedCandidates.length === 0 ) {
+      return null;
     }
-    return annotatedCandidates.find( c => c.linearDistance === selectedDistance );
+    const larger = annotatedCandidates.filter( c => c.linearDistance >= 0 );
+    if ( larger.size === 0 ) {
+      return annotatedCandidates.sort( ( a, b ) => {
+        return a.linearDistance - b.linearDistance;
+      } )[ annotatedCandidates.length - 1 ];
+    }
+    return larger.sort( ( a, b ) => {
+      return a.linearDistance - b.linearDistance;
+    } )[ 0 ];
   }
 
-  const closestResource = function( annotatedCandidates ) {
-    const distances = annotatedCandidates.map( c => c.geometricDistance );
-    const minDistance = Math.min( ...distances );
-    return annotatedCandidates.find( c => c.geometricDistance === minDistance );
+  const resourceThatsClosestToDPR = function( annotatedCandidates ) {
+    if ( !annotatedCandidates || !annotatedCandidates.length || annotatedCandidates.length === 0 ) {
+      return null;
+    }
+    return annotatedCandidates.sort( ( a, b ) => {
+      return a.geometricDistance - b.geometricDistance;
+    } )[ 0 ];
   }
 
   const selectResourceFromSrcset = function( annotatedCandidates, dpr ) {
     if ( dpr > 1 ) {
-      return closestResource( annotatedCandidates );
+      return resourceThatsClosestToDPR( annotatedCandidates );
     } else {
-      return smallestResourceThatsLarger( annotatedCandidates );
+      return smallestResourceThatsLargerThanDPR( annotatedCandidates );
     }
   }
 
@@ -576,7 +582,8 @@ function getImgData( img ) {
     const idealSizesSelectedResource = selectResourceFromSrcset( idealSizesSrcsetCandidates, window.devicePixelRatio );
 
     // how does this resource differ from the actual selected resource? determine and log.
-    if ( idealSizesSelectedResource.hasOwnProperty( 'w' ) &&
+    if ( idealSizesSelectedResource &&
+        idealSizesSelectedResource.hasOwnProperty( 'w' ) &&
         imgData.approximateResourceWidth > 0 &&
         imgData.approximateResourceHeight > 0 &&
         imgData.currentSrcWDescriptor &&
