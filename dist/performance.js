@@ -185,7 +185,7 @@ const doesElementCoverPercentageOfViewport = (element, percentage) => {
                 cover90viewport = true;
             }
         });
-    },);
+    });
 
     observer.observe(element);
 }
