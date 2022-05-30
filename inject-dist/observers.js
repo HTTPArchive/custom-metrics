@@ -44,7 +44,6 @@ const OBSERVERS = [
   'indexedDB',
   'openDatabase',
   'Intl.DateTimeFormat.prototype.resolvedOptions',
-  'navigator.userAgent',
   'eval',
   'Worker'
 ];
