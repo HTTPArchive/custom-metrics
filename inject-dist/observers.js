@@ -1,7 +1,8 @@
 // Note: Using prefixed variable to avoid naming collisions in the global scope.
 // This name must exactly match the one referenced in custom metrics.
 const httparchive_observers = {
-  call_stacks: {}
+  call_stacks: {},
+  function_values: {}
 };
 let httparchive_enable_observations = false;
 
@@ -16,6 +17,7 @@ const OBSERVERS = [
   'navigator.__proto__.*',
   'performance.__proto__.*',
   'performance.timing.__proto__.*',
+  'Math.*',
   'Array.prototype.*',
   'String.prototype.*',
   'Object.prototype.*',
@@ -24,15 +26,48 @@ const OBSERVERS = [
   'document.write',
   'queueMicrotask',
   'requestIdleCallback',
-  'navigator.scheduling.isInputPending',
   'scheduler.postTask',
+  'matchMedia',
+  'navigator.scheduling.isInputPending',
+  'OfflineAudioContext',
+  'OfflineAudioContext.prototype.createOscillator',
+  'OfflineAudioContext.prototype.createDynamicsCompressor',
+  'HTMLCanvasElement.prototype.getContext',
+  'CanvasRenderingContext2D.prototype.rect',
+  'CanvasRenderingContext2D.prototype.fillRect',
+  'CanvasRenderingContext2D.prototype.fillText',
+  'CanvasRenderingContext2D.prototype.beginPath',
+  'CanvasRenderingContext2D.prototype.arc',
+  'CanvasRenderingContext2D.prototype.fill',
+  'HTMLCanvasElement.prototype.toDataURL',
+  'screen.colorDepth',
+  'indexedDB',
+  'openDatabase',
+  'Intl.DateTimeFormat.prototype.resolvedOptions',
   'eval',
   'Worker'
 ];
 
 const PROPERTIES_TO_TRACE = new Set([
-  'navigator.userAgent'
+  'navigator.userAgent',
+  'navigator.vendor',
+  'OfflineAudioContext',
+  'OfflineAudioContext.prototype.createOscillator',
+  'OfflineAudioContext.prototype.createDynamicsCompressor',
+  'HTMLCanvasElement.prototype.getContext',
+  'HTMLCanvasElement.prototype.toDataURL',
 ]);
+
+// for each observer: custom function to determine which part of the argument should be captured
+const FUNCTION_CALL_ARGUMENTS_TO_CAPTURE = {
+  'matchMedia': function (mediaQueryString) {
+    const match = mediaQueryString.match(/\(([^:)]+)[:)]/);
+    if (match) {
+      return match[1];
+    }
+    return null;
+  }
+}
 
 function resolveObject(pathname) {
   let obj = window;
@@ -122,9 +157,18 @@ function initializeObserver(pathname) {
           }
           stackCounter[stack]++;
         }
-
         // Increment the feature counter.
         httparchive_observers[pathname]++;
+        if (pathname in FUNCTION_CALL_ARGUMENTS_TO_CAPTURE) {
+          return function () {
+            const function_value = FUNCTION_CALL_ARGUMENTS_TO_CAPTURE[pathname].apply(this, arguments);
+            if (!httparchive_observers.function_values[pathname][function_value]) {
+              httparchive_observers.function_values[pathname][function_value] = 0;
+            }
+            httparchive_observers.function_values[pathname][function_value]++;
+            return original.apply(this, arguments);
+          }
+        }
 
         // Return the original feature.
         return original;
@@ -142,6 +186,9 @@ function initializeObserver(pathname) {
     httparchive_observers.call_stacks[pathname] = {};
   }
 
+  if (pathname in FUNCTION_CALL_ARGUMENTS_TO_CAPTURE) {
+    httparchive_observers.function_values[pathname] = {};
+  }
   httparchive_observers[pathname] = 0;
 }
 
