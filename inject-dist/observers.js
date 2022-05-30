@@ -168,7 +168,6 @@ function initializeObserver(pathname) {
         }
         // Increment the feature counter.
         httparchive_observers[pathname]++;
-        
         if (pathname in FUNCTION_CALL_ARGUMENTS_TO_CAPTURE) {
           return function () {
             const function_value = FUNCTION_CALL_ARGUMENTS_TO_CAPTURE[pathname].apply(this, arguments);
