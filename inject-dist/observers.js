@@ -26,13 +26,13 @@ const OBSERVERS = [
   'requestIdleCallback',
   'navigator.scheduling.isInputPending',
   'scheduler.postTask',
-  'eval'
+  'eval',
+  'Worker'
 ];
 
 const PROPERTIES_TO_TRACE = new Set([
   'navigator.userAgent'
 ]);
-
 
 function resolveObject(pathname) {
   let obj = window;

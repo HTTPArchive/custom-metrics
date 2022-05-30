@@ -263,5 +263,13 @@ return Promise.all([getSourceMaps]).then(([sourceMaps]) =>
     })(),
 
     sourceMaps,
-  })
-);
+
+    bundler: (() => {
+        const bundler = {
+            webpack: !(typeof webpackJsonp === "undefined" && typeof webpackChunk === "undefined"),
+            parcel: !(typeof parcelRequire === "undefined")
+        }
+
+        return Object.entries(bundler).filter(n => n[1]).map(n => n[0]);
+    })()
+});
