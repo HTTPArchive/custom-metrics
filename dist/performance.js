@@ -24,8 +24,9 @@ function getLcpElement() {
             resolve(naiveLcpEntry);
         }).observe({ type: "largest-contentful-paint", buffered: true });
     }).then(({ startTime, element, url, size, loadTime, renderTime }) => {
+        const cover90viewport = doesElementCoverPercentageOfViewport(element, 90);
         const attributes = getAttributes(element);
-        const styles = getComputedStyles(element, ['background-image']);
+        const styles = getAllStyles(element, ['background-image', 'pointer-events', 'position', 'width', 'height']);
         return {
             startTime,
             nodeName: element?.nodeName,
@@ -37,7 +38,8 @@ function getLcpElement() {
             boundingClientRect: element?.getBoundingClientRect().toJSON(),
             naturalWidth: element?.naturalWidth,
             naturalHeight: element?.naturalHeight,
-            styles
+            styles,
+            cover90viewport
         };
     });
 }
@@ -62,6 +64,31 @@ function getComputedStyles(element, properties) {
 
     const styles = getComputedStyle(element);
     return Object.fromEntries(properties.map(prop => ([prop, styles.getPropertyValue(prop)])));
+}
+
+function getInlineStyles (element, properties) {
+    if (!element) {
+        return null;
+    }
+
+    const styles = element.style;
+    return Object.fromEntries(properties.map(prop => ([prop, styles.getPropertyValue(prop)])));
+}
+
+// Merge Inline styles with Computed styles.
+// Inline has higher specificty, unless '!important' exists in computed styles.
+function getAllStyles(element, properties) {
+    const inlineStyles = getInlineStyles(element, properties);
+    const computedStyles = getComputedStyles(element, properties);
+    const allStyles = {};
+    for (const styleName in inlineStyles) {
+        if (!inlineStyles[styleName].includes('!important') && computedStyles.hasOwnProperty(styleName) && computedStyles[styleName].includes('!important')) {
+            allStyles[styleName] = computedStyles[styleName];
+        } else {
+            allStyles[styleName] = inlineStyles[styleName];
+        }
+    }
+    return allStyles;
 }
 
 function summarizeLcpElement(element) {
@@ -132,61 +159,97 @@ function getGamingMetrics(rawDoc) {
     }
 
     //https://www.debugbear.com/blog/optimizing-web-vitals-without-improving-performance
-    //catch lcp animation / cls animation & overlay hack
+    //Catch image animation & overlay hack (used for LCP and CLS)
     const regexForCheckfadeInAnimation = new RegExp(/this.style.animation.{1,10}.fadein.{1,20}.forwards/)
     Array.from(rawDoc.querySelectorAll('img')).forEach(el => {
         let onloadVal = el.getAttribute('onload');
         if (onloadVal !== null) {
             if(regexForCheckfadeInAnimation.test(onloadVal)) {
-                returnObj['lcpAnimation'] = true;
+                returnObj['imgAnimationStrict'] = true;
+            }
+
+            const computedStyles = getAllStyles(el, ['opacity']);
+            if(computedStyles['opacity'] === '0') {
+                returnObj['imgAnimationSoft'] = true;
             }
         }
-        let styleObj = el.style;
-        if (styleObj['pointer-events'] == 'none' &&
-                styleObj['position'] == 'absolute' &&
-                styleObj['width'] == '99vw' &&
-                styleObj['height'] == '99vh') {
-            returnObj['lcpOverlay'] = true;
-        }
     });
 
-    //add logic for svg & body overlay
-    Array.from(rawDoc.querySelectorAll('svg')).forEach(svg => {
-        if (svg.clientHeight == 99999 &&
-                svg.clientWidth == 99999 &&
-                svg.clientLeft == 0 &&
-                svg.clientTop == 0) {
-            //additional check required
-            returnObj['lcpSvgOverlay'] = true;
-        }
-    });
-
-
-    //fid iframe hack
+    //FID iframe hack
     Array.from(document.getElementsByTagName('iframe')).forEach(iframeElement => {
-        let iframeTransparencyVal = iframeElement.getAttribute('transparency');
+        let iframeTransparencyVal = iframeElement.getAttribute('allowtransparency');
         if (iframeTransparencyVal) {
-            styleObj = getComputedStyles(iframeElement, ['position','width','top','z-index','left','height']) ;
-            if(styleObj['position'] == 'absolute' &&
-                    styleObj['top'] == '0px' &&
-                    styleObj['left'] == '0px' &&
-                    styleObj['z-index'] == '999'){
-                returnObj['fidIframeOverlay'] = true;
+            const allStyles = getAllStyles(iframeElement, ['position','top','z-index','left']);
+            if (allStyles['position'] == 'absolute' &&
+                allStyles['top'] == '0px' &&
+                allStyles['left'] == '0px' &&
+                allStyles['z-index'] == '999') {
+                returnObj['fidIframeOverlayStrict'] = true;
             }
         }
+
+        returnObj['fidIframeOverlaySoft'] = doesElementCoverPercentageOfViewport(iframeElement, 90);
+
     });
 
     return returnObj;
 }
 
+// Source: https://stackoverflow.com/questions/57786082/determine-how-much-of-the-viewport-is-covered-by-element-intersectionobserver
+// percentage is a whole number (ex: 90, not .9)
+function doesElementCoverPercentageOfViewport(element, percentage) {
+        const elementBCR = element.getBoundingClientRect();
+        const percentOfViewport = ((elementBCR.width * elementBCR.height) * calcOcclusion(elementBCR)) / ((window.innerWidth * window.innerHeight) / 100);
+
+        if (percentOfViewport > percentage) {
+            return true;
+        }
+        return false;
+}
+
+// Calculate Element : Viewport Intersection ratio without Intersection Observer
+// Source: https://stackoverflow.com/questions/54540602/match-if-visible-on-70-with-getboundingclientrect-js
+function clipRect(rect){
+    return {
+        left: Math.max(0, rect.left),
+        top: Math.max(0, rect.top),
+        right: Math.min(window.innerWidth, rect.right),
+        bottom: Math.min(window.innerHeight, rect.bottom)
+    }
+}
+
+function calcArea(rect){
+    return (rect.right-rect.left) * (rect.bottom-rect.top)
+}
+
+function calcOcclusion(rect){
+    const clipped_rect = clipRect(rect)
+    return Math.max(0, calcArea(clipped_rect)/calcArea(rect))
+}
+
 return Promise.all([getLcpElement()]).then(([lcp_elem_stats]) => {
     const lcpUrl = lcp_elem_stats.url;
     const rawDoc = getRawHtmlDocument();
-    let isLcpStaticallyDiscoverable = null;
+    // Start out with true, only if LCP element is an external resource will we eval & potentially set to false.
+    // Let's make sure we're not artificially deflating this metric with LCP elements that aren't external.
+    let isLcpStaticallyDiscoverable = true;
     let isLcpPreloaded = null;
     let responseObject = null;
     let rawLcpElement = null;
+    let gamingMetrics = getGamingMetrics(rawDoc);
     const isLcpExternalResource = lcpUrl != '';
+    const styles = lcp_elem_stats.styles;
+
+    // Detect LCP Overlay Hack
+    if (styles['pointer-events'] == 'none' &&
+        styles['position'] == 'absolute' &&
+        styles['width'] == '99vw' &&
+        styles['height'] == '99vh') {
+            gamingMetrics['lcpOverlayStrict'] = true;
+    }
+
+    gamingMetrics['lcpOverlaySoft'] =  lcp_elem_stats.cover90viewport && styles['pointer-events'] == 'none';
+
     if (isLcpExternalResource) {
         // Check if LCP resource reference is in the raw HTML (as opposed to being injected later by JS)
         rawLcpElement = Array.from(rawDoc.querySelectorAll('picture source, img')).find(i => {
@@ -217,7 +280,7 @@ return Promise.all([getLcpElement()]).then(([lcp_elem_stats]) => {
         is_lcp_statically_discoverable: isLcpStaticallyDiscoverable,
         is_lcp_preloaded: isLcpPreloaded,
         web_vitals_js: getWebVitalsJS(),
-        gamingMetrics: getGamingMetrics(rawDoc)
+        gaming_metrics: gamingMetrics,
     };
 }).catch(error => {
     return {error};
