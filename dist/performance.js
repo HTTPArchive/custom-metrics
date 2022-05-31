@@ -248,7 +248,9 @@ return Promise.all([getLcpElement()]).then(([lcp_elem_stats]) => {
             gamingMetrics['lcpOverlayStrict'] = true;
     }
 
-    gamingMetrics['lcpOverlaySoft'] =  lcp_elem_stats.cover90viewport && styles['pointer-events'] == 'none';
+    if(lcp_elem_stats.cover90viewport && styles['pointer-events'] == 'none'){
+        gamingMetrics['lcpOverlaySoft'] = true;
+    }
 
     if (isLcpExternalResource) {
         // Check if LCP resource reference is in the raw HTML (as opposed to being injected later by JS)
