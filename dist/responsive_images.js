@@ -522,7 +522,7 @@ function getImgData( img ) {
   }
 
   const smallestResourceThatsLargerThanDPR = function( annotatedCandidates ) {
-    if ( !annotatedCandidates || !annotatedCandidates.length || annotatedCandidates.length === 0 ) {
+    if ( !annotatedCandidates || !annotatedCandidates.length ) {
       return null;
     }
     const larger = annotatedCandidates.filter( c => c.linearDistance >= 0 );
@@ -537,7 +537,7 @@ function getImgData( img ) {
   }
 
   const resourceThatsClosestToDPR = function( annotatedCandidates ) {
-    if ( !annotatedCandidates || !annotatedCandidates.length || annotatedCandidates.length === 0 ) {
+    if ( !annotatedCandidates || !annotatedCandidates.length ) {
       return null;
     }
     return annotatedCandidates.sort( ( a, b ) => {
