@@ -526,7 +526,7 @@ function getImgData( img ) {
       return null;
     }
     const larger = annotatedCandidates.filter( c => c.linearDistance >= 0 );
-    if ( larger.size === 0 ) {
+    if ( larger.length === 0 ) {
       return annotatedCandidates.sort( ( a, b ) => {
         return a.linearDistance - b.linearDistance;
       } )[ annotatedCandidates.length - 1 ];
