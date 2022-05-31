@@ -4,10 +4,12 @@
 // Please, refer to instructions for adding a custom metric in almanac.js.
 
 function fetchWithTimeout(url) {
-    var controller = new AbortController();
-    setTimeout(() => {controller.abort()}, 5000);
-    return fetch(url, {signal: controller.signal});
-  }
+  var controller = new AbortController();
+  setTimeout(() => {
+    controller.abort();
+  }, 5000);
+  return fetch(url, { signal: controller.signal });
+}
 
 const requests = $WPT_REQUESTS;
 
@@ -89,12 +91,12 @@ let getSourceMaps = (async () => {
         }
 
         if (url.pathname.match(/@babel/)) {
-            babel++;
+          babel++;
         }
 
         return url;
       });
-      if(babel > 0) {
+      if (babel > 0) {
         results.babel = true;
       }
 
@@ -265,12 +267,51 @@ return Promise.all([getSourceMaps]).then(([sourceMaps]) =>
     sourceMaps,
 
     bundler: (() => {
-        const bundler = {
-            webpack: !(typeof webpackJsonp === "undefined" && typeof webpackChunk === "undefined"),
-            parcel: !(typeof parcelRequire === "undefined")
-        }
+      const bundler = {
+        webpack: !(
+          typeof webpackJsonp === "undefined" &&
+          typeof webpackChunk === "undefined"
+        ),
+        parcel: !(typeof parcelRequire === "undefined"),
+      };
 
-        return Object.entries(bundler).filter(n => n[1]).map(n => n[0]);
-    })()
+      return Object.entries(bundler)
+        .filter((n) => n[1])
+        .map((n) => n[0]);
+    })(),
+
+    document: (() => {
+      const documentHtml = $WPT_BODIES
+        .filter((request) => request.type == "Document")
+        .map((n) => {
+          return n.response_body;
+        });
+
+      if (documentHtml.length) {
+        const htmlElement = document.createElement("html");
+        htmlElement.innerHTML = documentHtml[0];
+
+        const elements = htmlElement.querySelectorAll("*").length;
+        const links = htmlElement.querySelectorAll("link").length;
+        const stylesheets = htmlElement.querySelectorAll(
+          "link[rel='stylesheet']"
+        ).length;
+        const inlineStyles = htmlElement.querySelectorAll("style").length;
+        const scripts = htmlElement.querySelectorAll("script[src]").length;
+        const inlineScripts = htmlElement.querySelectorAll("script:not([src])").length;
+
+        return {
+          length: documentHtml[0].length,
+          elements,
+          links,
+          stylesheets,
+          inlineStyles,
+          scripts,
+          inlineScripts,
+        };
+      }
+
+      return null;
+    })(),
   })
 );
