@@ -428,6 +428,10 @@ function getImgData( img ) {
       o => o.url === img.currentSrc
     );
     if ( informationFromSrcsetAboutTheCurrentSrc &&
+          informationFromSrcsetAboutTheCurrentSrc.w ) {
+      imgData.currentSrcWDescriptor = informationFromSrcsetAboutTheCurrentSrc.w;
+    }
+    if ( informationFromSrcsetAboutTheCurrentSrc &&
           informationFromSrcsetAboutTheCurrentSrc.density ) {
       imgData.currentSrcDensity = informationFromSrcsetAboutTheCurrentSrc.density;
     }
@@ -478,6 +482,13 @@ function getImgData( img ) {
     imgData.bitsPerPixel = ( imgData.byteSize * 8 ) / ( imgData.approximateResourceWidth * imgData.approximateResourceHeight );
   }
 
+  // if there was a w descriptor -- was it accurate?
+  if ( imgData.currentSrcWDescriptor &&
+      imgData.approximateResourceWidth ) {
+    imgData.wDescriptorAbsoluteError = imgData.currentSrcWDescriptor - imgData.approximateResourceWidth;
+    imgData.wDescriptorRelativeError = imgData.wDescriptorAbsoluteError / imgData.approximateResourceWidth;
+  }
+
   // get the server-reported mime type of the image
   if (
     wptRequest &&
@@ -498,6 +509,97 @@ function getImgData( img ) {
     imgData.hasWidth && imgData.hasHeight &&
     Object.values( imgData.intrinsicOrExtrinsicSizing ).includes( 'intrinsic' )
   );
+
+  // what was the impact of incorrect sizes values?
+
+  // helpers...
+  function geometricDistance(a, b) {
+    if (a > b) {
+      return a / b;
+    } else {
+      return b / a;
+    }
+  }
+
+  const smallestResourceThatsLargerThanDPR = function( annotatedCandidates ) {
+    if ( !annotatedCandidates || !annotatedCandidates.length ) {
+      return null;
+    }
+    const larger = annotatedCandidates.filter( c => c.linearDistance >= 0 );
+    if ( larger.length === 0 ) {
+      return annotatedCandidates.sort( ( a, b ) => {
+        return a.linearDistance - b.linearDistance;
+      } )[ annotatedCandidates.length - 1 ];
+    }
+    return larger.sort( ( a, b ) => {
+      return a.linearDistance - b.linearDistance;
+    } )[ 0 ];
+  }
+
+  const resourceThatsClosestToDPR = function( annotatedCandidates ) {
+    if ( !annotatedCandidates || !annotatedCandidates.length ) {
+      return null;
+    }
+    return annotatedCandidates.sort( ( a, b ) => {
+      return a.geometricDistance - b.geometricDistance;
+    } )[ 0 ];
+  }
+
+  const selectResourceFromSrcset = function( annotatedCandidates, dpr ) {
+    if ( dpr > 1 ) {
+      return resourceThatsClosestToDPR( annotatedCandidates );
+    } else {
+      return smallestResourceThatsLargerThanDPR( annotatedCandidates );
+    }
+  }
+
+  // main
+  // only run if there is an (explicit or implied) sizes value, and more than one resource in the srcset
+  // (ie, if sizes errors could matter)
+  if ( imgData.sizesWidth && srcsetCandidates && srcsetCandidates.length > 1 ) {
+
+    // determine the effective densities of the srcset resources
+    // using ideal (rather than actual) sizes value
+
+    // deep copy
+    idealSizesSrcsetCandidates = JSON.parse( JSON.stringify( srcsetCandidates ) );
+    // modify in place (just like before) TODO: turn this into a function, use in both places...
+    // overwriting densities that we copied
+    idealSizesSrcsetCandidates.forEach( i => {
+      if ( i.hasOwnProperty( 'd' ) ) {
+        i.density = i.d;
+      } else if ( i.hasOwnProperty( 'w' ) && imgData.clientWidth > 0 ) {
+        i.density = i.w / imgData.clientWidth;
+      } else {
+        i.density = 1;
+      }
+      // in addition to densities, annotate candidates with distances from DPR, used in srcset selection
+      i.geometricDistance = geometricDistance( i.density, window.devicePixelRatio );
+      i.linearDistance = i.density - window.devicePixelRatio;
+    } );
+
+    // what resource would have been picked, if the sizes value had been correct?
+    const idealSizesSelectedResource = selectResourceFromSrcset( idealSizesSrcsetCandidates, window.devicePixelRatio );
+
+    // how does this resource differ from the actual selected resource? determine and log.
+    if ( idealSizesSelectedResource &&
+        idealSizesSelectedResource.hasOwnProperty( 'w' ) &&
+        imgData.approximateResourceWidth > 0 &&
+        imgData.approximateResourceHeight > 0 &&
+        imgData.currentSrcWDescriptor &&
+        imgData.bitsPerPixel > 0 ) {
+      imgData.idealSizesSelectedResourceW = idealSizesSelectedResource.w;
+      const aspectRatio = imgData.approximateResourceWidth / imgData.approximateResourceHeight;
+      const idealEstimatedHeight = Math.round( idealSizesSelectedResource.w / aspectRatio );
+      const currentSrcEstimatedHDescriptor = Math.round( imgData.currentSrcWDescriptor / aspectRatio ); // could be different from approximateResourceHeight if w descriptor is wrong!
+      const currentSrcPixelsBasedOnDescriptors = imgData.currentSrcWDescriptor * currentSrcEstimatedHDescriptor;
+      imgData.idealSizesSelectedResourceEstimatedPixels = Math.round( idealSizesSelectedResource.w ) * idealEstimatedHeight;
+      imgData.actualSizesEstimatedWastedLoadedPixels = currentSrcPixelsBasedOnDescriptors - imgData.idealSizesSelectedResourceEstimatedPixels;
+      imgData.idealSizesSelectedResourceEstimatedBytes = ( imgData.idealSizesSelectedResourceEstimatedPixels * imgData.bitsPerPixel ) / 8;
+      imgData.actualSizesEstimatedWastedLoadedBytes = ( ( imgData.bitsPerPixel * currentSrcPixelsBasedOnDescriptors) / 8 ) - imgData.idealSizesSelectedResourceEstimatedBytes;
+
+    }
+  }
 
   return imgData;
 
