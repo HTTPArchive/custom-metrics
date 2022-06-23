@@ -237,18 +237,27 @@ function splitSrcSet(srcset) {
 }
 
 function parseLinkHeader(link) {
+    if (!link) {
+        return {};
+    }
+
     const srcPattern = /<([^>]+)>/;
     const paramPattern = /([^=]+)=['"]?([^'"]+)['"]?/;
-    return Object.fromEntries(link.split('\n').map(l => {
+    return Object.fromEntries(link.split(',').map(l => {
         let [src, ...params] = l.split(';');
 
         if (!srcPattern.test(src)) {
             return [];
         }
         src = src.match(srcPattern)[1];
+        src = new URL(src, location.href).href;
 
         params = params.map(p => {
-            const [_, key, value] = p.trim().toLowerCase().match(paramPattern);
+            p = p.trim().toLowerCase();
+            if (!paramPattern.test(p)) {
+                return;
+            }
+            const [_, key, value] = p.match(paramPattern);
             return {key, value};
         });
         return [src, params];
@@ -261,7 +270,10 @@ return Promise.all([getLcpElement()]).then(([lcp_elem_stats]) => {
     // Start out with true, only if LCP element is an external resource will we eval & potentially set to false.
     // Let's make sure we're not artificially deflating this metric with LCP elements that aren't external.
     let isLcpStaticallyDiscoverable = true;
+    let isLcpElementInStaticDom = null;
     let isLcpPreloaded = null;
+    let isLcpPreloadedInHeaders = null;
+    let isLcpPreloadedInMetaTag = null;
     let responseObject = null;
     let rawLcpElement = null;
     let gamingMetrics = getGamingMetrics(rawDoc);
@@ -290,7 +302,7 @@ return Promise.all([getLcpElement()]).then(([lcp_elem_stats]) => {
 
             return src == lcpUrl;
         });
-        isLcpPreloaded = Array.from(rawDoc.querySelectorAll('link')).some(link => {
+        isLcpPreloadedInLinkTag = Array.from(rawDoc.querySelectorAll('link')).some(link => {
             if (link.rel != 'preload') {
                 return false;
             }
@@ -302,16 +314,17 @@ return Promise.all([getLcpElement()]).then(([lcp_elem_stats]) => {
 
             return src == lcpUrl;
         });
-        let isLcpPreloadedInHeaders = false;
+        isLcpPreloadedInLinkHeader = false;
         const linkHeader = response_bodies[0].response_headers.link;
         if (linkHeader) {
             const directives = parseLinkHeader(linkHeader);
-            isLcpPreloadedInHeaders = lcpUrl in directives && directives[lcpUrl].some(param => {
+            isLcpPreloadedInLinkHeader = lcpUrl in directives && directives[lcpUrl].some(param => {
                 return param.key == 'rel' && param.value == 'preload';
             });
         }
-        isLcpPreloaded = isLcpPreloaded || isLcpPreloadedInHeaders;
-        isLcpStaticallyDiscoverable = !!rawLcpElement || isLcpPreloaded;
+        isLcpPreloaded = isLcpPreloadedInLinkTag || isLcpPreloadedInLinkHeader;
+        isLcpElementInStaticDom = !!rawLcpElement;
+        isLcpStaticallyDiscoverable = isLcpElementInStaticDom || isLcpPreloaded;
         responseObject = response_bodies.find(r => {
             return r.url == lcpUrl;
         });
@@ -326,7 +339,10 @@ return Promise.all([getLcpElement()]).then(([lcp_elem_stats]) => {
         raw_lcp_element: summarizeLcpElement(rawLcpElement),
         lcp_resource: responseObject,
         is_lcp_statically_discoverable: isLcpStaticallyDiscoverable,
+        is_lcp_elemenet_in_static_dom: isLcpElementInStaticDom,
         is_lcp_preloaded: isLcpPreloaded,
+        is_lcp_preloaded_in_link_header: isLcpPreloadedInLinkHeader,
+        is_lcp_preloaded_in_link_tag: isLcpPreloadedInLinkTag,
         web_vitals_js: getWebVitalsJS(),
         gaming_metrics: gamingMetrics,
     };
