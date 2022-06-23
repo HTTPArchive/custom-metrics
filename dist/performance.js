@@ -227,13 +227,32 @@ function calcOcclusion(rect){
     return Math.max(0, calcArea(clipped_rect)/calcArea(rect))
 }
 
-function splitSrcSet(srcset, baseUrl) {
+function splitSrcSet(srcset) {
     // "img.jpg 100w, img2.jpg 300w"
     return srcset.split(',').map(srcDesc => {
         // "img.jpg 100w", " img2.jpg 300w"
         const src = srcDesc.trim().split(' ')[0];
-        return new URL(src, baseUrl).href;
+        return new URL(src, location.href).href;
     });
+}
+
+function parseLinkHeader(link) {
+    const srcPattern = /<([^>]+)>/;
+    const paramPattern = /([^=]+)=['"]?([^'"]+)['"]?/;
+    return Object.fromEntries(link.split('\n').map(l => {
+        let [src, ...params] = l.split(';');
+
+        if (!srcPattern.test(src)) {
+            return [];
+        }
+        src = src.match(srcPattern)[1];
+
+        params = params.map(p => {
+            const [_, key, value] = p.trim().toLowerCase().match(paramPattern);
+            return {key, value};
+        });
+        return [src, params];
+    }));
 }
 
 return Promise.all([getLcpElement()]).then(([lcp_elem_stats]) => {
@@ -266,24 +285,33 @@ return Promise.all([getLcpElement()]).then(([lcp_elem_stats]) => {
         rawLcpElement = Array.from(rawDoc.querySelectorAll('picture source, img')).find(i => {
             let src = i.src;
             if (i.hasAttribute('srcset')) {
-                src = splitSrcSet(i.srcset, location.href).find(src => src == lcpUrl);
+                src = splitSrcSet(i.srcset).find(src => src == lcpUrl);
             }
 
             return src == lcpUrl;
         });
-        isLcpPreloaded = !!Array.from(rawDoc.querySelectorAll('link')).find(link => {
+        isLcpPreloaded = Array.from(rawDoc.querySelectorAll('link')).some(link => {
             if (link.rel != 'preload') {
                 return false;
             }
 
             let src = link.href;
             if (link.hasAttribute('imagesrcset')) {
-                src = splitSrcSet(link.imagesrcset, location.href).find(src => src == lcpUrl);
+                src = splitSrcSet(link.imagesrcset).find(src => src == lcpUrl);
             }
 
             return src == lcpUrl;
         });
-        isLcpStaticallyDiscoverable = !!rawLcpElement || !!isLcpPreloaded;
+        let isLcpPreloadedInHeaders = false;
+        const linkHeader = response_bodies[0].response_headers.link;
+        if (linkHeader) {
+            const directives = parseLinkHeader(linkHeader);
+            isLcpPreloadedInHeaders = lcpUrl in directives && directives[lcpUrl].some(param => {
+                return param.key == 'rel' && param.value == 'preload';
+            });
+        }
+        isLcpPreloaded = isLcpPreloaded || isLcpPreloadedInHeaders;
+        isLcpStaticallyDiscoverable = !!rawLcpElement || isLcpPreloaded;
         responseObject = response_bodies.find(r => {
             return r.url == lcpUrl;
         });
