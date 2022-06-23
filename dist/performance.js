@@ -273,7 +273,16 @@ return Promise.all([getLcpElement()]).then(([lcp_elem_stats]) => {
         });
         isLcpStaticallyDiscoverable = !!rawLcpElement;
         isLcpPreloaded = !!Array.from(rawDoc.querySelectorAll('link')).find(link => {
-            return link.rel == 'preload' && link.href == lcpUrl;
+            if (link.rel != 'preload') {
+                return false;
+            }
+
+            let src = link.href;
+            if (link.hasAttribute('imagesrcset')) {
+                src = splitSrcSet(link.imagesrcset, location.href).find(src => src == lcpUrl);
+            }
+            
+            return src == lcpUrl;
         });
         responseObject = response_bodies.find(r => {
             return r.url == lcpUrl;
