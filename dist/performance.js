@@ -271,7 +271,6 @@ return Promise.all([getLcpElement()]).then(([lcp_elem_stats]) => {
 
             return src == lcpUrl;
         });
-        isLcpStaticallyDiscoverable = !!rawLcpElement;
         isLcpPreloaded = !!Array.from(rawDoc.querySelectorAll('link')).find(link => {
             if (link.rel != 'preload') {
                 return false;
@@ -281,9 +280,10 @@ return Promise.all([getLcpElement()]).then(([lcp_elem_stats]) => {
             if (link.hasAttribute('imagesrcset')) {
                 src = splitSrcSet(link.imagesrcset, location.href).find(src => src == lcpUrl);
             }
-            
+
             return src == lcpUrl;
         });
+        isLcpStaticallyDiscoverable = !!rawLcpElement || !!isLcpPreloaded;
         responseObject = response_bodies.find(r => {
             return r.url == lcpUrl;
         });
