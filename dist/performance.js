@@ -227,6 +227,15 @@ function calcOcclusion(rect){
     return Math.max(0, calcArea(clipped_rect)/calcArea(rect))
 }
 
+function splitSrcSet(srcset, baseUrl) {
+    // "img.jpg 100w, img2.jpg 300w"
+    return srcset.split(',').map(srcDesc => {
+        // "img.jpg 100w", " img2.jpg 300w"
+        const src = srcDesc.trim().split(' ')[0];
+        return new URL(src, baseUrl).href;
+    });
+}
+
 return Promise.all([getLcpElement()]).then(([lcp_elem_stats]) => {
     const lcpUrl = lcp_elem_stats.url;
     const rawDoc = getRawHtmlDocument();
@@ -256,8 +265,8 @@ return Promise.all([getLcpElement()]).then(([lcp_elem_stats]) => {
         // Check if LCP resource reference is in the raw HTML (as opposed to being injected later by JS)
         rawLcpElement = Array.from(rawDoc.querySelectorAll('picture source, img')).find(i => {
             let src = i.src;
-            if (i.nodeName == 'SOURCE') {
-                src = new URL(i.srcset, location.href).href;
+            if (i.hasAttribute('srcset')) {
+                src = splitSrcSet(i.srcset, location.href).find(src => src == lcpUrl);
             }
 
             return src == lcpUrl;
