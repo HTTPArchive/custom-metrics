@@ -300,7 +300,7 @@ function getLcpPreloadInfo(rawDoc, lcpUrl) {
     if (!linkHeaderString) {
         return lcpPreload;
     }
-    
+
     const directives = parseLinkHeader(linkHeaderString);
     if (!(lcpUrl in directives)) {
         return lcpPreload;
@@ -362,7 +362,7 @@ return Promise.all([getLcpElement()]).then(([lcp_elem_stats]) => {
         rawLcpElement = getRawLcpElement(rawDoc, lcpUrl);
         lcpPreload = getLcpPreloadInfo(rawDoc, lcpUrl);
         responseObject = getLcpResponseObject(lcpUrl);
-        
+
         isLcpPreloaded = 'header_directives' in lcpPreload || 'tag' in lcpPreload;
         isLcpStaticallyDiscoverable = !!rawLcpElement || isLcpPreloaded;
     }
