@@ -243,7 +243,7 @@ function splitSrcSet(srcset) {
     // "img.jpg 100w, img2.jpg 300w"
     return srcset.split(',').map(srcDesc => {
         // "img.jpg 100w", " img2.jpg 300w"
-        const src = srcDesc.trim().split(' ')[0];
+        const src = srcDesc.trim().split(/\s+/)[0];
         return new URL(src, location.href).href;
     });
 }
@@ -255,7 +255,7 @@ function parseLinkHeader(link) {
 
     const srcPattern = /<([^>]+)>/;
     const paramPattern = /([^=]+)=['"]?([^'"]+)['"]?/;
-    return Object.fromEntries(link.split(',').map(l => {
+    return Object.fromEntries(link.split(/[,\n]/).map(l => {
         let [src, ...params] = l.split(';');
 
         if (!srcPattern.test(src)) {
