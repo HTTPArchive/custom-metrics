@@ -1,9 +1,32 @@
+//[parsed_css]
+
 try {
+  const MAX_STYLESHEET_BYTES = 500 * 1024; // 500 KB
+  const MAX_AST_BYTES = 4 * 1024 * 1024; // 4 MB
+  const MAX_TOTAL_BYTES = 50 * 1024 * 1024; // 50 MB
   const stylesheets = $WPT_BODIES.filter(i => i.type == 'Stylesheet').map(i => ({url: i.url, body: i.response_body}));
   const block = Array.from(document.querySelectorAll('style')).map(i => ({url: 'block', body: i.innerHTML}));
   const inline = Array.from(document.querySelectorAll('[style]')).map(i => ({url: 'inline', body: i.getAttribute('style')}));
 
-  return stylesheets.concat(block, inline).map(({url, body}) => ({url, ast: parse(body, {silent: true})}));
+  const parsed_css = stylesheets.concat(block, inline).filter(({url, body}) => {
+    return body.length <= MAX_STYLESHEET_BYTES;
+  }).map(({url, body}) => {
+    return {
+      url,
+      ast: parse(body, {
+        silent: true,
+        inline: url == 'inline'
+      })
+    };
+  }).filter(({url, ast}) => {
+    return JSON.stringify(ast).length <= MAX_AST_BYTES;
+  });
+
+  if (JSON.stringify(parsed_css).length > MAX_TOTAL_BYTES) {
+    return null;
+  }
+
+  return parsed_css;
 } catch (e) {
   return null;
 }
@@ -15,6 +38,7 @@ try {
 var commentre = /\/\*[^*]*\*+([^/*][^*]*\*+)*\//g
 
 function parse(css, options){
+  css = trim(css);
   options = options || {};
 
   /**
@@ -257,7 +281,7 @@ function parse(css, options){
   function declarations() {
     var decls = [];
 
-    if (!open()) return error("missing '{'");
+    if (!options.inline && !open()) return error("missing '{'");
     comments(decls);
 
     // declarations
@@ -269,7 +293,7 @@ function parse(css, options){
       }
     }
 
-    if (!close()) return error("missing '}'");
+    if (!options.inline && !close()) return error("missing '}'");
     return decls;
   }
 
@@ -572,6 +596,12 @@ function parse(css, options){
       selectors: sel,
       declarations: declarations()
     });
+  }
+
+  if (options.inline) {
+    return {
+      declarations: declarations()
+    };
   }
 
   return addParent(stylesheet());
