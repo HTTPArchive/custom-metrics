@@ -91,7 +91,7 @@ function getAllStyles(element, properties) {
     return allStyles;
 }
 
-function summarizeLcpElement(element) {
+function summarizeElement(element) {
     if (!element) {
         return null;
     }
@@ -125,7 +125,7 @@ function testPropertyStringInResponseBodies(regex) {
     }
 }
 
-function getGamingMetrics(rawDoc) {
+function getGamingMetrics(rawDoc, lcp_elem_stats) {
     let returnObj = {};
     const regexForCheckChromeLH = new RegExp(/.{1}userAgent.{1,100}(?:Chrome-Lighthouse|Google Lighthouse).{2}/)
     const regexForCheckGTmetrix = new RegExp(/.{1}userAgent.{1,100}(?:GTmetrix|gtmetrix.com).{2}/)
@@ -192,6 +192,18 @@ function getGamingMetrics(rawDoc) {
 
     });
 
+    // Detect LCP Overlay Hack
+    const styles = lcp_elem_stats.styles;
+    if (styles['pointer-events'] == 'none' &&
+        styles['position'] == 'absolute' &&
+        styles['width'] == '99vw' &&
+        styles['height'] == '99vh') {
+            returnObj['lcpOverlayStrict'] = true;
+    }
+    if (lcp_elem_stats.cover90viewport && styles['pointer-events'] == 'none') {
+        returnObj['lcpOverlaySoft'] = true;
+    }
+
     return returnObj;
 }
 
@@ -227,6 +239,111 @@ function calcOcclusion(rect){
     return Math.max(0, calcArea(clipped_rect)/calcArea(rect))
 }
 
+function splitSrcSet(srcset) {
+    // "img.jpg 100w, img2.jpg 300w"
+    return srcset.split(',').map(srcDesc => {
+        // "img.jpg 100w", " img2.jpg 300w"
+        const src = srcDesc.trim().split(/\s+/)[0];
+        return new URL(src, location.href).href;
+    });
+}
+
+function parseLinkHeader(link) {
+    if (!link) {
+        return {};
+    }
+
+    const srcPattern = /<([^>]+)>/;
+    const paramPattern = /([^=]+)=['"]?([^'"]+)['"]?/;
+    return Object.fromEntries(link.split(/[,\n]/).map(l => {
+        let [src, ...params] = l.split(';');
+
+        if (!srcPattern.test(src)) {
+            return [];
+        }
+        src = src.match(srcPattern)[1];
+        src = new URL(src, location.href).href;
+
+        params = params.map(p => {
+            p = p.trim().toLowerCase();
+            if (!paramPattern.test(p)) {
+                return;
+            }
+            const [_, key, value] = p.match(paramPattern);
+            return {key, value};
+        });
+        return [src, params];
+    }));
+}
+
+function getLcpPreloadInfo(rawDoc, lcpUrl) {
+    const lcpPreload = {};
+
+    const preloadTag = Array.from(rawDoc.querySelectorAll('link')).find(link => {
+        if (link.rel != 'preload') {
+            return false;
+        }
+
+        let src = link.href;
+        if (link.hasAttribute('imagesrcset')) {
+            src = splitSrcSet(link.imagesrcset).find(src => src == lcpUrl);
+        }
+
+        return src == lcpUrl;
+    });
+
+    if (preloadTag) {
+        lcpPreload.tag = summarizeElement(preloadTag);
+    }
+
+    const linkHeaderString = response_bodies[0].response_headers.link;
+    if (!linkHeaderString) {
+        return lcpPreload;
+    }
+
+    const directives = parseLinkHeader(linkHeaderString);
+    if (!(lcpUrl in directives)) {
+        return lcpPreload;
+    }
+
+    const isLcpPreloadedInLinkHeader = directives[lcpUrl].some(param => {
+        return param.key == 'rel' && param.value == 'preload';
+    });
+
+    if (isLcpPreloadedInLinkHeader) {
+        lcpPreload.header_directives = Object.fromEntries(directives[lcpUrl].map(d => {
+            return [d.key, d.value];
+        }));
+    }
+
+    return lcpPreload;
+}
+
+function getRawLcpElement(rawDoc, lcpUrl) {
+    const rawLcpElement = Array.from(rawDoc.querySelectorAll('picture source, img')).find(i => {
+        let src = i.src;
+        if (i.hasAttribute('srcset')) {
+            src = splitSrcSet(i.srcset).find(src => src == lcpUrl);
+        }
+
+        return src == lcpUrl;
+    });
+
+    // lcp_elem_stats will match the img, not the source.
+    return summarizeElement(rawLcpElement);
+}
+
+function getLcpResponseObject(lcpUrl) {
+    const responseObject = response_bodies.find(r => {
+        return r.url == lcpUrl;
+    });
+    if (responseObject) {
+        // Don't write the response body to custom metrics.
+        responseObject.response_body = undefined;
+    }
+    return responseObject;
+}
+
 return Promise.all([getLcpElement()]).then(([lcp_elem_stats]) => {
     const lcpUrl = lcp_elem_stats.url;
     const rawDoc = getRawHtmlDocument();
@@ -234,53 +351,29 @@ return Promise.all([getLcpElement()]).then(([lcp_elem_stats]) => {
     // Let's make sure we're not artificially deflating this metric with LCP elements that aren't external.
     let isLcpStaticallyDiscoverable = true;
     let isLcpPreloaded = null;
-    let responseObject = null;
     let rawLcpElement = null;
-    let gamingMetrics = getGamingMetrics(rawDoc);
+    let lcpPreload = null;
+    let responseObject = null;
+    let gamingMetrics = getGamingMetrics(rawDoc, lcp_elem_stats);
     const isLcpExternalResource = lcpUrl != '';
-    const styles = lcp_elem_stats.styles;
-
-    // Detect LCP Overlay Hack
-    if (styles['pointer-events'] == 'none' &&
-        styles['position'] == 'absolute' &&
-        styles['width'] == '99vw' &&
-        styles['height'] == '99vh') {
-            gamingMetrics['lcpOverlayStrict'] = true;
-    }
-
-    if(lcp_elem_stats.cover90viewport && styles['pointer-events'] == 'none'){
-        gamingMetrics['lcpOverlaySoft'] = true;
-    }
 
     if (isLcpExternalResource) {
         // Check if LCP resource reference is in the raw HTML (as opposed to being injected later by JS)
-        rawLcpElement = Array.from(rawDoc.querySelectorAll('picture source, img')).find(i => {
-            let src = i.src;
-            if (i.nodeName == 'SOURCE') {
-                src = new URL(i.srcset, location.href).href;
-            }
+        rawLcpElement = getRawLcpElement(rawDoc, lcpUrl);
+        lcpPreload = getLcpPreloadInfo(rawDoc, lcpUrl);
+        responseObject = getLcpResponseObject(lcpUrl);
 
-            return src == lcpUrl;
-        });
-        isLcpStaticallyDiscoverable = !!rawLcpElement;
-        isLcpPreloaded = !!Array.from(rawDoc.querySelectorAll('link')).find(link => {
-            return link.rel == 'preload' && link.href == lcpUrl;
-        });
-        responseObject = response_bodies.find(r => {
-            return r.url == lcpUrl;
-        });
-        if (responseObject) {
-            // Don't write the response body to custom metrics.
-            responseObject.response_body = undefined;
-        }
+        isLcpPreloaded = 'header_directives' in lcpPreload || 'tag' in lcpPreload;
+        isLcpStaticallyDiscoverable = !!rawLcpElement || isLcpPreloaded;
     }
 
     return {
         lcp_elem_stats,
-        raw_lcp_element: summarizeLcpElement(rawLcpElement),
+        raw_lcp_element: rawLcpElement,
         lcp_resource: responseObject,
         is_lcp_statically_discoverable: isLcpStaticallyDiscoverable,
         is_lcp_preloaded: isLcpPreloaded,
+        lcp_preload: lcpPreload,
         web_vitals_js: getWebVitalsJS(),
         gaming_metrics: gamingMetrics,
     };
