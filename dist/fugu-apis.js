@@ -33,8 +33,8 @@ const patterns = {
   'HapticsDevice': {
     regEx: /\.haptics\.play\s*\(/g,
     where: 'JavaScript',
-    supported: (async () => 'HapticsDevice' in window)(),
-    featureDetection: `(async () => 'HapticsDevice' in window)()`,
+    supported: (async () => 'HapticsDevice' in self)(),
+    featureDetection: `(async () => 'HapticsDevice' in self)()`,
     documentation:
       'https://github.com/MicrosoftEdge/MSEdgeExplainers/blob/main/HapticsDevice/explainer.md',
     blinkFeatureID: undefined,
@@ -355,15 +355,6 @@ const patterns = {
     documentation: 'https://web.dev/nfc/',
     blinkFeatureID: 3094,
   },
-  'Run On Login': {
-    regEx: /navigator\.runOnOsLogin\.set\s*\(/g,
-    where: 'JavaScript',
-    supported: (async () => 'runOnOsLogin' in navigator)(),
-    featureDetection: `(async () => 'runOnOsLogin' in navigator)()`,
-    documentation:
-      'https://github.com/MicrosoftEdge/MSEdgeExplainers/blob/main/RunOnLogin/Explainer.md',
-    blinkFeatureID: undefined,
-  },
   'WebCodecs': {
     regEx: /new\s+MediaStreamTrackProcessor\s*\(/g,
     where: 'JavaScript',
@@ -388,14 +379,6 @@ const patterns = {
     featureDetection: `(async () => 'IdleDetector' in self)()`,
     documentation: 'https://web.dev/idle-detection/',
     blinkFeatureID: 2834,
-  },
-  'Storage Foundation': {
-    regEx: /storageFoundation\.open\s*\(/g,
-    where: 'JavaScript',
-    supported: (async () => 'storageFoundation' in self)(),
-    featureDetection: `(async () => 'storageFoundation' in self)()`,
-    documentation: 'https://web.dev/storage-foundation/',
-    blinkFeatureID: 3822,
   },
   'Handwriting Recognition': {
     regEx: /navigator\.queryHandwritingRecognizerSupport\s*\(/g,
@@ -477,22 +460,13 @@ const patterns = {
     documentation: 'https://web.dev/generic-sensor/',
     blinkFeatureID: 1901,
   },
-  'Notification Triggers': {
-    regEx: /showTrigger\s*\:\s*new\s+TimestampTrigger\s*\(/g,
-    where: 'JavaScript',
-    supported: (async () =>
-      'Notification' in self && 'showTrigger' in Notification.prototype)(),
-    featureDetection: `(async () => 'Notification' in self && 'showTrigger' in Notification.prototype)()`,
-    documentation: 'https://web.dev/notification-triggers/',
-    blinkFeatureID: 3017,
-  },
   'Local Font Access': {
-    regEx: /navigator\.fonts\.query\s*\(\)/g,
+    regEx: /queryLocalFonts\s*\(/g,
     where: 'JavaScript',
-    supported: (async () => 'fonts' in navigator)(),
-    featureDetection: `(async () => 'fonts' in navigator)()`,
+    supported: (async () => 'queryLocalFonts' in self)(),
+    featureDetection: `(async () => 'queryLocalFonts' in self)()`,
     documentation: 'https://web.dev/local-fonts/',
-    blinkFeatureID: 3386,
+    blinkFeatureID: 4211,
   },
   'Multi-Screen Window Placement': {
     regEx: /getScreens\s*\(\)/g,
@@ -560,6 +534,17 @@ const patterns = {
       'https://github.com/w3c/device-posture/blob/gh-pages/README.md',
     blinkFeatureID: undefined,
   },
+  'Insertable streams for MediaStreamTrack': {
+    regEx: /MediaStreamTrackProcessor\s*\(/g,
+    where: 'JavaScript',
+    supported: (async () =>
+      'MediaStreamTrackProcessor' in self &&
+      'MediaStreamTrackGenerator' in self)(),
+    featureDetection: `(async () => 'MediaStreamTrackProcessor' in self && 'MediaStreamTrackGenerator' in self)()`,
+    documentation:
+      'https://web.dev/mediastreamtrack-insertable-media-processing/',
+    blinkFeatureID: 3729,
+  },
   'Ink': {
     regEx: /navigator\.ink\.requestPresenter\s*\(/g,
     where: 'JavaScript',
@@ -601,14 +586,6 @@ const patterns = {
     documentation: 'https://web.dev/app-shortcuts/',
     blinkFeatureID: undefined,
   },
-  'Declarative Link Capturing': {
-    regEx: /"capture_links"/g,
-    where: 'Web App Manifest',
-    supported: (async () => undefined)(),
-    featureDetection: `(async () => undefined)()`,
-    documentation: 'https://web.dev/declarative-link-capturing/',
-    blinkFeatureID: 3813,
-  },
   'Tabbed Application Mode': {
     regEx: /"tabbed"/g,
     where: 'Web App Manifest',
@@ -616,14 +593,6 @@ const patterns = {
     featureDetection: `(async () => undefined)()`,
     documentation: 'https://web.dev/tabbed-application-mode/',
     blinkFeatureID: undefined,
-  },
-  'URL Handlers': {
-    regEx: /"url_handlers"/g,
-    where: 'Web App Manifest',
-    supported: (async () => undefined)(),
-    featureDetection: `(async () => undefined)()`,
-    documentation: 'https://web.dev/pwa-url-handler/',
-    blinkFeatureID: 3851,
   },
   'Protocol Handlers': {
     regEx: /"protocol_handlers"/g,
@@ -649,6 +618,15 @@ const patterns = {
       'launchQueue' in self && 'targetURL' in LaunchParams.prototype)(),
     featureDetection: `(async () => 'launchQueue' in self && 'targetURL' in LaunchParams.prototype)()`,
     documentation: 'https://web.dev/launch-handler/',
+    blinkFeatureID: undefined,
+  },
+  'Web App Link Handling': {
+    regEx: /"handle_links"/g,
+    where: 'Web App Manifest',
+    supported: (async () => undefined)(),
+    featureDetection: `(async () => undefined)()`,
+    documentation:
+      'https://github.com/WICG/pwa-url-handler/blob/main/handle_links/explainer.md',
     blinkFeatureID: undefined,
   },
 };
