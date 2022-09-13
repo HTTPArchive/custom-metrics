@@ -398,7 +398,7 @@ return JSON.stringify({
   })(),
   // Parse <input> elements
   'input_elements': (() => {
-    var nodes = document.querySelectorAll('input, select');
+    var nodes = document.querySelectorAll('input, select, textarea');
     var inputNodes = parseNodes(nodes , {
       include_only_prop_list: [
         /^aria-.+$/,
