@@ -47,12 +47,14 @@ return JSON.stringify({
   tables: captureAndLogError(() => {
     const tables = document.querySelectorAll('table');
     const tables_with_caption = document.querySelectorAll('table caption');
-    const tabels_with_presentational = document.querySelectorAll('table[role="presentation" i]');
+    const tables_with_presentational = document.querySelectorAll('table[role="presentation" i]');
+    const tables_with_figcaption = document.querySelectorAll('figure:has(table):has(figcaption)');
 
     return {
       total: tables.length,
       total_with_caption: tables_with_caption.length,
-      total_with_presentational: tabels_with_presentational.length,
+      total_with_presentational: tables_with_presentational.length,
+      total_with_figcaption: tables_with_figcaption.length
     };
   }),
   file_extension_alts: captureAndLogError(() => {
