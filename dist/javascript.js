@@ -39,7 +39,7 @@ let getSourceMaps = (async () => {
   let sourcemapURLs = scripts
     .map((n) => {
       if (n) {
-        let url = n.body.match(sourcemapRegex)?.[1];
+        let url = n.body?.match(sourcemapRegex)?.[1];
 
         if (url) {
           // Source map URL is relative to stylesheet URL
