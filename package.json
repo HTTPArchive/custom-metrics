@@ -19,6 +19,6 @@
   },
   "homepage": "https://github.com/HTTPArchive/custom-metrics#readme",
   "devDependencies": {
-    "fugu-api-data": "^1.10.0"
+    "fugu-api-data": "^1.12.0"
   }
 }
