@@ -320,10 +320,13 @@ function getLcpPreloadInfo(rawDoc, lcpUrl) {
 }
 
 function getRawLcpElement(rawDoc, lcpUrl) {
-    const rawLcpElement = Array.from(rawDoc.querySelectorAll('picture source, img')).find(i => {
+    const rawLcpElement = Array.from(rawDoc.querySelectorAll('picture source, img, svg image')).find(i => {
         let src = i.src;
         if (i.hasAttribute('srcset')) {
             src = splitSrcSet(i.srcset).find(src => src == lcpUrl);
+        }
+        if (i.hasAttribute('href')) {
+            src = i.getAttribute('href');
         }
 
         return src == lcpUrl;
