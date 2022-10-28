@@ -324,8 +324,7 @@ function getRawLcpElement(rawDoc, lcpUrl) {
         let src = i.src;
         if (i.hasAttribute('srcset')) {
             src = splitSrcSet(i.srcset).find(src => src == lcpUrl);
-        }
-        if (i.hasAttribute('href')) {
+        } else if (i.hasAttribute('href')) {
             src = i.getAttribute('href');
         }
 
