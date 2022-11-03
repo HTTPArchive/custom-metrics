@@ -172,6 +172,9 @@ function initializeObserver(pathname) {
 
         // Return the original feature.
         return original;
+      },
+      set: () => {
+        return original;
       }
     });
   } catch (e) {
