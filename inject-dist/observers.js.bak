@@ -173,8 +173,8 @@ function initializeObserver(pathname) {
         // Return the original feature.
         return original;
       },
-      set: () => {
-        return original;
+      set: (value) => {
+        original = value;
       }
     });
   } catch (e) {
