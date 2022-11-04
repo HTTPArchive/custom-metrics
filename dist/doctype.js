@@ -12,4 +12,4 @@ if ( dt ) {
     sDoctype += " " + dt.internalSubset;
   }
 }
-return sDoctype.replace(/[\x00-\x1F\x80-\xFF]/g, "");
+return sDoctype.replace(/[\x00-\x1F\x80-\xFF]/g, "").toString();
