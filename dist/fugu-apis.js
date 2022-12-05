@@ -166,7 +166,7 @@ const patterns = {
     where: 'JavaScript',
     supported: (async () => 'EyeDropper' in self)(),
     featureDetection: `(async () => 'EyeDropper' in self)()`,
-    documentation: 'https://github.com/WICG/eyedropper-api/blob/main/README.md',
+    documentation: 'https://web.dev/eyedropper/',
     blinkFeatureID: undefined,
   },
   'File Handling': {
@@ -186,6 +186,15 @@ const patterns = {
     featureDetection: `(async () => 'showOpenFilePicker' in self)()`,
     documentation: 'https://web.dev/file-system-access/',
     blinkFeatureID: 3340,
+  },
+  'Origin Private File System': {
+    regEx: /navigator\.storage\.getDirectory\s*\(\)/g,
+    where: 'JavaScript',
+    supported: (async () => 'getDirectory' in StorageManager.prototype)(),
+    featureDetection: `(async () => 'getDirectory' in StorageManager.prototype)()`,
+    documentation:
+      'https://developer.chrome.com/articles/file-system-access/#accessing-the-origin-private-file-system',
+    blinkFeatureID: 3428,
   },
   'Gamepad': {
     regEx: /navigator\.getGamepads\s*\(/g,
