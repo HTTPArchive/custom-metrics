@@ -14,12 +14,12 @@ function countInlineCssInHead() {
   return document.querySelectorAll( 'head style' ).length;
 }
 
-function countExternalCssAfterHead() {
-  return document.querySelectorAll( 'link[rel="stylesheet"]' ).length - countExternalCssInHead();
+function countExternalCssInBody() {
+  return document.querySelectorAll( 'body link[rel="stylesheet"]' ).length;
 }
 
-function countInlineCssAfterHead() {
-  return document.querySelectorAll( 'style' ).length - countInlineCssInHead();
+function countInlineCssInBody() {
+  return document.querySelectorAll( 'body style' ).length;
 }
 
 return JSON.stringify({
@@ -72,7 +72,7 @@ return JSON.stringify({
     ).length > 0,
 
   externalCssInHead: countExternalCssInHead(),
-  externalCssAfterHead: countExternalCssAfterHead(),
+  externalCssInBody: countExternalCssInBody(),
   inlineCssInHead: countInlineCssInHead(),
-  inlineCssAfterHead: countInlineCssAfterHead(),
+  inlineCssInBody: countInlineCssInBody(),
 });
