@@ -6,6 +6,22 @@ const PREFERS_COLOR_SCHEME_REGEXP =
 
 const bodies = $WPT_BODIES;
 
+function countExternalCssInHead() {
+  return document.querySelectorAll( 'head link[rel="stylesheet"]' ).length;
+}
+
+function countInlineCssInHead() {
+  return document.querySelectorAll( 'head style' ).length;
+}
+
+function countExternalCssInBody() {
+  return document.querySelectorAll( 'body link[rel="stylesheet"]' ).length;
+}
+
+function countInlineCssInBody() {
+  return document.querySelectorAll( 'body style' ).length;
+}
+
 return JSON.stringify({
   css_in_js: (() => {
     const CssInJsMap = {
@@ -54,4 +70,9 @@ return JSON.stringify({
     document.querySelectorAll(
       'link[rel="stylesheet"][media*="prefers-color-scheme"]',
     ).length > 0,
+
+  externalCssInHead: countExternalCssInHead(),
+  externalCssInBody: countExternalCssInBody(),
+  inlineCssInHead: countInlineCssInHead(),
+  inlineCssInBody: countInlineCssInBody(),
 });
