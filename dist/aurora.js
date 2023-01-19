@@ -6,12 +6,12 @@ function isAngularImageDirUser() {
   return !!document.querySelector('img[ng-img]');
 }
 
-// Detects count of NgOptimizedImage instances with a priority attr 
+// Detects count of NgOptimizedImage instances with a priority attr
 function getAngularImagePriorityCount() {
     return document.querySelectorAll('img[ng-img][priority]').length;
 }
 
 return {
     ng_img_user: isAngularImageDirUser(),
-    ng_priority_img_count: getAngularImagePriorityCount()
+    ng_priority_img_count: getAngularImagePriorityCount()<<<<<<< HEAD:dist/aurora_apis.js
 };
