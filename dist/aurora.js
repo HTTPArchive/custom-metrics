@@ -13,5 +13,5 @@ function getAngularImagePriorityCount() {
 
 return {
     ng_img_user: isAngularImageDirUser(),
-    ng_priority_img_count: getAngularImagePriorityCount()<<<<<<< HEAD:dist/aurora_apis.js
+    ng_priority_img_count: getAngularImagePriorityCount()
 };
