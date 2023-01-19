@@ -11,7 +11,7 @@ function getAngularImagePriorityCount() {
     return document.querySelectorAll('img[ng-img][priority]').length;
 }
 
-return JSON.stringify({
+return {
     ng_img_user: isAngularImageDirUser(),
     ng_priority_img_count: getAngularImagePriorityCount()
-});
+};
