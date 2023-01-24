@@ -26,7 +26,8 @@ const viewport = {
 };
 const getLinks = function(visibleOnly){
     let links = {};
-    const documentOrigin = $WPT_TEST_URL;
+    const testUrl = $WPT_TEST_URL;
+    const currentUrl = document.location.href.split('#')[0];
     const elements = document.links;
     for (let e of elements) {
         try {
@@ -36,13 +37,17 @@ const getLinks = function(visibleOnly){
                                 style.visibility !== 'hidden' &&
                                 style.display !== 'none' &&
                                 intersectRect(rect, viewport);
-            if (rect.width > 1 && rect.height > 1 && (is_visible || !visibleOnly) ) {
-                if (e && e.href.split('#')[0] != documentOrigin && sameOrigin(e.href, documentOrigin)) {
-                    let size = rect.width * rect.height;
-                    if (links[e.href] === undefined) {
-                        links[e.href] = size;
-                    } else {
-                        links[e.href] += size;
+            if (rect.width > 1 && rect.height > 1 && (is_visible || !visibleOnly) && e) {
+                const url = e.href;
+                const baseUrl = url.split('#')[0]
+                if (baseUrl != testUrl && baseUrl != currentUrl) {
+                    if (sameOrigin(url, testUrl) || sameOrigin(url, currentUrl)) {
+                        let size = rect.width * rect.height;
+                        if (links[url] === undefined) {
+                            links[url] = size;
+                        } else {
+                            links[url] += size;
+                        }
                     }
                 }
             }
