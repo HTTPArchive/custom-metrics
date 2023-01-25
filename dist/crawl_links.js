@@ -41,6 +41,7 @@ const getLinks = function(visibleOnly){
             if (rect.width > 1 && rect.height > 1 && (is_visible || !visibleOnly) && e) {
                 const url = e.href;
                 const baseUrl = url.split('#')[0]
+                // Link is not the current page.
                 if (baseUrl != testUrl && baseUrl != currentUrl) {
                     if (sameOrigin(url, testUrl) || sameOrigin(url, currentUrl)) {
                         let size = rect.width * rect.height;
