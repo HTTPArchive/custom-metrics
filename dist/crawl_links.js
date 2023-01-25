@@ -43,6 +43,7 @@ const getLinks = function(visibleOnly){
                 const baseUrl = url.split('#')[0]
                 // Link is not the current page.
                 if (baseUrl != testUrl && baseUrl != currentUrl) {
+                    // Link is to the same origin as the current page.
                     if (sameOrigin(url, testUrl) || sameOrigin(url, currentUrl)) {
                         let size = rect.width * rect.height;
                         if (links[url] === undefined) {
