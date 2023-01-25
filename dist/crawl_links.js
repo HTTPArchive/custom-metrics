@@ -37,6 +37,7 @@ const getLinks = function(visibleOnly){
                                 style.visibility !== 'hidden' &&
                                 style.display !== 'none' &&
                                 intersectRect(rect, viewport);
+            // Link is user-visible.
             if (rect.width > 1 && rect.height > 1 && (is_visible || !visibleOnly) && e) {
                 const url = e.href;
                 const baseUrl = url.split('#')[0]
