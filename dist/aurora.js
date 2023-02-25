@@ -1,6 +1,12 @@
 //[aurora]
 // Uncomment the previous line for testing on webpagetest.org
 
+// Detects Angular version, which is added through runtime JS
+function getAngularVersion() {
+  const versionEl = document.querySelector('[ng-version]');
+  return versionEl?.getAttribute('ng-version');
+}
+
 // Detects if NgOptimizedImage is in use on the page
 function isAngularImageDirUser() {
   return !!document.querySelector('img[ng-img]');
@@ -20,6 +26,7 @@ function getVueVersionForNuxt() {
 }
 
 return {
+    ng_version: getAngularVersion() || null,
     ng_img_user: isAngularImageDirUser(),
     ng_priority_img_count: getAngularImagePriorityCount(),
     nuxt_version: getVueVersionForNuxt() || null
