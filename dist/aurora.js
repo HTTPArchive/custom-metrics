@@ -25,9 +25,15 @@ function getVueVersionForNuxt() {
   return nuxt2Version || nuxt3Version;
 }
 
+// Detects React version (set earlier by inject_script)
+function getReactVersion() {
+  return window.react_renderer_version;
+}
+
 return {
     ng_version: getAngularVersion() || null,
     ng_img_user: isAngularImageDirUser(),
     ng_priority_img_count: getAngularImagePriorityCount(),
-    nuxt_version: getVueVersionForNuxt() || null
+    nuxt_version: getVueVersionForNuxt() || null,
+    react_version: getReactVersion() || null
 };
