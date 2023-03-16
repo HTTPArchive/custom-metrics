@@ -11,3 +11,8 @@ const wordpress = {
 return {
   wordpress
 };
+
+// Detects if a WordPress embed block is on the page
+function hasWordPressEmbedBlock() {
+  return !!document.querySelector('div.wp-block-embed');
+}
