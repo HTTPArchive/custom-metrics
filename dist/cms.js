@@ -5,7 +5,8 @@ function usesBlockTheme() {
 }
 
 const wordpress = {
-  block_theme: usesBlockTheme()
+  block_theme: usesBlockTheme(),
+  has_embed_block: hasWordPressEmbedBlock()
 };
 
 return {
