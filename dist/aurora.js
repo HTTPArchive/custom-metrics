@@ -27,7 +27,7 @@ function getVueVersionForNuxt() {
 
 // Detects Nuxt version directly for Nuxt 3.3 and later
 function getNuxtVersion() {
-  return __unctx__?.get('nuxt-app')?.use()?.versions.nuxt;
+  return __unctx__?.get('nuxt-app')?.use()?.versions?.nuxt;
 }
 
 // Detects React version (set earlier by inject_script)
