@@ -13,10 +13,20 @@ function hasWordPressEmbedBlock() {
 function getWordPressEmbedBlockCounts() {
   const embedBlocks = document.querySelectorAll('figure.wp-block-embed');
   const embedsByType = [];
-  for ( let embed of embedBlocks ) {
-    let provider = embed.className.split( ' ' ).pop().split( "-" ).pop();
-    embedsByType[ provider ] = embedsByType[ provider ] || 0;
-    embedsByType[ provider ]++;
+  for (let embed of embedBlocks) {
+    let embedClasses = embed.className.split( ' ' );
+
+    // Find the provider classname, which starts with "is-provider-".
+    let provider = embedClasses.find( function( className ) {
+      return className.startsWith( 'is-provider-' );
+    } );
+
+    if (provider) {
+      // Remove the "is-provider-" prefix to get the provider name.
+      provider = provider.replace( 'is-provider-', '' );
+      embedsByType[ provider ] = embedsByType[ provider ] || 0;
+      embedsByType[ provider ]++;
+    }
   }
 
   return {
