@@ -518,6 +518,15 @@ const patterns = {
       'https://github.com/WICG/pwa-url-handler/blob/main/handle_links/explainer.md',
     blinkFeatureID: undefined,
   },
+  'Web Audio': {
+    regEx: /new\s+AudioContext\s*\(/g,
+    where: 'JavaScript',
+    supported: (async () => 'AudioContext' in self)(),
+    featureDetection: `(async () => 'AudioContext' in self)()`,
+    documentation:
+      'https://developer.mozilla.org/en-US/docs/Web/API/Web_Audio_API',
+    blinkFeatureID: 1698,
+  },
   'Web Share': {
     regEx: /navigator\.share\s*\(/g,
     where: 'JavaScript',
