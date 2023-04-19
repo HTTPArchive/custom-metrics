@@ -1,6 +1,23 @@
 //[aurora]
 // Uncomment the previous line for testing on webpagetest.org
 
+// Wrap individual metric calls so errors don't break metrics in entire file.
+function runSafely(cb) {
+  try {
+    return cb() || null;
+  } catch (e) {
+    return logError(e);
+  }
+}
+
+function logError(e) {
+  try {
+    return `${e?.name}: ${e?.message}`;
+  } catch {
+    return null;
+  }
+}
+
 // Detects Angular version, which is added through runtime JS
 function getAngularVersion() {
   const versionEl = document.querySelector('[ng-version]');
@@ -36,10 +53,10 @@ function getReactVersion() {
 }
 
 return {
-    ng_version: getAngularVersion() || null,
-    ng_img_user: isAngularImageDirUser(),
-    ng_priority_img_count: getAngularImagePriorityCount(),
-    nuxt_version: getNuxtVersion() || null,
-    nuxt_vue_version: getVueVersionForNuxt() || null,
-    react_version: getReactVersion() || null
+    ng_version: runSafely(getAngularVersion),
+    ng_img_user: runSafely(isAngularImageDirUser),
+    ng_priority_img_count: runSafely(getAngularImagePriorityCount),
+    nuxt_version: runSafely(getNuxtVersion),
+    nuxt_vue_version: runSafely(getVueVersionForNuxt),
+    react_version: runSafely(getReactVersion)
 };
