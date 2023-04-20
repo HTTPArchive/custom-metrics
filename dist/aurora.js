@@ -12,7 +12,7 @@ function runSafely(cb) {
 
 function logError(e) {
   try {
-    return `${e?.name}: ${e?.message}`;
+    return `Error ${e?.name}: ${e?.message}`;
   } catch {
     return null;
   }
