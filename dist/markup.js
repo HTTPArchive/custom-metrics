@@ -208,7 +208,7 @@ try { // whole process is placed in a try/catch so we can log uncaught errors
     // Extract the <html lang=""> attribute value
     'lang': (() => {
       try {
-        return document.querySelector('html[lang]')?.getAttribute("lang") || null;
+        return document.querySelector('html[lang]')?.getAttribute("lang")
       }
       catch(e) {
         return logError("lang", e);
