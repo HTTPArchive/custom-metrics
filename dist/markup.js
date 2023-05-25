@@ -205,6 +205,16 @@ try { // whole process is placed in a try/catch so we can log uncaught errors
       }
     })(),
 
+    // Extract the <html lang=""> attribute value
+    'lang': (() => {
+      try {
+        return document.querySelector('html[lang]')?.getAttribute("lang") || null;
+      }
+      catch(e) {
+        return logError("lang", e);
+      }
+    })(),
+
     // input tags
     // Used by Markup, 2019/09_28
     // refactor: https://github.com/HTTPArchive/legacy.httparchive.org/pull/177#discussion_r461976290
