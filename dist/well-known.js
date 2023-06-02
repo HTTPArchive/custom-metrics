@@ -133,7 +133,7 @@ return Promise.all([
       redirected: r.redirected,
       url: r.url
     };
-    
+
     return r.text().then(text => {
       data['signed'] = false;
       if (text.startsWith('-----BEGIN PGP SIGNED MESSAGE-----')) {
