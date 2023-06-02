@@ -125,7 +125,7 @@ return Promise.all([
       return data;
     });
   }),
-  parseResponse('/.well-known/security.txt', r => {
+  parseResponseWithRedirects('/.well-known/security.txt', r => {
     return r.text().then(text => {
       let data = {
         'signed': false
