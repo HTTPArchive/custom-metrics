@@ -51,7 +51,9 @@ function parseResponse(url, parser) {
 function parseResponseWithRedirects(url, parser) {
   return fetchWithTimeout(url)
     .then(request => {
-      let resultObj = {};
+      let resultObj = {
+        found: request.status === 200
+      };
 
       if (parser) {
         let promise = parser(request);
@@ -125,11 +127,15 @@ return Promise.all([
       return data;
     });
   }),
-  parseResponse('/.well-known/security.txt', r => {
+  parseResponseWithRedirects('/.well-known/security.txt', r => {
+    let data = {
+      status: r.status,
+      redirected: r.redirected,
+      url: r.url
+    };
+
     return r.text().then(text => {
-      let data = {
-        'signed': false
-      };
+      data['signed'] = false;
       if (text.startsWith('-----BEGIN PGP SIGNED MESSAGE-----')) {
         data['signed'] = true;
       }
