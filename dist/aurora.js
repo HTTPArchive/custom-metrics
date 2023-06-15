@@ -31,7 +31,7 @@ function isAngularImageDirUser() {
 
 // Detects count of NgOptimizedImage instances with a priority attr
 function getAngularImagePriorityCount() {
-    return document.querySelectorAll('img[ng-img][priority]').length;
+    return document.querySelectorAll('img[ng-img][fetchpriority=high]').length;
 }
 
 // Detects Vue version for Nuxt apps
