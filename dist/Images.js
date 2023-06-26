@@ -18,6 +18,7 @@ var wptImages = function (win) {
             naturalHeight: el.naturalHeight,
             loading: el.getAttribute("loading"),
             decoding: el.getAttribute("decoding"),
+            fetchpriority: el.getAttribute("fetchpriority"),
             inViewport:
               el.getBoundingClientRect().bottom >= 0 &&
               el.getBoundingClientRect().right >= 0 &&
