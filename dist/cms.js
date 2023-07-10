@@ -44,10 +44,10 @@ function getWordPressScripts() {
   const entries = [];
 
   /**
-   * Checks whether the provided element is an inline script.
+   * Returns the number of characters in an inline script.
+   * Returns null for non-inlined scripts
    *
    * @param {?Element} element Element to examine. May be null.
-   * @return {?number} Size of the inline script or null if the element isn't an inline script.
    */
   const getInlineScriptSize = (element) => {
     if (element instanceof HTMLScriptElement && !element.src) {
