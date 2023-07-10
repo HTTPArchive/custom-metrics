@@ -67,6 +67,7 @@ function getWordPressScripts() {
       async: script.async,
       defer: script.defer,
       intended_strategy: script.dataset.wpStrategy || null,
+      // For each external script, check if there is a related inline script
       after_script_size: getInlineScriptSize(document.getElementById(`${handle}-js-after`)),
       before_script_size: getInlineScriptSize(document.getElementById(`${handle}-js-before`)),
       extra_script_size: getInlineScriptSize(document.getElementById(`${handle}-js-extra`)),
