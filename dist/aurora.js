@@ -54,7 +54,7 @@ function getReactVersion() {
 
 // Detects Svelte version
 function getSvelteVersion() {
-  return window.__svelte?.v ? Array.from(window.__svelte?.v)[0] : null;
+  return window.__svelte?.v ? Array.from(window.__svelte?.v).toString() : null;
 }
 
 return {
