@@ -35,10 +35,53 @@ function getWordPressEmbedBlockCounts() {
   }
 }
 
+/**
+ * Obtains data about scripts that WordPress prints on the page.
+ *
+ * @returns {{}[]}
+ */
+function getWordPressScripts() {
+  const entries = [];
+
+  /**
+   * Returns the number of characters in an inline script.
+   * Returns null for non-inlined scripts
+   *
+   * @param {?Element} element Element to examine. May be null.
+   */
+  const getInlineScriptSize = (element) => {
+    if (element instanceof HTMLScriptElement && !element.src) {
+      return element.textContent.length;
+    }
+    return null;
+  };
+
+  const scripts = document.querySelectorAll('script[src][id$="-js"]');
+  for (const script of scripts) {
+    /** @var HTMLScriptElement script */
+    const handle = script.id.replace(/-js$/, '');
+    entries.push({
+      handle,
+      src: script.src,
+      in_footer: script.parentNode !== document.head,
+      async: script.async,
+      defer: script.defer,
+      intended_strategy: script.dataset.wpStrategy || null,
+      // For each external script, check if there is a related inline script
+      after_script_size: getInlineScriptSize(document.getElementById(`${handle}-js-after`)),
+      before_script_size: getInlineScriptSize(document.getElementById(`${handle}-js-before`)),
+      extra_script_size: getInlineScriptSize(document.getElementById(`${handle}-js-extra`)),
+      translations_script_size: getInlineScriptSize(document.getElementById(`${handle}-js-translations`)),
+    });
+  }
+  return entries;
+}
+
 const wordpress = {
   block_theme: usesBlockTheme(),
   has_embed_block: hasWordPressEmbedBlock(),
-  embed_block_count: getWordPressEmbedBlockCounts()
+  embed_block_count: getWordPressEmbedBlockCounts(),
+  scripts: getWordPressScripts(),
 };
 
 return {
