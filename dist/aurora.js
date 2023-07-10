@@ -52,11 +52,17 @@ function getReactVersion() {
   return window.react_renderer_version;
 }
 
+// Detects Svelte version
+function getSvelteVersion() {
+  return window.__svelte?.v ? Array.from(window.__svelte?.v).toString() : null;
+}
+
 return {
     ng_version: runSafely(getAngularVersion),
     ng_img_user: runSafely(isAngularImageDirUser),
     ng_priority_img_count: runSafely(getAngularImagePriorityCount),
     nuxt_version: runSafely(getNuxtVersion),
     nuxt_vue_version: runSafely(getVueVersionForNuxt),
-    react_version: runSafely(getReactVersion)
+    react_version: runSafely(getReactVersion),
+    svelte_version: runSafely(getSvelteVersion)
 };
