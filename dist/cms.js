@@ -12,7 +12,7 @@ function hasWordPressEmbedBlock() {
 // Count the number of WordPress embed blocks on the page, including a breakdown by type
 function getWordPressEmbedBlockCounts() {
   const embedBlocks = document.querySelectorAll('figure.wp-block-embed');
-  const embedsByType = [];
+  const embedsByType = {};
   for (let embed of embedBlocks) {
     let embedClasses = embed.className.split( ' ' );
 
