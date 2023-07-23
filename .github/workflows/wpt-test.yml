@@ -1,0 +1,31 @@
+on: [pull_request]
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    name: Tests
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v2
+
+      - name: Install dependencies
+        run: npm install webpagetest && npm install jest
+
+      - name: Run WebPageTest
+        run: |
+          FILES=$(git diff --name-only HEAD~1 HEAD | grep -E "^dist/.*\.js$")
+          for FILE in $FILES
+          do
+            TEST_NAME=${FILE:5:-3}
+            echo "Running test: $TEST_NAME"
+
+            if [ -f "tests/$TEST_NAME.test.js" ]
+            then
+              npm run test -- $TEST_NAME
+            else
+              echo "Test case for $TEST_NAME does not exist"
+              exit 1
+            fi
+          done
+        env:
+          WPT_API_KEY: ${{ secrets.WPT_API_KEY }}
