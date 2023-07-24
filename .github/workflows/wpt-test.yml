@@ -25,7 +25,7 @@ jobs:
             then
               npm run test -- $TEST_NAME
             else
-              echo "Test case for $TEST_NAME does not exist"
+              echo "There are no test cases for $TEST_NAME"
               exit 1
             fi
           done

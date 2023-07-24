@@ -4,7 +4,7 @@
   "description": "Custom metrics to use with WebPageTest agents",
   "scripts": {
     "prepare": "node bin/create-fugu-apis.js",
-    "wpt-test": "node tests/wpt.js"
+    "test": "node tests/wpt.js"
   },
   "repository": {
     "type": "git",
