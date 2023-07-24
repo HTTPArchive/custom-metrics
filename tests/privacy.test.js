@@ -14,7 +14,6 @@ module.exports = {
   },
   iab_tcf_v1: {
     url: "https://www.example.com",
-    options: {},
     tests: (data) => {
       test('TCFv1 consent data present', () => {
         expect(data._privacy.iab_tcf_v1.present).toBeTruthy();

@@ -10,15 +10,15 @@ let tests = require('./' + testFile + '.test.js');
 
 for (let testName in tests) {
   let test = tests[testName];
-  let options = {
-    custom: '[' + testFile + ']\n' + fs.readFileSync('../dist/' + testFile + '.js', 'utf-8'),
-    location: test.options.location || 'Dulles:Chrome.Native',
-    mobile: test.options.mobile || true
-  };
 
-  console.log(`Running test case ${testName} for ${test.url}`);
-  wpt.runTestAndWait(test.url, options, (error, data) => {
-    if (err) {
+  test.options = test.options || {};
+  test.options.custom = '[' + testFile + ']\n' + fs.readFileSync('./dist/' + testFile + '.js', 'utf-8');
+  test.options.location = test.options.location || 'Dulles:Chrome.Native';
+  test.options.mobile = test.options.mobile || true;
+
+  wpt.runTestAndWait(test.url, test.options, (error, data) => {
+    console.log(`Running test case ${testName} for ${test.url}`);
+    if (error) {
       console.error(`Test for ${test.url} failed`);
       console.error(error);
     } else {
