@@ -39,8 +39,6 @@ return JSON.stringify({
    * Privacy policies
    * Wording sourced from: https://github.com/RUB-SysSec/we-value-your-privacy/blob/master/privacy_wording.json
    * words = privacy_wording.map(country => country.words).filter((v, i, a) => a.indexOf(v) === i).flat().sort().join('|');
-   *
-   * Test site: https://www.theverge.com/
    */
   privacy_wording_links: (() => {
     let words =
@@ -71,7 +69,6 @@ return JSON.stringify({
       if (consentData.present) {
         // Standard command: 'getVendorConsents'
         // cf. https://github.com/InteractiveAdvertisingBureau/GDPR-Transparency-and-Consent-Framework/blob/master/CMP%20JS%20API%20v1.1%20Final.md#what-api-will-need-to-be-provided-by-the-cmp-
-        // Test site: ?
         window.__cmp('getVendorConsents', null, (result, success) => {
           if (success) {
             consentData.data = result;
@@ -98,8 +95,6 @@ return JSON.stringify({
   /**
    * IAB Transparency and Consent Framework v2
    * docs v2: https://github.com/InteractiveAdvertisingBureau/GDPR-Transparency-and-Consent-Framework/blob/master/TCFv2
-   *
-   * Test site: https://www.rtl.de/
    */
   iab_tcf_v2: (() => {
     let tcData = {
@@ -137,8 +132,6 @@ return JSON.stringify({
   /**
    * IAB US Privacy User Signal Mechanism “USP API”
    * https://github.com/InteractiveAdvertisingBureau/USPrivacy
-   *
-   * Test site: https://www.nfl.com/
    */
   iab_usp: (() => {
     let uspData = {
@@ -161,8 +154,6 @@ return JSON.stringify({
   /**
    * Ads Transparency Spotlight Data Disclosure schema
    * Only for top frame, can't access child frames (same-origin policy)
-   *
-   * Test site: unknown
    */
   ads_transparency_spotlight: (() => {
     // Check `meta` tag cf. https://github.com/Ads-Transparency-Spotlight/documentation/blob/main/implement.md
@@ -178,10 +169,9 @@ return JSON.stringify({
   })(),
 
   /**
-   * FLoC
+   * FLoC (Federated Learning of Cohorts) - deprecated
    *
    * Test site: https://floc.glitch.me/
-   * Test site: https://www.pokellector.com/
    *
    * @todo Check function/variable accesses through string searches (wrappers cannot be used, as the metrics are only collected at the end of the test)
    */
@@ -190,16 +180,12 @@ return JSON.stringify({
   /**
    * Do Not Track (DNT)
    * https://www.eff.org/issues/do-not-track
-   *
-   * Test site: https://www.theverge.com/
    */
   navigator_doNotTrack: testPropertyStringInResponseBodies('navigator.+doNotTrack'),
 
   /**
    * Global Privacy Control
    * https://globalprivacycontrol.org/
-   *
-   * Test site: https://global-privacy-control.glitch.me/
    */
   navigator_globalPrivacyControl: testPropertyStringInResponseBodies(
     'navigator.+globalPrivacyControl'
