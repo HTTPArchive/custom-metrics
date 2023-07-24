@@ -13,7 +13,7 @@ jobs:
 
       - name: Run WebPageTest
         run: |
-          FILES=$(git diff --name-only HEAD~1 HEAD | grep -E "^dist/.*\.js$")
+          FILES=$(git diff --name-only ${{github.base_ref}} ${{github.head_ref}} | grep -E "^dist/.*\.js$")
           for FILE in $FILES
           do
             TEST_NAME=${FILE:5:-3}
