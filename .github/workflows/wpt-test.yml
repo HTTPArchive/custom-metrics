@@ -9,13 +9,13 @@ jobs:
         uses: actions/checkout@v2
         with:
           fetch-depth: 0
-          
+
       - name: Install dependencies
         run: npm install webpagetest && npm install jest
 
       - name: Run WebPageTest
         run: |
-          FILES=$(git diff --name-only ${{github.base_ref}} ${{github.head_ref}} | grep -E "^dist/.*\.js$")
+          FILES=$(git diff --name-only --diff-filter=ACMRT ${{ github.event.pull_request.base.sha }} ${{ github.sha }} | grep -E "^dist/.*\.js$")
           for FILE in $FILES
           do
             TEST_NAME=${FILE:5:-3}
