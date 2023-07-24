@@ -7,7 +7,7 @@ module.exports = {
     options: {},
     tests: (data) => {
       test('TCFv1 consent data present', () => {
-        expect(data.consentData.present).toBeTruthy();
+        expect(data._privacy.iab_tcf_v1.present).toBeTruthy();
       });
     }
   },
@@ -15,7 +15,7 @@ module.exports = {
     url: "https://www.google.com",
     tests: (data) => {
       test('TCFv2 consent data present', () => {
-        expect(data.tcData.present).toBeTruthy();
+        expect(data._privacy.iab_tcf_v2.present).toBeTruthy();
       });
     }
   }
