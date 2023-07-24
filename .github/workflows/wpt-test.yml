@@ -15,7 +15,7 @@ jobs:
 
       - name: Run WebPageTest
         run: |
-          FILES=$(git diff --name-only --diff-filter=ACMRT ${{ github.event.pull_request.base.sha }} ${{ github.sha }} | grep -E "^dist/.*\.js$")
+          FILES=$(git diff --name-only --diff-filter=ACMRT ${{ github.event.pull_request.base.sha }} ${{ github.event.pull_request.head.sha }} | grep -E "^dist/.*\.js$")
           for FILE in $FILES
           do
             TEST_NAME=${FILE:5:-3}
