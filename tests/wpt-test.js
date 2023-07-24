@@ -21,6 +21,7 @@ for (let testName in tests) {
     if (error) {
       console.error(`Test for ${test.url} failed`);
       console.error(error);
+      // process.exit(1);  Uncomment this line (when ready) to fail the action with failing tests
     } else {
       console.log(`Test for ${test.url} succeeded`);
       console.log(`Results: ${data.jsonUrl}`);

@@ -1,9 +1,11 @@
+name: Tests
+
 on: [pull_request]
 
 jobs:
   build:
     runs-on: ubuntu-latest
-    name: Tests
+    name: WebPageTest Test Cases
     steps:
       - name: Checkout
         uses: actions/checkout@v2
@@ -15,7 +17,8 @@ jobs:
 
       - name: Run WebPageTest
         run: |
-          FILES=$(git diff --name-only --diff-filter=ACMRT ${{ github.event.pull_request.base.sha }} ${{ github.event.pull_request.head.sha }} | grep -E "^dist/.*\.js$")
+          FILES=$(git diff --name-only --diff-filter=ACMRT ${{ github.event.pull_request.base.sha }} \
+            ${{ github.event.pull_request.head.sha }} | grep -E "^dist/.*\.js$")
           for FILE in $FILES
           do
             TEST_NAME=${FILE:5:-3}
