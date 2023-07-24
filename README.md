@@ -31,6 +31,8 @@ return JSON.stringify({
 
 ## Testing
 
+### Manual testing using webpagetest.org website
+
 To test a custom metric, for example [`doctype.js`](https://github.com/HTTPArchive/legacy.httparchive.org/blob/master/custom_metrics/doctype.js), you can enter the script directly on [webpagetest.org](https://webpagetest.org?debug=1) under the "Custom" tab.
 
 ![image](https://user-images.githubusercontent.com/1120896/59539351-e3ecdd80-8eca-11e9-8b43-76bbd7a12029.png)
@@ -47,6 +49,43 @@ To see the custom metric results, select a run, first click on "Details", and th
 ![image](https://user-images.githubusercontent.com/1120896/88727208-24beaa80-d0fd-11ea-8ae1-57df2c8505e4.png)
 
 For complex metrics like [almanac.js](./dist/almanac.js) you can more easily explore the results by copy/pasting the JSON into your browser console.
+
+### Automated testing using test cases
+
+1. Create a test file in the [`tests`](./tests) directory. The file name should match the custom metric file name, for example [`privacy.test.js`](./tests/privacy.test.js).
+2. Create a test case for each website you want to test.
+
+```js
+module.exports = {
+  test_1: {
+    tests: (data) => {
+      url: "https://example.com/",
+        test('Check some WPT test results properties', () => {
+        ...
+      });
+    }
+  }
+};
+```
+
+3. Tests are written using [JavaScript Testing Framework](https://jestjs.io/). One test may verify multiple WPT property values.
+
+4. WPT property values are accessible as `data` object. Property names can be checked in [WPT API documentation](https://docs.webpagetest.org/api/reference/#response-format-2).
+
+```js
+module.exports = {
+  test_1: {
+    tests: (data) => {
+      url: "https://example.com/",
+      test('Check some test results properties', () => {
+        expect(data.url).toBeEqual("https://example.com/");
+
+        expect(data.runs[1].firstView.final_url).toBeEqual("https://example.com/");
+      });
+    }
+  }
+};
+```
 
 ## Linting
 
