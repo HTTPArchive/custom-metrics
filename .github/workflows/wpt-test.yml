@@ -16,7 +16,6 @@ jobs:
         run: npm install webpagetest && npm install jest
 
       - name: Run WebPageTest
-        # continue-on-error: true
         run: |
           EXPECTED_TESTS=$(for file in $(git diff --name-only --diff-filter=ACMRT ${{ github.event.pull_request.base.sha }} \
             ${{ github.event.pull_request.head.sha }} | grep -E "^dist/.*\.js$"); do basename "$file"; done | cut -d\. -f1 | sort | uniq)
@@ -24,19 +23,23 @@ jobs:
             "ecommerce" "example" "fugu-apis" "javascript" "markup" "media" "observers" "origin-trials" \
             "parsed_css" "performance" "privacy" "pwa" "responsive_images" "robots_meta" "robots_txt" \
             "sass" "security" "structured-data" "third-parties" "valid-head" "well-known" "wpt_bodies")
-          for TEST in ${EXPECTED_TESTS[@]}; do
-            for CM_FILE in "${CUSTOM_METRIC_FILES[@]}"; do
-              if [[ $TEST == $CM_FILE ]]; then
 
-                echo "Running test: $TEST"
-                if [ -f "dist/$TEST.test.js" ]; then
-                  npm test $TEST
-                else
-                  echo "There are no test cases for $TEST"
-                  exit 2
-                fi
+          # These tests are too big to run using WPT API (custom metrics code needs to be less than 8Kb)
+          TOO_BIG_CM_FILES=("a11y" "almanac" "css-variables" "fugu-apis" "javascript" "markup" "media" \
+            "performance" "parsed_css" "privacy" "pwa" "responsive_images" "robots_meta" "sass" \
+            "structured-data" "third-parties" "well-known" "wpt_bodies")
+
+          for TEST in ${EXPECTED_TESTS[@]}; do
+            if [[ " ${CUSTOM_METRIC_FILES[*]} " =~ "$TEST" ]] && ! [[ " ${TOO_BIG_CM_FILES[*]} " =~ " $TEST " ]]; then
+
+              echo "Running test: $TEST"
+              if [ -f "dist/$TEST.test.js" ]; then
+                npm test $TEST
+              else
+                echo "There are no test cases for $TEST"
+                exit 2
               fi
-            done
+            fi
           done
         env:
           WPT_API_KEY: ${{ secrets.WPT_API_KEY }}

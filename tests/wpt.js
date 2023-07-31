@@ -9,13 +9,9 @@ function runWPTTest(url, options = {}) {
   options.f = 'json';
   let customMetricsFile = './dist/' + options.label + '.js';
 
-  // check that file exists
+  // check that custom metrics file exists
   if (!fs.existsSync(customMetricsFile)) {
     console.error(`Custom metrics file ${customMetricsFile} does not exist`);
-    process.exit(2);
-  // check file size (max URL length is 8204 bytes)
-  } else if (fs.statSync(customMetricsFile).size > 8000) {
-    console.error(`Custom metrics file ${customMetricsFile} is too big`);
     process.exit(2);
   } else {
     options.custom = '[_' + options.label + ']\n' + fs.readFileSync('./dist/' + options.label + '.js', 'utf-8');
