@@ -26,7 +26,7 @@ jobs:
             "sass" "security" "structured-data" "third-parties" "valid-head" "well-known" "wpt_bodies")
           for FILE in $FILES; do
 
-            TEST_NAME="${FILE%.test.js}"
+            TEST_NAME="${basename "$FILE" .test.js}"
             TEST_NAME="${TEST_NAME%.js}"
 
             for CM_FILE in "${CUSTOM_METRIC_FILES[@]}"; do
