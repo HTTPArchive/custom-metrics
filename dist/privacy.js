@@ -46,7 +46,7 @@ return JSON.stringify({
     let pattern = new RegExp('\\b(?:' + words + ')\\b', 'ig');
 
     let privacy_links = Array.from(document.querySelectorAll('a')).map(
-      a => ({keywords: a.innerText.match(pattern), text: a.innerText})
+      a => ({ keywords: a.innerText.match(pattern), text: a.innerText })
     ).filter(a => a.keywords); // filter out non-matching texts (keywords = null)
 
     return privacy_links;
@@ -241,7 +241,7 @@ return JSON.stringify({
               a => a.tagName === e.tagName && a.referrerpolicy === e.referrerpolicy
             );
             if (!found) {
-              acc.push({...e, count: 1});
+              acc.push({ ...e, count: 1 });
             } else {
               found.count += 1;
             }

@@ -25,9 +25,9 @@ return JSON.stringify({
 });
 ```
 
-3. Test your changes on WPT using the workflow below.
+2. Test your changes on WPT using the workflow below.
 
-4. Submit a pull request. Include one or more links to test results in your PR description to verify that the script is working.
+3. Submit a pull request. Include one or more links to test results in your PR description to verify that the script is working.
 
 ## Testing
 
@@ -52,40 +52,9 @@ For complex metrics like [almanac.js](./dist/almanac.js) you can more easily exp
 
 ### Automated testing using test cases
 
-1. Create a test file in the [`tests`](./tests) directory. The file name should match the custom metric file name, for example [`privacy.test.js`](./tests/privacy.test.js).
-2. Create a test case for each website you want to test.
+0. Tests are running using [WPT API wrapper](https://github.com/webpagetest/webpagetest-api) and [Jest Testing Framework](https://jestjs.io/).
 
-```js
-module.exports = {
-  test_1: {
-    tests: (data) => {
-      url: "https://example.com/",
-        test('Check some WPT test results properties', () => {
-        ...
-      });
-    }
-  }
-};
-```
-
-3. Tests are written using [JavaScript Testing Framework](https://jestjs.io/). One test may verify multiple WPT property values.
-
-4. WPT property values are accessible as `data` object. Property names can be checked in [WPT API documentation](https://docs.webpagetest.org/api/reference/#response-format-2).
-
-```js
-module.exports = {
-  test_1: {
-    tests: (data) => {
-      url: "https://example.com/",
-      test('Check some test results properties', () => {
-        expect(data.url).toBeEqual("https://example.com/");
-
-        expect(data.runs[1].firstView.final_url).toBeEqual("https://example.com/");
-      });
-    }
-  }
-};
-```
+1. Create a test file in the [`dist`](./dist) directory with a name corresponding to a custom metrics file, e.g. [`example.test.js`](./dist/example.test.js) testing [example.js](./dist/example.js) custom metrics. In test file you need to define websites for WPT test runs and test cases for the custom metric parameters.
 
 ## Linting
 
