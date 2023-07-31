@@ -16,7 +16,7 @@ jobs:
         run: npm install webpagetest && npm install jest
 
       - name: Run WebPageTest
-        continue-on-error: true
+        # continue-on-error: true
         run: |
           FILES=$(git diff --name-only --diff-filter=ACMRT ${{ github.event.pull_request.base.sha }} \
             ${{ github.event.pull_request.head.sha }} | grep -E "^dist/.*\.js$")
@@ -24,7 +24,7 @@ jobs:
             "ecommerce" "example" "fugu-apis" "javascript" "markup" "media" "observers" "origin-trials" \
             "parsed_css" "performance" "privacy" "pwa" "responsive_images" "robots_meta" "robots_txt" \
             "sass" "security" "structured-data" "third-parties" "valid-head" "well-known" "wpt_bodies")
-          for FILE in $FILES do
+          for FILE in $FILES; do
 
             TEST_NAME="${FILE%.test.js}"
             TEST_NAME="${TEST_NAME%.js}"
@@ -32,8 +32,8 @@ jobs:
             for CM_FILE in "${CUSTOM_METRIC_FILES[@]}"; do
               if [[ $TEST_NAME == $CM_FILE ]]; then
 
-                echo "Running test: $TEST_NAME"
-                if [ -f "dist/$TEST_NAME.test.js" ] then
+                if [ -f "dist/$TEST_NAME.test.js" ]; then
+                  echo "Running test: $TEST_NAME"
                   npm test $TEST_NAME
                 else
                   echo "There are no test cases for $TEST_NAME"
