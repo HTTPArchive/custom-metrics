@@ -18,8 +18,8 @@ jobs:
       - name: Run WebPageTest
         # continue-on-error: true
         run: |
-          FILES=$(git diff --name-only --diff-filter=ACMRT ${{ github.event.pull_request.base.sha }} \
-            ${{ github.event.pull_request.head.sha }} | grep -E "^dist/.*\.js$" | xargs basename | cut -d\. -f1 | sort | uniq)
+          FILES=$(for file in $(git diff --name-only --diff-filter=ACMRT ${{ github.event.pull_request.base.sha }} \
+            ${{ github.event.pull_request.head.sha }} | grep -E "^dist/.*\.js$"); do basename "$file"; done | cut -d\. -f1 | sort | uniq)
           CUSTOM_METRIC_FILES=("00_reset", "a11y" "almanac" "aurora" "cms" "css-variables" "css" \
             "ecommerce" "example" "fugu-apis" "javascript" "markup" "media" "observers" "origin-trials" \
             "parsed_css" "performance" "privacy" "pwa" "responsive_images" "robots_meta" "robots_txt" \
