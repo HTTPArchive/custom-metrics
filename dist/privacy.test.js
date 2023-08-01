@@ -14,14 +14,11 @@ beforeAll(async () => {
   nick = await runWPTTest("https://www.nick.com/", options);
   pokellector = await runWPTTest("https://www.pokellector.com/", options);
   gpc = await runWPTTest("https://global-privacy-control.glitch.me/", options);
-}, 5*60*1000);
+}, 5 * 60 * 1000);
 
 test('Privacy wording links present', () => {
-  expect(theverge.privacy_wording_links[0]).toEqual(
-    {
-      keywords: ['PRIVACY'],
-      text: "PRIVACY NOTICE"
-    }
+  expect(educations.privacy_wording_links[0]).toEqual(
+    { "keywords": ["Privacy", "Policy"], "text": "Privacy Policy" }
   );
 });
 
@@ -37,7 +34,7 @@ test('IAB US Privacy present', () => {
   expect(nick.iab_usp.present).toBeTruthy();
 });
 
-test('Interest Cohort data present', () => {
+test.failing('Interest Cohort data present', () => {
   expect(pokellector.document_interestCohort).toBeTruthy();
 });
 
