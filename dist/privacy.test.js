@@ -11,14 +11,12 @@ beforeAll(async () => {
   theverge = await runWPTTest("https://www.theverge.com/", options);
   rtl = await runWPTTest("https://www.rtl.de/", options);
   educations = await runWPTTest("https://www.educations.com/", options);
-  nick = await runWPTTest("https://www.nick.com/", options);
   pokellector = await runWPTTest("https://www.pokellector.com/", options);
-  gpc = await runWPTTest("https://global-privacy-control.glitch.me/", options);
 }, 5 * 60 * 1000);
 
 test('Privacy wording links present', () => {
-  expect(educations.privacy_wording_links[0]).toEqual(
-    { "keywords": ["Privacy", "Policy"], "text": "Privacy Policy" }
+  expect(rtl.privacy_wording_links).toEqual(
+    [{ "keywords": ["Datenschutz"], "text": "Datenschutz" }]
   );
 });
 
@@ -28,10 +26,11 @@ test('TCFv1 consent function present', () => {
 
 test('TCFv2 consent function present', () => {
   expect(rtl.iab_tcf_v2.present).toBeTruthy();
+
 });
 
 test('IAB US Privacy present', () => {
-  expect(nick.iab_usp.present).toBeTruthy();
+  expect(verge.iab_usp.present).toBeTruthy();
 });
 
 test.failing('Interest Cohort data present', () => {
@@ -39,9 +38,9 @@ test.failing('Interest Cohort data present', () => {
 });
 
 test('DNT present', () => {
-  expect(theverge.navigator_doNotTrack).toBeTruthy();
+  expect(rtl.navigator_doNotTrack).toBeTruthy();
 });
 
 test('GPC present', () => {
-  expect(gpc.navigator_globalPrivacyControl).toBeTruthy();
+  expect(verge.navigator_globalPrivacyControl).toBeTruthy();
 });
