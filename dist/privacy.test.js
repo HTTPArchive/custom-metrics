@@ -30,7 +30,7 @@ test('TCFv2 consent function present', () => {
 });
 
 test('IAB US Privacy present', () => {
-  expect(verge.iab_usp.present).toBeTruthy();
+  expect(theverge.iab_usp.present).toBeTruthy();
 });
 
 test.failing('Interest Cohort data present', () => {
@@ -42,5 +42,5 @@ test('DNT present', () => {
 });
 
 test('GPC present', () => {
-  expect(verge.navigator_globalPrivacyControl).toBeTruthy();
+  expect(theverge.navigator_globalPrivacyControl).toBeTruthy();
 });
