@@ -12,7 +12,7 @@ beforeAll(async () => {
   rtl = await runWPTTest("https://www.rtl.de/", options);
   educations = await runWPTTest("https://www.educations.com/", options);
   pokellector = await runWPTTest("https://www.pokellector.com/", options);
-}, 5 * 60 * 1000);
+}, 600000);
 
 test('Privacy wording links present', () => {
   expect(rtl.privacy_wording_links).toEqual(

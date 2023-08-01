@@ -12,7 +12,7 @@ beforeAll(async () => {
       label: test_suite_name
     }
   );
-}, 60000);
+}, 600000);
 
 // Create test cases for any custom metric parameters you need to check
 test('Check placeholder', () => {

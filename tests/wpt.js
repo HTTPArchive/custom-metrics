@@ -14,7 +14,7 @@ function runWPTTest(url, options = {}) {
     console.error(`Custom metrics file ${customMetricsFile} does not exist`);
     process.exit(2);
   } else {
-    options.custom = options.custom | '[_' + options.label + ']\n' + fs.readFileSync('./dist/' + options.label + '.js', 'utf-8');
+    options.custom = options.custom || '[_' + options.label + ']\n' + fs.readFileSync('./dist/' + options.label + '.js', 'utf-8');
   }
 
   return new Promise((resolve, reject) => {
