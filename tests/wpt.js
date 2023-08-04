@@ -14,7 +14,7 @@ function runWPTTest(url, options = {}) {
     console.error(`Custom metrics file ${customMetricsFile} does not exist`);
     process.exit(2);
   } else {
-    options.custom = options.custom || '[_' + options.label + ']\n' + fs.readFileSync('./dist/' + options.label + '.js', 'utf-8');
+    options.custom = options.custom || `[_${options.label}]\n` + fs.readFileSync(`./dist/${options.label}.js`, 'utf-8');
   }
 
   return new Promise((resolve, reject) => {
@@ -25,11 +25,13 @@ function runWPTTest(url, options = {}) {
         console.error(error || response);
         reject(error || response);
       } else {
-        console.log(`Test for ${url} succeeded. View full test results:`);
-        console.log(response.data.summary);
-        console.log(`Custom metrics data:`);
-        console.log(response.data.runs[1].firstView["_" + options.label]);
-        resolve(JSON.parse(response.data.runs[1].firstView["_" + options.label]));
+        console.log(`Test for ${url} succeeded. View full test results:${response.data.summary}`);
+
+        const custom_metrics = response.data.runs[1].firstView[`_${options.label}`]
+        console.log(`Custom metrics data:\n`, custom_metrics);
+        console.log(`Custom metrics data:\n`, JSON.stringify(custom_metrics, null, 2));
+        console.dir(custom_metrics);
+        resolve(JSON.parse(custom_metrics));
       }
     });
   });
