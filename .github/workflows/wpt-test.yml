@@ -28,7 +28,7 @@ jobs:
           for TEST in ${EXPECTED_TESTS[@]}; do
             if [[ " ${CUSTOM_METRIC_FILES[*]} " =~ "$TEST" ]]; then
               echo "Running test: $TEST"
-              if [ -f "dist/$TEST.test.js" ]; then
+              if [ -f "tests/$TEST.test.js" ]; then
                 npm test $TEST
               else
                 echo "There are no test cases for $TEST"
