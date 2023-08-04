@@ -54,7 +54,7 @@ For complex metrics like [almanac.js](./dist/almanac.js) you can more easily exp
 
 0. Tests are running using [WPT API wrapper](https://github.com/webpagetest/webpagetest-api) and [Jest Testing Framework](https://jestjs.io/).
 
-1. Create a test file in the [`dist`](./dist) directory with a name corresponding to a custom metrics file, e.g. [`example.test.js`](./dist/example.test.js) testing [example.js](./dist/example.js) custom metrics. In test file you need to define websites for WPT test runs and test cases for the custom metric parameters.
+1. Create a test file in the [`dist`](./dist) directory with a name corresponding to a custom metrics file, e.g. [`privacy.test.js`](./dist/privacy.test.js) testing [privacy.js](./dist/privacy.js) custom metrics. In test file you need to define websites for WPT test runs and test cases for the custom metric parameters.
 
 ## Linting
 
