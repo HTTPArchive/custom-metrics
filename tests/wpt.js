@@ -28,9 +28,7 @@ function runWPTTest(url, options = {}) {
         console.log(`Test for ${url} succeeded. View full test results:${response.data.summary}`);
 
         const custom_metrics = response.data.runs[1].firstView[`_${options.label}`]
-        console.log(`Custom metrics data:\n`, custom_metrics);
-        console.log(`Custom metrics data:\n`, JSON.stringify(custom_metrics, null, 2));
-        console.dir(custom_metrics);
+        console.log(`Custom metrics data:\n${custom_metrics}`);
         resolve(JSON.parse(custom_metrics));
       }
     });
