@@ -1,4 +1,4 @@
-const { runWPTTest } = require('../tests/wpt.js');
+const { runWPTTest } = require('./wpt.js');
 var path = require('path');
 const fs = require('fs');
 var test_case_name = path.basename(__filename).replace('.test.js', '');
