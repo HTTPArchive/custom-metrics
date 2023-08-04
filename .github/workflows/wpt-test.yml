@@ -20,20 +20,14 @@ jobs:
           EXPECTED_TESTS=$(for file in $(git diff --name-only --diff-filter=ACMRT \
             ${{ github.event.pull_request.base.sha }} ${{ github.event.pull_request.head.sha }} | \
             grep -E "^dist/.*\.js$"); do basename "$file"; done | cut -d\. -f1 | sort | uniq)
-          CUSTOM_METRIC_FILES=("00_reset", "a11y" "almanac" "aurora" "cms" "css-variables" "css" "ecommerce" \
-            "example" "fugu-apis" "javascript" "markup" "media" "observers" "origin-trials" "parsed_css" \
-            "performance" "privacy" "pwa" "responsive_images" "robots_meta" "robots_txt" "sass" "security" \
-            "structured-data" "third-parties" "valid-head" "well-known" "wpt_bodies")
 
           for TEST in ${EXPECTED_TESTS[@]}; do
-            if [[ " ${CUSTOM_METRIC_FILES[*]} " =~ "$TEST" ]]; then
-              echo "Running test: $TEST"
-              if [ -f "tests/$TEST.test.js" ]; then
-                npm test $TEST
-              else
-                echo "There are no test cases for $TEST"
-                exit 2
-              fi
+            echo "Running test: $TEST"
+            if [ -f "tests/$TEST.test.js" ]; then
+              npm test $TEST
+            else
+              echo "There are no test cases for $TEST"
+              exit 2
             fi
           done
         env:
