@@ -55,6 +55,6 @@ On opening a Pull Request we will do some basic linting of JavaScript using [ESL
 You can run this locally with the following commands:
 
 ```sh
-docker pull github/super-linter:latest
-docker run -e RUN_LOCAL=true -e VALIDATE_JAVASCRIPT_ES=true -e VALIDATE_MARKDOWN=true -e USE_FIND_ALGORITHM=true -v $PWD/custom_metrics:/tmp/lint github/super-linter
+docker pull github/super-linter:slim-latest
+docker run -e RUN_LOCAL=true -e VALIDATE_JAVASCRIPT_ES=true -e VALIDATE_MARKDOWN=true -e USE_FIND_ALGORITHM=true -v $PWD/custom_metrics:/tmp/lint github/super-linter:slim-latest
 ```
