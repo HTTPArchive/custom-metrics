@@ -1,10 +1,7 @@
 const { runWPTTest } = require('./wpt.js');
-var path = require('path');
-const fs = require('fs');
-var test_case_name = path.basename(__filename).replace('.test.js', '');
-
-let options = {
-  label: test_case_name,
+const path = require('path');
+const options = {
+  label: path.basename(__filename).replace('.test.js', '')
 }
 
 beforeAll(async () => {
