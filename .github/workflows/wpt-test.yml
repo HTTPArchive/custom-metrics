@@ -46,11 +46,3 @@ jobs:
         run: |
           echo $TEST_RESULTS
 
-      - name: Add PR Comment
-        uses: mshick/add-pr-comment@v2
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        with:
-          message: |
-            ${{ env.TEST_RESULTS }}
-
