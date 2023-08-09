@@ -1,11 +1,14 @@
 name: Tests
 
-on: [pull_request]
+on:
+  pull_request
 
 jobs:
-  build:
-    runs-on: ubuntu-latest
+  test:
     name: WebPageTest Test Cases
+    runs-on: ubuntu-latest
+    permissions:
+      pull-requests: write
     steps:
       - name: Checkout
         uses: actions/checkout@v2
@@ -21,14 +24,25 @@ jobs:
             ${{ github.event.pull_request.base.sha }} ${{ github.event.pull_request.head.sha }} | \
             grep -E "^dist/.*\.js$"); do basename "$file"; done | cut -d\. -f1 | sort | uniq)
 
+          TEST_JSON=""
           for TEST in ${EXPECTED_TESTS[@]}; do
             echo "Running test: $TEST"
             if [ -f "tests/$TEST.test.js" ]; then
-              npm test $TEST
+              CURRENT_RESULT=$(npm test $TEST)
+              TEST_RESULTS="$TEST_RESULTS\n$CURRENT_RESULT"
             else
               echo "There are no test cases for $TEST"
               exit 2
             fi
           done
+
+          echo "TEST_RESULTS=$TEST_RESULTS" >> $GITHUB_ENV
         env:
           WPT_API_KEY: ${{ secrets.WPT_API_KEY }}
+
+      - name: Add PR Comment
+        uses: mshick/add-pr-comment@v2
+        with:
+          message: |
+            ${{ env.TEST_RESULTS }}
+
