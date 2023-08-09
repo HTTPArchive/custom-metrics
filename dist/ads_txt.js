@@ -5,7 +5,6 @@
 function parseAdsTxt(response) {
   return response.text().then(file_content => {
     let result = {
-
       present: response.ok && (response.url.endsWith('/ads.txt') || response.url.endsWith('/app-ads.txt')),
       redirected: response.redirected,
       status: response.status,
@@ -62,7 +61,7 @@ function parseAdsTxt(response) {
       // Convert Sets to Arrays
       for (let accountType of Object.values(result.account_types)) {
         accountType.domain_count = accountType.domains.size;
-        delete accountType.domains // accountType.domains = [...accountType.domains];
+        delete accountType.domains // Keeping a list of domains may be valuable for further research, e.g. accountType.domains = [...accountType.domains];
       }
       result.variables = [...result.variables];
     }
