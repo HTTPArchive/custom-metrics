@@ -11,7 +11,7 @@ beforeAll(async () => {
   pokellector = await runWPTTest("https://www.pokellector.com/", options);
 }, 600000);
 
-test.failing('Privacy metrics present', () => {
+test('Privacy metrics present', () => {
   expect(theverge).toBeDefined()
 });
 
