@@ -23,5 +23,16 @@
     "fugu-api-data": "^1.15.0",
     "jest": "^29.6.1",
     "webpagetest": "github:max-ostapenko/webpagetest-api#post-request-support-for-runTest"
+  },
+  "jest": {
+    "reporters": [
+      "default",
+      [
+        "github-actions",
+        {
+          "silent": false
+        }
+      ]
+    ]
   }
 }

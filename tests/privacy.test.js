@@ -11,6 +11,10 @@ beforeAll(async () => {
   pokellector = await runWPTTest("https://www.pokellector.com/", options);
 }, 600000);
 
+test('Privacy metrics present', () => {
+  expect(theverge).toBeDefined()
+});
+
 test('Privacy wording links present', () => {
   expect(rtl.privacy_wording_links).toEqual(
     [{ "keywords": ["Datenschutz"], "text": "Datenschutz" }]

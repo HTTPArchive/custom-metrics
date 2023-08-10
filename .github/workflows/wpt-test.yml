@@ -16,7 +16,9 @@ jobs:
           fetch-depth: 0
 
       - name: Install dependencies
-        run: npm install webpagetest && npm install jest
+        run: |
+          npm install webpagetest
+          npm install jest
 
       - name: Run WebPageTest
         run: |
@@ -25,14 +27,21 @@ jobs:
             grep -E "^dist/.*\.js$"); do basename "$file"; done | cut -d\. -f1 | sort | uniq)
 
           for TEST in ${EXPECTED_TESTS[@]}; do
-            echo "::group::Running test: $TEST"
+            echo "::group::Test case for $TEST"
             if [ -f "tests/$TEST.test.js" ]; then
               npm test $TEST
             else
-              echo "There are no test cases for $TEST"
+              echo "Test case file tests/$TEST.test.js not found"
               exit 2
             fi
             echo "::endgroup::"
           done
         env:
           WPT_API_KEY: ${{ secrets.WPT_API_KEY }}
+
+      - name: Add comment with results
+        uses: mshick/add-pr-comment@v2
+        if: always()
+        with:
+          message-path: |
+            test-results.txt
