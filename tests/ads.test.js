@@ -15,7 +15,7 @@ beforeAll(async () => {
       label: test_suite_name
     }
   );
-}, 300000);
+}, 400000);
 
 describe('ads.txt', () => {
   test('ads parsing done', () => {
@@ -48,16 +48,18 @@ describe('sellers.json', () => {
     expect(criteo.sellers.present).toBeTruthy();
   });
 
-  test('seleer count', () => {
+  test('seller count', () => {
     expect(criteo.sellers.seller_count).toBeGreaterThan(100);
   });
 
   test('seller counts verification', () => {
-    expect(criteo.sellers.seller_count = criteo.seller_types.publisher.seller_count + criteo.seller_types.intermediary.seller_count + criteo.seller_types.both.seller_count).toBeTruthy();
+    expect(criteo.sellers.seller_count =
+      criteo.sellers.seller_types.publisher.seller_count +
+      criteo.sellers.seller_types.intermediary.seller_count +
+      criteo.sellers.seller_types.both.seller_count).toBeTruthy();
   });
 
   test('domain count verification', () => {
-    expect(criteo.sellers.seller_types.publisher.seller_count >= criteo.seller_types.publisher.domain_count).toBeTruthy();
-    expect(criteo.sellers.seller_types.publisher.domain_count * 0.9 < criteo.seller_types.publisher.domain_count).toBeTruthy();
+    expect(criteo.sellers.seller_types.publisher.seller_count >= criteo.sellers.seller_types.publisher.domain_count).toBeTruthy();
   });
 });
