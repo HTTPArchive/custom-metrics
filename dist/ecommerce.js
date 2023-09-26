@@ -39,6 +39,6 @@ return Promise.all([
 }).then(result => {
   return {
     ...result,
-    shopify: getShopifyMetadata()
+    Shopify: getShopifyMetadata()
   }
 });
