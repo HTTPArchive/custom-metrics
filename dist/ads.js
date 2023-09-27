@@ -28,7 +28,6 @@ const parseAdsTxt = async (response) => {
 
   let result = {
     present: isPresent(response, ['/ads.txt', '/app-ads.txt']),
-    redirected: response.redirected,
     status: response.status,
   };
 
@@ -50,6 +49,7 @@ const parseAdsTxt = async (response) => {
         line_count: 0,
         variables: new Set(),
         variable_count: 0,
+        redirected: response.redirected,
       }
     };
 

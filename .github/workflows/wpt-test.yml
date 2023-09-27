@@ -4,6 +4,8 @@ on:
   pull_request:
     branches:
       - main
+    paths-ignore:
+      - '**/*.md'
 
 jobs:
   test:
@@ -20,20 +22,43 @@ jobs:
           npm install webpagetest
           npm install jest
 
-      - name: Run WebPageTest
+      - name: Run WebPageTest for WebAlmanac website
         run: |
-          EXPECTED_TESTS=$(for file in $(git diff --name-only --diff-filter=ACMRT \
+          echo "::group::Unit tests on https://almanac.httparchive.org/en/2022/"
+            npm test
+          echo "::endgroup::"
+        env:
+          WPT_API_KEY: ${{ secrets.WPT_API_KEY }}
+
+      - name: Test more websites
+        id: extract-urls
+        run: |
+          METRICS=$(for file in $(git diff --name-only --diff-filter=ACMRT \
             ${{ github.event.pull_request.base.sha }} ${{ github.event.pull_request.head.sha }} | \
             grep -E "^dist/.*\.js$"); do basename "$file"; done | cut -d\. -f1 | sort | uniq)
 
-          for TEST in ${EXPECTED_TESTS[@]}; do
-            echo "::group::Test case for $TEST"
-            if [ -f "tests/$TEST.test.js" ]; then
-              npm test $TEST
-            else
-              echo "Test case file tests/$TEST.test.js not found"
-              exit 2
-            fi
+          while IFS= read -r line; do
+            lines+=("$line")
+          done <<< "${{ github.event.pull_request.body }}"
+
+          start_index=-1
+          for ((i=0; i<${#lines[@]}; i++)); do
+              if [[ ${lines[$i]} == "**Test websites**:" ]]; then
+                  start_index=$((i + 1))  # Start from this line
+                  break
+              fi
+          done
+
+          declare -a URLS
+          for ((i=start_index; i<=${#lines[@]}; i++)); do
+              url="${lines[$i]}"
+              url="${url//- /}"
+              URLS+=("$url")
+          done
+
+          for URL in ${URLS[@]}; do
+            echo "::group::Custom metrics for $URL"
+              node tests/wpt.js $URL "$METRICS"
             echo "::endgroup::"
           done
         env:
@@ -44,4 +69,4 @@ jobs:
         if: always()
         with:
           refresh-message-position: true
-          message-path: test-results.txt
+          message-path: test-results.md
