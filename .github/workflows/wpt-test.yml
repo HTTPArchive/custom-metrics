@@ -39,7 +39,7 @@ jobs:
           pr_body="${{ github.event.pull_request.body }}"
           while IFS= read -r line; do
             lines+=("$line")
-          done <<< pr_body
+          done <<< "$pr_body"
 
           start_index=-1
           for ((i=0; i<${#lines[@]}; i++)); do
