@@ -44,13 +44,14 @@ jobs:
           start_index=-1
           for ((i=0; i<${#lines[@]}; i++)); do
               if [[ ${lines[$i]} == "**Test websites**:" ]]; then
-                  start_index=$((i + 1))  # Start from this line
+                  start_index=$((i + 2))  # Start from this line
                   break
               fi
           done
 
           declare -a URLS
-          for ((i=start_index; i<=${#lines[@]}; i++)); do
+          for ((i=start_index; i<${#lines[@]}; i++)); do
+              echo "$i"
               url="${lines[$i]}"
               url="${url//- /}"
               URLS+=("$url")
