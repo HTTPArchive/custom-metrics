@@ -30,7 +30,7 @@ jobs:
         env:
           WPT_API_KEY: ${{ secrets.WPT_API_KEY }}
 
-      - name: Test more websites
+      - name: Run WebPageTest for more websites
         run: |
           METRICS=$(for file in $(git diff --name-only --diff-filter=ACMRT \
             ${{ github.event.pull_request.base.sha }} ${{ github.event.pull_request.head.sha }} | \
@@ -41,6 +41,7 @@ jobs:
           echo "PR Body:"
           echo "$pr_body"
 
+          declare -a lines
           while IFS= read -r line; do
             lines+=("$line")
           done <<< "$pr_body"
