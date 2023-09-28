@@ -27,11 +27,13 @@ function getCustomMetrics() {
  * @returns {Promise<object>} A promise that resolves with an object containing the custom metrics.
  * @throws {Error} If the test run fails or the response status code is not 200.
  */
-function runWPTTest(url, metrics = []) {
+function runWPTTest(url, metrics_to_log = []) {
   let options = { custom: '' };
 
-  metrics = metrics.length>0 ? metrics : getCustomMetrics();
-  for (const metric_name of metrics) {
+  custom_metrics = getCustomMetrics();
+  metrics_to_log = metrics_to_log.length > 0 ? metrics_to_log : custom_metrics;
+
+  for (const metric_name of custom_metrics) {
     options.custom += `[_${metric_name}]\n` + fs.readFileSync(`./dist/${metric_name}.js`, 'utf-8') + `\n`;
   }
 
@@ -46,7 +48,7 @@ function runWPTTest(url, metrics = []) {
         console.log(`WPT test run for ${url} completed`);
 
         let wpt_custom_metrics = {}
-        for (const metric_name of metrics) {
+        for (const metric_name of metrics_to_log) {
           wpt_custom_metric = response.data.runs['1'].firstView[`_${metric_name}`];
 
           try {
@@ -58,7 +60,7 @@ function runWPTTest(url, metrics = []) {
 
         fs.appendFileSync('test-results.md', '<details>\n' +
           `<summary><strong>Custom metrics for ${url}</strong></summary>\n\n` +
-          `WPT test run results: ${ response.data.summary }\n` +
+          `WPT test run results: ${response.data.summary}\n` +
           (is_direct_run ? `\`\`\`json\n${JSON.stringify(wpt_custom_metrics, null, 4)}\n\`\`\`\n` : '') +
           '</details>\n');
 
@@ -70,9 +72,8 @@ function runWPTTest(url, metrics = []) {
 
 if (is_direct_run) {
   const url = argv[2];
-  const metrics = argv[3].split('\n');
-  console.log(url, metrics);
-  runWPTTest(url, metrics);
+  const metrics_to_log = argv[3].split('\n');
+  runWPTTest(url, metrics_to_log);
 }
 
 module.exports = { runWPTTest };

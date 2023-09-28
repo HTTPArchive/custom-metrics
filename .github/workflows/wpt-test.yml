@@ -37,43 +37,31 @@ jobs:
             ${{ github.event.pull_request.base.sha }} ${{ github.event.pull_request.head.sha }} | \
             grep -E "^dist/.*\.js$"); do basename "$file"; done | cut -d\. -f1 | sort | uniq)
 
-          pr_body="${{ github.event.pull_request.body }}"
-
+          PR_BODY="${{ github.event.pull_request.body }}"
+          
           declare -a lines
           while IFS= read -r line; do
             lines+=("${line//[$'\r\n']}")
-          done <<< "$pr_body"
-
-          echo "***end of while loop***"
+          done <<< "$PR_BODY"
 
           start_index=-1
           for ((i=0; i<=${#lines[@]}; i++)); do
-            echo "Checking line $i: |${lines[$i]}|"
             if [[ "${lines[$i]}" == *"**Test websites**:"* ]]; then
               start_index=$((i + 1))
-              echo "Start Index: $start_index"
               break
             fi
           done
-
-          echo "***end of for loop 1***"
 
           if [ $start_index -gt -1 ]; then
             declare -a URLS
             url_pattern="^(http|https|ftp)://[a-zA-Z0-9.-]+(\.[a-zA-Z]{2,4})(/[a-zA-Z0-9_.-]+)*(\/?)(\?[a-zA-Z0-9_.-]+=[a-zA-Z0-9%_.-]+)*)?$"
             for ((i=start_index; i<${#lines[@]}; i++)); do
-              echo "Parsing line $i: ${lines[$i]}"
               url="${lines[$i]}"
               url="${url//- /}"
               if [[ $url =~ $url_pattern ]]; then
                   URLS+=("$url")
               fi
             done
-
-            echo "***end of for loop 2***"
-
-            echo "Collected URLs:"
-            echo "${URLS[@]}"
 
             for URL in ${URLS[@]}; do
               echo "::group::Custom metrics for $URL"
