@@ -50,11 +50,18 @@ To see the custom metric results, select a run, first click on "Details", and th
 
 For complex metrics like [almanac.js](./dist/almanac.js) you can more easily explore the results by copy/pasting the JSON into your browser console.
 
-### Automated testing using test cases
+### Automated WPT test runs
 
-0. Tests are running using [WPT API wrapper](https://github.com/webpagetest/webpagetest-api) and [Jest Testing Framework](https://jestjs.io/).
+1. WPT tests are running using [WPT API wrapper](https://github.com/webpagetest/webpagetest-api).
+2. Test runs are using a private WPT instance, set by the `WPT_HOST` environment variable.
+3. By default, WebAlmanac website is used for testing in every PR.
+4. PR author can define a list of websites to test additionally, by using a markdown list as shown in [PR template](https://github.com/HTTPArchive/custom-metrics/blob/main/.github/PULL_REQUEST_TEMPLATE/custom_metrics_pr_template.md).
 
-1. Create a test file in the [`tests`](./tests) directory with a name corresponding to a custom metrics file, e.g. [`privacy.test.js`](./tests/privacy.test.js) testing [privacy.js](./dist/privacy.js) custom metrics. In test file you need to define websites for WPT test runs and test cases for the custom metric parameters.
+### Unit tests
+
+1. Unit tests are using [Jest Testing Framework](https://jestjs.io/).
+2. Open [`unit-tests.test.js`](./tests/unit-tests.test.js) file and add test cases for the custom metrics.
+3. `wpt_data` variable contains is an object with custom metrics values parsed from WPT response.
 
 ## Linting
 
