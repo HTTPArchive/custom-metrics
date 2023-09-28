@@ -54,9 +54,10 @@ jobs:
           echo "***end of while loop***"
 
           start_index=-1
+          echo "**Test websites**:"
           for ((i=0; i<=${#lines[@]}; i++)); do
-            echo ${lines[$i]}
-            if [[ ${lines[$i]} == "**Test websites**:" ]]; then
+            echo "Checking line $i: |${lines[$i]}|"
+            if [[ "${lines[$i]}" == "**Test websites**:" ]]; then
               start_index=$((i + 1))
               echo "Start Index: $start_index"
               break
@@ -69,7 +70,7 @@ jobs:
             declare -a URLS
             url_pattern="^(http|https|ftp)://[a-zA-Z0-9.-]+(\.[a-zA-Z]{2,4})(/[a-zA-Z0-9_.-]+)*(\/?)(\?[a-zA-Z0-9_.-]+=[a-zA-Z0-9%_.-]+)*)?$"
             for ((i=start_index; i<${#lines[@]}; i++)); do
-              echo "Checking line $i: ${lines[$i]}"
+              echo "Parsing line $i: ${lines[$i]}"
               url="${lines[$i]}"
               url="${url//- /}"
               if [[ $url =~ $url_pattern ]]; then
