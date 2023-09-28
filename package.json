@@ -22,7 +22,7 @@
   "devDependencies": {
     "fugu-api-data": "^1.15.0",
     "jest": "^29.7.0",
-    "webpagetest": "github:max-ostapenko/webpagetest-api#post-request-support-for-runTest"
+    "webpagetest": "github:HTTPArchive/webpagetest-api"
   },
   "jest": {
     "reporters": [
