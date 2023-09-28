@@ -52,6 +52,8 @@ jobs:
           start_index=-1
           for ((i=0; i<${#lines[@]}; i++)); do
             echo ${lines[$i]}
+            trimmed_line="${lines[$i]//[$'\t\r\n']}"
+            echo $trimmed_line
             if [[ ${lines[$i]} == "**Test websites**:" ]]; then
               start_index=$((i + 1))
               echo "Start Index: $start_index"
