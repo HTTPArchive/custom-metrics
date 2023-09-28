@@ -59,7 +59,8 @@ function runWPTTest(url, metrics_to_log = []) {
         fs.appendFileSync('test-results.md', '<details>\n' +
           `<summary><strong>Custom metrics for ${url}</strong></summary>\n\n` +
           `WPT test run results: ${response.data.summary}\n` +
-          (is_direct_run ? `\`\`\`json\n${JSON.stringify(wpt_custom_metrics, null, 4)}\n\`\`\`\n` : '') +
+          (is_direct_run ? 'Changed custom metrics values:\n' +
+            `\`\`\`json\n${JSON.stringify(wpt_custom_metrics, null, 4)}\n\`\`\`\n` : '') +
           '</details>\n');
 
         resolve(wpt_custom_metrics);
