@@ -28,11 +28,10 @@ function getCustomMetrics() {
  * @throws {Error} If the test run fails or the response status code is not 200.
  */
 function runWPTTest(url, metrics_to_log = []) {
-  let options = { custom: '' };
-
-  custom_metrics = getCustomMetrics();
+  const custom_metrics = getCustomMetrics();
   metrics_to_log = metrics_to_log.length > 0 ? metrics_to_log : custom_metrics;
 
+  let options = { custom: '' };
   for (const metric_name of custom_metrics) {
     options.custom += `[_${metric_name}]\n` + fs.readFileSync(`./dist/${metric_name}.js`, 'utf-8') + `\n`;
   }
@@ -44,13 +43,12 @@ function runWPTTest(url, metrics_to_log = []) {
         console.error(`WPT test run for ${url} failed:`);
         console.error(error || response);
         reject(error || response);
+
       } else {
         console.log(`WPT test run for ${url} completed`);
-
         let wpt_custom_metrics = {}
         for (const metric_name of metrics_to_log) {
           wpt_custom_metric = response.data.runs['1'].firstView[`_${metric_name}`];
-
           try {
             wpt_custom_metrics[`_${metric_name}`] = JSON.parse(wpt_custom_metric);
           } catch (e) {

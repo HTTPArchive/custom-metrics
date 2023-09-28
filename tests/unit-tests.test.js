@@ -1,9 +1,10 @@
 const { runWPTTest } = require('./wpt.js');
 const assert = require('assert');
+const test_website = "https://almanac.httparchive.org/en/2022/";
 
 let wpt_data;
 beforeAll(async () => {
-  wpt_data = await runWPTTest("https://almanac.httparchive.org/en/2022/");
+  wpt_data = await runWPTTest(test_website);
 }, 400000);
 
 test('_ads parsing', () => {

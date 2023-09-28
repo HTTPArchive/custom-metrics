@@ -22,16 +22,15 @@ jobs:
           npm install webpagetest
           npm install jest
 
-      - name: Run WebPageTest for WebAlmanac website
+      - name: Run WebPageTest with unit tests
         run: |
-          echo "::group::Unit tests on https://almanac.httparchive.org/en/2022/"
+          echo "::group::Unit tests
             npm test
           echo "::endgroup::"
         env:
           WPT_API_KEY: ${{ secrets.WPT_API_KEY }}
 
       - name: Run WebPageTest for more websites
-        shell: bash
         run: |
           METRICS=$(for file in $(git diff --name-only --diff-filter=ACMRT \
             ${{ github.event.pull_request.base.sha }} ${{ github.event.pull_request.head.sha }} | \
@@ -63,13 +62,13 @@ jobs:
               fi
             done
 
-            for URL in ${URLS[@]}; do
-              echo "::group::Custom metrics for $URL"
-                node tests/wpt.js $URL "$METRICS"
+            for TEST_WEBSITE in ${URLS[@]}; do
+              echo "::group::Custom metrics for $TEST_WEBSITE"
+                node tests/wpt.js $TEST_WEBSITE "$METRICS"
               echo "::endgroup::"
             done
           else
-            echo "Test websites not found."
+            echo "No websites found."
           fi
         env:
           WPT_API_KEY: ${{ secrets.WPT_API_KEY }}
