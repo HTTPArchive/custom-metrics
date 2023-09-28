@@ -24,7 +24,7 @@ jobs:
 
       - name: Run WebPageTest with unit tests
         run: |
-          echo "::group::Unit tests
+          echo "::group::Unit tests"
             npm test
           echo "::endgroup::"
         env:
