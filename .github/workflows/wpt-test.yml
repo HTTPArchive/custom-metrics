@@ -47,6 +47,8 @@ jobs:
             lines+=("$line")
           done <<< "$pr_body"
 
+          echo "***end of while loop***"
+
           start_index=-1
           for ((i=0; i<${#lines[@]}; i++)); do
             echo ${lines[$i]}
@@ -56,7 +58,8 @@ jobs:
               break
             fi
           done
-          echo "---"
+
+          echo "***end of for loop 1***"
 
           if [ $start_index -gt -1 ]; then
             declare -a URLS
@@ -69,6 +72,9 @@ jobs:
                   URLS+=("$url")
               fi
             done
+
+            echo "***end of for loop 2***"
+
             echo "Collected URLs:"
             echo "${URLS[@]}"
 
