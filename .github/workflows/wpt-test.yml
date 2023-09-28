@@ -48,7 +48,7 @@ jobs:
 
           declare -a lines
           while IFS= read -r line; do
-            lines+=("$line")
+            lines+=("${line//[$'\r\n']}")
           done <<< "$pr_body"
 
           echo "***end of while loop***"
@@ -57,7 +57,7 @@ jobs:
           echo "**Test websites**:"
           for ((i=0; i<=${#lines[@]}; i++)); do
             echo "Checking line $i: |${lines[$i]}|"
-            if [[ "${lines[$i]}" == "**Test websites**:" ]]; then
+            if [[ "${lines[$i]}" == *"**Test websites**:"* ]]; then
               start_index=$((i + 1))
               echo "Start Index: $start_index"
               break
