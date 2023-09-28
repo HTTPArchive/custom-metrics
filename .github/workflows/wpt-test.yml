@@ -38,7 +38,7 @@ jobs:
             grep -E "^dist/.*\.js$"); do basename "$file"; done | cut -d\. -f1 | sort | uniq)
 
           PR_BODY="${{ github.event.pull_request.body }}"
-          
+
           declare -a lines
           while IFS= read -r line; do
             lines+=("${line//[$'\r\n']}")
