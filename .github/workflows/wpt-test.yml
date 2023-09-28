@@ -31,6 +31,7 @@ jobs:
           WPT_API_KEY: ${{ secrets.WPT_API_KEY }}
 
       - name: Run WebPageTest for more websites
+        shell: bash
         run: |
           METRICS=$(for file in $(git diff --name-only --diff-filter=ACMRT \
             ${{ github.event.pull_request.base.sha }} ${{ github.event.pull_request.head.sha }} | \
@@ -57,7 +58,7 @@ jobs:
           done
           echo "---"
 
-          if [ $start_index -ne -1 ]; then
+          if [ $start_index -gt -1 ]; then
             declare -a URLS
             url_pattern="^(http|https|ftp)://[a-zA-Z0-9.-]+(\.[a-zA-Z]{2,4})(/[a-zA-Z0-9_.-]+)*(\/?)(\?[a-zA-Z0-9_.-]+=[a-zA-Z0-9%_.-]+)*)?$"
             for ((i=start_index; i<${#lines[@]}; i++)); do
