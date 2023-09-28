@@ -40,7 +40,11 @@ jobs:
           pr_body="${{ github.event.pull_request.body }}"
 
           echo "PR Body:"
-          echo "$pr_body"
+          declare -a pr_body_echo
+          for ((i=0; i<${#pr_body}; i++)); do
+            pr_body_echo+=("${pr_body:$i:1}")
+          done
+          echo "${pr_body_echo[@]}"
 
           declare -a lines
           while IFS= read -r line; do
@@ -50,10 +54,8 @@ jobs:
           echo "***end of while loop***"
 
           start_index=-1
-          for ((i=0; i<${#lines[@]}; i++)); do
+          for ((i=0; i<=${#lines[@]}; i++)); do
             echo ${lines[$i]}
-            trimmed_line="${lines[$i]//[$'\t\r\n']}"
-            echo $trimmed_line
             if [[ ${lines[$i]} == "**Test websites**:" ]]; then
               start_index=$((i + 1))
               echo "Start Index: $start_index"
