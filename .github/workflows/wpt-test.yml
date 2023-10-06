@@ -28,7 +28,8 @@ jobs:
             npm test
           echo "::endgroup::"
         env:
-          WPT_API_KEY: ${{ secrets.WPT_API_KEY }}
+          WPT_SERVER: "webpagetest.httparchive.org"
+          WPT_API_KEY: ${{ secrets.HA_API_KEY }}
 
       - name: Run WebPageTest for more websites
         run: |
@@ -71,7 +72,8 @@ jobs:
             echo "No websites found."
           fi
         env:
-          WPT_API_KEY: ${{ secrets.WPT_API_KEY }}
+          WPT_SERVER: "webpagetest.httparchive.org"
+          WPT_API_KEY: ${{ secrets.HA_API_KEY }}
 
       - name: Add comment with results
         uses: mshick/add-pr-comment@v2

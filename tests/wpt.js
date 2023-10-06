@@ -5,7 +5,7 @@ const { argv } = require('node:process');
 
 const is_direct_run = require.main === module;
 
-const wptServer = 'www.webpagetest.org';
+const wptServer = process.env.WPT_SERVER;
 const wptApiKey = process.env.WPT_API_KEY;
 const wpt = new WebPageTest(wptServer, wptApiKey);
 
