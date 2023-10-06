@@ -53,7 +53,7 @@ const parseAdsTxt = async (response) => {
       }
     };
 
-    // Clen up file content
+    // Clean up file content
     content = content.replace(/#.*$/gm, '');
     content = content.replace(/\r/g, '');
 
