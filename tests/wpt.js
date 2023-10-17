@@ -31,7 +31,7 @@ function runWPTTest(url, metrics_to_log = []) {
   const custom_metrics = getCustomMetrics();
   metrics_to_log = metrics_to_log.length > 0 ? metrics_to_log : custom_metrics;
 
-  let options = { custom: '' };
+  let options = { key: wptApiKey, custom: '' };
   for (const metric_name of custom_metrics) {
     options.custom += `[_${metric_name}]\n` + fs.readFileSync(`./dist/${metric_name}.js`, 'utf-8') + `\n`;
   }
