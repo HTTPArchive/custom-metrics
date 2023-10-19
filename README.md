@@ -25,11 +25,13 @@ return JSON.stringify({
 });
 ```
 
-3. Test your changes on WPT using the workflow below.
+2. Test your changes on WPT using the workflow below.
 
-4. Submit a pull request. Include one or more links to test results in your PR description to verify that the script is working.
+3. Submit a pull request. Include one or more links to test results in your PR description to verify that the script is working.
 
 ## Testing
+
+### Manual testing using webpagetest.org website
 
 To test a custom metric, for example [`doctype.js`](https://github.com/HTTPArchive/legacy.httparchive.org/blob/master/custom_metrics/doctype.js), you can enter the script directly on [webpagetest.org](https://webpagetest.org?debug=1) under the "Custom" tab.
 
@@ -47,6 +49,19 @@ To see the custom metric results, select a run, first click on "Details", and th
 ![image](https://user-images.githubusercontent.com/1120896/88727208-24beaa80-d0fd-11ea-8ae1-57df2c8505e4.png)
 
 For complex metrics like [almanac.js](./dist/almanac.js) you can more easily explore the results by copy/pasting the JSON into your browser console.
+
+### Automated WPT test runs
+
+1. WPT tests are running using [WPT API wrapper](https://github.com/webpagetest/webpagetest-api).
+2. Test runs are using a private WPT instance, set by the `WPT_HOST` environment variable.
+3. By default, WebAlmanac website is used for testing in every PR.
+4. PR author can define a list of websites to test additionally, by using a markdown list as shown in [PR template](https://github.com/HTTPArchive/custom-metrics/blob/main/.github/PULL_REQUEST_TEMPLATE/custom_metrics_pr_template.md).
+
+### Unit tests
+
+1. Unit tests are using [Jest Testing Framework](https://jestjs.io/).
+2. Open [`unit-tests.test.js`](./tests/unit-tests.test.js) file and add test cases for the custom metrics.
+3. `wpt_data` variable contains is an object with custom metrics values parsed from WPT response.
 
 ## Linting
 

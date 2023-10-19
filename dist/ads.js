@@ -3,7 +3,7 @@
 const ACCOUNT_TYPES = ['direct', 'reseller'];
 const SELLER_TYPES = ['publisher', 'intermediary', 'both'];
 
-const isPresent = (response, endings) => response.ok && endings.find(ending => response.url.endsWith(ending));
+const isPresent = (response, endings) => response.ok && endings.some(ending => response.url.endsWith(ending));
 
 const fetchAndParse = async (url, parser) => {
   const controller = new AbortController();
@@ -22,20 +22,19 @@ const fetchAndParse = async (url, parser) => {
   }
 };
 
-// Extracts status, record count, and record counts respective to relationship.
-// Standard Specification: https://iabtechlab.com/wp-content/uploads/2022/04/Ads.txt-1.1.pdf
+// https://iabtechlab.com/wp-content/uploads/2022/04/Ads.txt-1.1.pdf
 const parseAdsTxt = async (response) => {
-  const content = await response.text();
+  let content = await response.text();
 
   let result = {
     present: isPresent(response, ['/ads.txt', '/app-ads.txt']),
-    redirected: response.redirected,
     status: response.status,
   };
 
-  if (result.present) {
+  if (result.present && content) {
     result = {
-      ...result, ...{
+      ...result,
+      ...{
         account_count: 0,
         account_types: {
           direct: {
@@ -50,14 +49,15 @@ const parseAdsTxt = async (response) => {
         line_count: 0,
         variables: new Set(),
         variable_count: 0,
+        redirected: response.redirected,
       }
     };
 
-    // Clen up file content
-    file_content = file_content.replace(/#.*$/gm, '');
-    file_content = file_content.replace(/\r/g, '');
+    // Clean up file content
+    content = content.replace(/#.*$/gm, '');
+    content = content.replace(/\r/g, '');
 
-    let lines = file_content.split('\n');
+    let lines = content.split('\n');
     result.line_count = lines.length;
 
     for (let line of lines) {
@@ -81,7 +81,7 @@ const parseAdsTxt = async (response) => {
       }
     };
 
-    // Convert Sets to Arrays
+    // Count unique and remove domain Sets for now
     for (let accountType of Object.values(result.account_types)) {
       accountType.domain_count = accountType.domains.size;
       delete accountType.domains // Keeping a list of domains may be valuable for further research, e.g. accountType.domains = [...accountType.domains];
@@ -94,8 +94,7 @@ const parseAdsTxt = async (response) => {
 }
 
 
-//Extracts seller record mertrics.
-//Standard Specification: https://iabtechlab.com/wp-content/uploads/2019/07/Sellers.json_Final.pdf
+// https://iabtechlab.com/wp-content/uploads/2019/07/Sellers.json_Final.pdf
 const parseSellersJSON = async (response) => {
   let content;
   try {
@@ -104,14 +103,15 @@ const parseSellersJSON = async (response) => {
     content = null;
   }
   let result = {
-    present: isPresent(response, ['/ads.txt', '/app-ads.txt']),
+    present: isPresent(response, ['/sellers.json']),
     redirected: response.redirected,
     status: response.status,
   };
 
-  if (result.present) {
+  if (result.present && content) {
     result = {
-      ...result, ...{
+      ...result,
+      ...{
         seller_count: 0,
         seller_types: {
           publisher: {
@@ -132,39 +132,37 @@ const parseSellersJSON = async (response) => {
     };
 
     // Clean up file content
-    file_content_json = JSON.parse(file_content);
-    file_content_json.seller_count = file_content_json.sellers.length;
+    result.seller_count = content.sellers.length;
 
-    for (let seller of file_content_json.sellers) {
+    for (let seller of content.sellers) {
       // Seller records
       let type = seller.seller_type.trim().toLowerCase(),
-        domain = seller.domain.trim();
+        domain = seller.domain.trim().toLowerCase();
       if (Object.keys(result.seller_types).includes(type)) {
         result.seller_types[type].domains.add(domain);
         result.seller_types[type].seller_count += 1;
       }
-      result.seller_count += 1;
 
       // Passthrough
       if (seller.is_passthrough) {
         result.passthrough_count += 1;
       }
     }
-  };
 
-  // Count unique and remove domain Sets for now
-  for (let seller_type of Object.values(result.seller_types)) {
-    seller_type.domain_count = seller_type.domains.size;
-    delete seller_type.domains //seller_type.domains = [...seller_type.domains];
-  }
+    // Count unique and remove domain Sets for now
+    for (let seller_type of Object.values(result.seller_types)) {
+      seller_type.domain_count = seller_type.domains.size;
+      delete seller_type.domains //seller_type.domains = [...seller_type.domains];
+    }
+  };
 
   return result;
 }
 
 return Promise.all([
-  fetchAndParse("/ads.txt", parseAdsTxt),
-  fetchAndParse("/app-ads.txt", parseAdsTxt),
-  fetchAndParse("/sellers.json", parseSellersJSON),
+  fetchAndParse("/ads.txt", parseAdsTxt).catch(e => e),
+  fetchAndParse("/app-ads.txt", parseAdsTxt).catch(e => e),
+  fetchAndParse("/sellers.json", parseSellersJSON).catch(e => e),
 ]).then((all_data) => {
   return JSON.stringify({
     ads: all_data[0],
