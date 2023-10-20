@@ -77,6 +77,11 @@ function getWordPressScripts() {
   return entries;
 }
 
+/**
+ * Detects the type of WordPress content for the current document.
+ *
+ * @returns {object} Object with fields `contentType`, `postType`, and `taxonomy`.
+ */
 function getWordPressContentType() {
   const content = {
     contentType: 'unknown',
