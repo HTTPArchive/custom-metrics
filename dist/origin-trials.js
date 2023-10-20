@@ -129,7 +129,7 @@ function getParameterCaseInsensitive(object, key) {
 
 let requests = $WPT_REQUESTS;
 
-let meta_tags = Array.from(document.querySelectorAll('meta[http-equiv="origin-trial"]'));
+let meta_tags = Array.from(document.querySelectorAll('meta[http-equiv="origin-trial"i]'));
 
 let tokens = meta_tags.map(tag => tag.content);
 

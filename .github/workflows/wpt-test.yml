@@ -1,0 +1,83 @@
+name: Tests
+
+on:
+  pull_request:
+    branches:
+      - main
+    paths-ignore:
+      - "**/*.md"
+
+jobs:
+  test:
+    name: WebPageTest Test Cases
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v2
+        with:
+          fetch-depth: 0
+
+      - name: Install dependencies
+        run: |
+          npm install webpagetest
+          npm install jest
+
+      - name: Run WebPageTest with unit tests
+        run: |
+          echo "::group::Unit tests"
+            npm test
+          echo "::endgroup::"
+        env:
+          WPT_SERVER: "webpagetest.httparchive.org"
+          WPT_API_KEY: ${{ secrets.HA_API_KEY }}
+
+      - name: Run WebPageTest for more websites
+        run: |
+          METRICS=$(for file in $(git diff --name-only --diff-filter=ACMRT \
+            ${{ github.event.pull_request.base.sha }} ${{ github.event.pull_request.head.sha }} | \
+            grep -E "^dist/.*\.js$"); do basename "$file"; done | cut -d\. -f1 | sort | uniq)
+
+          PR_BODY="${{ github.event.pull_request.body }}"
+
+          declare -a lines
+          while IFS= read -r line; do
+            lines+=("${line//[$'\r\n']}")
+          done <<< "$PR_BODY"
+
+          start_index=-1
+          for ((i=0; i<=${#lines[@]}; i++)); do
+            if [[ "${lines[$i]}" == *"**Test websites**:"* ]]; then
+              start_index=$((i + 1))
+              break
+            fi
+          done
+
+          if [ $start_index -gt -1 ]; then
+            declare -a URLS
+            url_pattern="^(http|https|ftp)://[a-zA-Z0-9.-]+(\.[a-zA-Z]{2,4})(/[a-zA-Z0-9_.-]+)*(\/?)(\?[a-zA-Z0-9_.-]+=[a-zA-Z0-9%_.-]+)*)?$"
+            for ((i=start_index; i<${#lines[@]}; i++)); do
+              url="${lines[$i]}"
+              url="${url//- /}"
+              if [[ $url =~ $url_pattern ]]; then
+                  URLS+=("$url")
+              fi
+            done
+
+            for TEST_WEBSITE in ${URLS[@]}; do
+              echo "::group::Custom metrics for $TEST_WEBSITE"
+                node tests/wpt.js $TEST_WEBSITE "$METRICS"
+              echo "::endgroup::"
+            done
+          else
+            echo "No websites found."
+          fi
+        env:
+          WPT_SERVER: "webpagetest.httparchive.org"
+          WPT_API_KEY: ${{ secrets.HA_API_KEY }}
+
+      - name: Add comment with results
+        uses: mshick/add-pr-comment@v2
+        if: always()
+        with:
+          refresh-message-position: true
+          message-path: test-results.md
