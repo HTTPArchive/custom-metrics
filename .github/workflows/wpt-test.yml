@@ -35,7 +35,7 @@ jobs:
       - name: Run WebPageTest for more websites
         run: |
           # Get the list of files that changed in the PR
-          METRICS=$(git diff --name-only --diff-filter=ACMRT ${GITHUB_BASE_SHA} ${GITHUB_HEAD_SHA} | \
+          METRICS=$(git diff --name-only --diff-filter=ACMRT origin/main | \
             grep -E "^dist/.*\.js$" | xargs -I {} basename {} | cut -d. -f1 | sort | uniq)
 
           # Get the PR body
