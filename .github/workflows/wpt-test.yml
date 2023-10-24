@@ -34,44 +34,53 @@ jobs:
 
       - name: Run WebPageTest for more websites
         run: |
-          METRICS=$(for file in $(git diff --name-only --diff-filter=ACMRT \
-            ${{ github.event.pull_request.base.sha }} ${{ github.event.pull_request.head.sha }} | \
-            grep -E "^dist/.*\.js$"); do basename "$file"; done | cut -d\. -f1 | sort | uniq)
+          # Get the list of files that changed in the PR
+          METRICS=$(git diff --name-only --diff-filter=ACMRT ${GITHUB_BASE_SHA} ${GITHUB_HEAD_SHA} | \
+            grep -E "^dist/.*\.js$" | xargs -I {} basename {} | cut -d. -f1 | sort | uniq)
 
-          PR_BODY="${{ github.event.pull_request.body }}"
+          # Get the PR body
+          PR_BODY="$(cat <<'EOF'
+          ${{ github.event.pull_request.body }}
+          EOF
+          )"
 
+          # Read PR body into an array, removing line breaks and carriage returns
           declare -a lines
           while IFS= read -r line; do
             lines+=("${line//[$'\r\n']}")
           done <<< "$PR_BODY"
 
+          # Find the index of the line after "**Test websites**:"
           start_index=-1
-          for ((i=0; i<=${#lines[@]}; i++)); do
+          for ((i=0; i<${#lines[@]}; i++)); do
             if [[ "${lines[$i]}" == *"**Test websites**:"* ]]; then
               start_index=$((i + 1))
               break
             fi
           done
 
+          # If the index is valid, then parse the URLs
           if [ $start_index -gt -1 ]; then
+            # Initialize an array for URLs
             declare -a URLS
-            url_pattern="^(http|https|ftp)://[a-zA-Z0-9.-]+(\.[a-zA-Z]{2,4})(/[a-zA-Z0-9_.-]+)*(\/?)(\?[a-zA-Z0-9_.-]+=[a-zA-Z0-9%_.-]+)*)?$"
+            url_pattern="((http|https|ftp):\/\/[a-zA-Z0-9.-]+(\.[a-zA-Z]{2,4})(\/[a-zA-Z0-9_.-]+)*(\/?)(\?[a-zA-Z0-9_.-]+=[a-zA-Z0-9%_.-]+)*(\#?)([a-zA-Z0-9%_.-=]+)*)"
+
             for ((i=start_index; i<${#lines[@]}; i++)); do
-              url="${lines[$i]}"
-              url="${url//- /}"
-              if [[ $url =~ $url_pattern ]]; then
-                  URLS+=("$url")
+              if [[ ${lines[$i]} =~ $url_pattern ]]; then
+                URLS+=("${BASH_REMATCH[1]}")
               fi
             done
 
-            for TEST_WEBSITE in ${URLS[@]}; do
+            # Run WebPageTest for each URL
+            for TEST_WEBSITE in "${URLS[@]}"; do
               echo "::group::Custom metrics for $TEST_WEBSITE"
-                node tests/wpt.js $TEST_WEBSITE "$METRICS"
+              node tests/wpt.js "$TEST_WEBSITE" "$METRICS"
               echo "::endgroup::"
             done
           else
             echo "No websites found."
           fi
+
         env:
           WPT_SERVER: "webpagetest.httparchive.org"
           WPT_API_KEY: ${{ secrets.HA_API_KEY }}
