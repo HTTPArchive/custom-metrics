@@ -63,14 +63,11 @@ jobs:
           if [ $start_index -gt -1 ]; then
             # Initialize an array for URLs
             declare -a URLS
-            url_pattern="^(http|https|ftp)://[a-zA-Z0-9.-]+(\.[a-zA-Z]{2,4})(/[a-zA-Z0-9_.-]+)*(\/?)(\?[a-zA-Z0-9_.-]+=[a-zA-Z0-9%_.-]+)*$"
+            url_pattern="((http|https|ftp):\/\/[a-zA-Z0-9.-]+(\.[a-zA-Z]{2,4})(\/[a-zA-Z0-9_.-]+)*(\/?)(\?[a-zA-Z0-9_.-]+=[a-zA-Z0-9%_.-]+)*(\#?)([a-zA-Z0-9%_.-=]+)*)"
 
             for ((i=start_index; i<${#lines[@]}; i++)); do
-              url="${lines[$i]}"
-              # Remove any extra characters or spaces
-              url="${url//[- ]/}"
-              if [[ $url =~ $url_pattern ]]; then
-                URLS+=("$url")
+              if [[ ${lines[$i]} =~ $url_pattern ]]; then
+                URLS+=("${BASH_REMATCH[1]}")
               fi
             done
 
