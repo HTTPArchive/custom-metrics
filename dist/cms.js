@@ -80,12 +80,12 @@ function getWordPressScripts() {
 /**
  * Detects the type of WordPress content for the current document.
  *
- * @returns {object} Object with fields `template`, `postType`, and `taxonomy`.
+ * @returns {object} Object with fields `template`, `post_type`, and `taxonomy`.
  */
 function getWordPressContentType() {
   const content = {
     template: 'unknown',
-    postType: '',
+    post_type: '',
     taxonomy: '',
   };
   try {
@@ -98,10 +98,10 @@ function getWordPressContentType() {
        */
       if ( bodyClass.contains( 'blog' ) ) {
         content.template = 'home-blog';
-        content.postType = 'post';
+        content.post_type = 'post';
       } else if ( bodyClass.contains( 'page' ) ) {
         content.template = 'home-page';
-        content.postType = 'page';
+        content.post_type = 'page';
       }
     } else if ( bodyClass.contains( 'blog' ) ) {
       /*
@@ -109,7 +109,7 @@ function getWordPressContentType() {
        * Only relevant if the home page contains a "static front page".
        */
       content.template = 'blog';
-      content.postType = 'post';
+      content.post_type = 'post';
     } else if ( bodyClass.contains( 'singular' ) ) {
       /*
        * Any singular content (other than the "static front page").
@@ -117,11 +117,11 @@ function getWordPressContentType() {
        */
       content.template = 'singular';
       if ( bodyClass.contains( 'page' ) ) {
-        content.postType = 'page';
+        content.post_type = 'page';
       } else if ( bodyClass.contains( 'single' ) ) {
         const postTypeClass = Array.from( bodyClass ).find( c => c.startsWith( 'single-' ) && ! c.startsWith( 'single-format-' ) );
         if ( postTypeClass ) {
-          content.postType = postTypeClass.replace( 'single-', '' );
+          content.post_type = postTypeClass.replace( 'single-', '' );
         }
       }
     } else if ( bodyClass.contains( 'archive' ) ) {
@@ -138,7 +138,7 @@ function getWordPressContentType() {
       } else if ( bodyClass.contains( 'post-type-archive' ) ) {
         const postTypeClass = Array.from( bodyClass ).find( c => c.startsWith( 'post-type-archive-' ) );
         if ( postTypeClass ) {
-          content.postType = postTypeClass.replace( 'post-type-archive-', '' );
+          content.post_type = postTypeClass.replace( 'post-type-archive-', '' );
         }
       } else {
         const taxonomyClass = Array.from( bodyClass ).find( c => c.startsWith( 'tax-' ) );
@@ -156,7 +156,7 @@ const wordpress = {
   has_embed_block: hasWordPressEmbedBlock(),
   embed_block_count: getWordPressEmbedBlockCounts(),
   scripts: getWordPressScripts(),
-  contentType: getWordPressContentType(),
+  content_type: getWordPressContentType(),
 };
 
 return {
