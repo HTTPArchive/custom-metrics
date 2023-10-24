@@ -80,11 +80,11 @@ function getWordPressScripts() {
 /**
  * Detects the type of WordPress content for the current document.
  *
- * @returns {object} Object with fields `contentType`, `postType`, and `taxonomy`.
+ * @returns {object} Object with fields `template`, `postType`, and `taxonomy`.
  */
 function getWordPressContentType() {
   const content = {
-    contentType: 'unknown',
+    template: 'unknown',
     postType: '',
     taxonomy: '',
   };
@@ -97,10 +97,10 @@ function getWordPressContentType() {
        * or a "static front page".
        */
       if ( bodyClass.contains( 'blog' ) ) {
-        content.contentType = 'home-blog';
+        content.template = 'home-blog';
         content.postType = 'post';
       } else if ( bodyClass.contains( 'page' ) ) {
-        content.contentType = 'home-page';
+        content.template = 'home-page';
         content.postType = 'page';
       }
     } else if ( bodyClass.contains( 'blog' ) ) {
@@ -108,14 +108,14 @@ function getWordPressContentType() {
        * The blog, separate from the home page.
        * Only relevant if the home page contains a "static front page".
        */
-      content.contentType = 'blog';
+      content.template = 'blog';
       content.postType = 'post';
     } else if ( bodyClass.contains( 'singular' ) ) {
       /*
        * Any singular content (other than the "static front page").
        * Either a page, or content of another post type.
        */
-      content.contentType = 'singular';
+      content.template = 'singular';
       if ( bodyClass.contains( 'page' ) ) {
         content.postType = 'page';
       } else if ( bodyClass.contains( 'single' ) ) {
@@ -130,7 +130,7 @@ function getWordPressContentType() {
        * Either a category archive, a tag archive, a custom post type archive,
        * or a custom taxonomy archive.
        */
-      content.contentType = 'archive';
+      content.template = 'archive';
       if ( bodyClass.contains( 'category' ) ) {
         content.taxonomy = 'category';
       } else if ( bodyClass.contains( 'tag' ) ) {
