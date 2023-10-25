@@ -77,11 +77,86 @@ function getWordPressScripts() {
   return entries;
 }
 
+/**
+ * Detects the type of WordPress content for the current document.
+ *
+ * @returns {object} Object with fields `template`, `post_type`, and `taxonomy`.
+ */
+function getWordPressContentType() {
+  const content = {
+    template: 'unknown',
+    post_type: '',
+    taxonomy: '',
+  };
+  try {
+    const bodyClass = document.body.classList;
+
+    if ( bodyClass.contains( 'home' ) ) {
+      /*
+       * The home page, either containing the blog,
+       * or a "static front page".
+       */
+      if ( bodyClass.contains( 'blog' ) ) {
+        content.template = 'home-blog';
+        content.post_type = 'post';
+      } else if ( bodyClass.contains( 'page' ) ) {
+        content.template = 'home-page';
+        content.post_type = 'page';
+      }
+    } else if ( bodyClass.contains( 'blog' ) ) {
+      /*
+       * The blog, separate from the home page.
+       * Only relevant if the home page contains a "static front page".
+       */
+      content.template = 'blog';
+      content.post_type = 'post';
+    } else if ( bodyClass.contains( 'singular' ) ) {
+      /*
+       * Any singular content (other than the "static front page").
+       * Either a page, or content of another post type.
+       */
+      content.template = 'singular';
+      if ( bodyClass.contains( 'page' ) ) {
+        content.post_type = 'page';
+      } else if ( bodyClass.contains( 'single' ) ) {
+        const postTypeClass = Array.from( bodyClass ).find( c => c.startsWith( 'single-' ) && ! c.startsWith( 'single-format-' ) );
+        if ( postTypeClass ) {
+          content.post_type = postTypeClass.replace( 'single-', '' );
+        }
+      }
+    } else if ( bodyClass.contains( 'archive' ) ) {
+      /*
+       * Any archive (other than the blog).
+       * Either a category archive, a tag archive, a custom post type archive,
+       * or a custom taxonomy archive.
+       */
+      content.template = 'archive';
+      if ( bodyClass.contains( 'category' ) ) {
+        content.taxonomy = 'category';
+      } else if ( bodyClass.contains( 'tag' ) ) {
+        content.taxonomy = 'tag';
+      } else if ( bodyClass.contains( 'post-type-archive' ) ) {
+        const postTypeClass = Array.from( bodyClass ).find( c => c.startsWith( 'post-type-archive-' ) );
+        if ( postTypeClass ) {
+          content.post_type = postTypeClass.replace( 'post-type-archive-', '' );
+        }
+      } else {
+        const taxonomyClass = Array.from( bodyClass ).find( c => c.startsWith( 'tax-' ) );
+        if ( taxonomyClass ) {
+          content.taxonomy = taxonomyClass.replace( 'tax-', '' );
+        }
+      }
+    }
+  } catch ( e ) {}
+  return content;
+}
+
 const wordpress = {
   block_theme: usesBlockTheme(),
   has_embed_block: hasWordPressEmbedBlock(),
   embed_block_count: getWordPressEmbedBlockCounts(),
   scripts: getWordPressScripts(),
+  content_type: getWordPressContentType(),
 };
 
 return {
