@@ -28,32 +28,35 @@ const getLinks = function(visibleOnly){
     let links = {};
     const testUrl = $WPT_TEST_URL;
     const currentUrl = document.location.href.split('#')[0];
-    const elements = document.links;
-    for (let e of elements) {
-        try {
-            const rect = e.getBoundingClientRect();
-            const style = window.getComputedStyle(e);
-            const is_visible = e.offsetParent !== null &&
-                                style.visibility !== 'hidden' &&
-                                style.display !== 'none' &&
-                                intersectRect(rect, viewport);
-            // Link is user-visible.
-            if (rect.width > 1 && rect.height > 1 && (is_visible || !visibleOnly) && e) {
-                const url = e.href.split('#')[0];
-                // Link is not the current page.
-                if (url != testUrl && url != currentUrl) {
-                    // Link is to the same origin as the current page.
-                    if (sameOrigin(url, testUrl) || sameOrigin(url, currentUrl)) {
-                        let size = rect.width * rect.height;
-                        if (links[url] === undefined) {
-                            links[url] = size;
-                        } else {
-                            links[url] += size;
+    // Only crawl links for pages that did not do a crossorigin redirect
+    if (sameOrigin(currentUrl, testUrl)) {
+        const elements = document.links;
+        for (let e of elements) {
+            try {
+                const rect = e.getBoundingClientRect();
+                const style = window.getComputedStyle(e);
+                const is_visible = e.offsetParent !== null &&
+                                    style.visibility !== 'hidden' &&
+                                    style.display !== 'none' &&
+                                    intersectRect(rect, viewport);
+                // Link is user-visible.
+                if (rect.width > 1 && rect.height > 1 && (is_visible || !visibleOnly) && e) {
+                    const url = e.href.split('#')[0];
+                    // Link is not the current page.
+                    if (url != testUrl && url != currentUrl) {
+                        // Link is to the same origin as the current page.
+                        if (sameOrigin(url, currentUrl)) {
+                            let size = rect.width * rect.height;
+                            if (links[url] === undefined) {
+                                links[url] = size;
+                            } else {
+                                links[url] += size;
+                            }
                         }
                     }
                 }
+            } catch (e) {
             }
-        } catch (e) {
         }
     }
     let sortedLinks = Object.keys(links);
