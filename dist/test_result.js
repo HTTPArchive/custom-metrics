@@ -9,7 +9,7 @@ const sameOrigin = function(uri1, uri2){
   return false;
 }
 const testUrl = $WPT_TEST_URL;
-const currentUrl = document.location.href.split('#')[0];
+const currentUrl = document.location.href;
 if (sameOrigin(testUrl, currentUrl)) {
   return 0;  // No change
 }
