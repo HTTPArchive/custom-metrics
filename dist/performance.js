@@ -39,6 +39,7 @@ function getLcpElement() {
             naturalWidth: element?.naturalWidth,
             naturalHeight: element?.naturalHeight,
             styles,
+            percentOfViewport: getPercentOfViewport(element),
             cover90viewport
         };
     });
@@ -210,13 +211,17 @@ function getGamingMetrics(rawDoc, lcp_elem_stats) {
 // Source: https://stackoverflow.com/questions/57786082/determine-how-much-of-the-viewport-is-covered-by-element-intersectionobserver
 // percentage is a whole number (ex: 90, not .9)
 function doesElementCoverPercentageOfViewport(element, percentage) {
-        const elementBCR = element.getBoundingClientRect();
-        const percentOfViewport = ((elementBCR.width * elementBCR.height) * calcOcclusion(elementBCR)) / ((window.innerWidth * window.innerHeight) / 100);
+        const percentOfViewport = getPercentOfViewport(element);
 
         if (percentOfViewport > percentage) {
             return true;
         }
         return false;
+}
+
+function getPercentOfViewport(element) {
+        const elementBCR = element.getBoundingClientRect();
+        return elementBCR.width * elementBCR.height * calcOcclusion(elementBCR) / window.innerWidth * window.innerHeight;
 }
 
 // Calculate Element : Viewport Intersection ratio without Intersection Observer
