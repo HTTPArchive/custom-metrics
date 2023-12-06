@@ -221,7 +221,7 @@ function doesElementCoverPercentageOfViewport(element, percentage) {
 
 function getPercentOfViewport(element) {
         const elementBCR = element.getBoundingClientRect();
-        return elementBCR.width * elementBCR.height * calcOcclusion(elementBCR) / window.innerWidth * window.innerHeight;
+        return (elementBCR.width * elementBCR.height * calcOcclusion(elementBCR)) / (window.innerWidth * window.innerHeight);
 }
 
 // Calculate Element : Viewport Intersection ratio without Intersection Observer
