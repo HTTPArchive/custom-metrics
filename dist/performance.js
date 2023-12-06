@@ -190,7 +190,7 @@ function getGamingMetrics(rawDoc, lcp_elem_stats) {
 // Source: https://stackoverflow.com/questions/57786082/determine-how-much-of-the-viewport-is-covered-by-element-intersectionobserver
 // percentage is a whole number (ex: 90, not .9)
 function doesElementCoverPercentageOfViewport(element, percentage) {
-        const percentOfViewport = getPercentOfViewport(element);
+        const percentOfViewport = getPercentOfViewport(element) * 100;
 
         if (percentOfViewport > percentage) {
             return true;
