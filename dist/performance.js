@@ -67,29 +67,8 @@ function getComputedStyles(element, properties) {
     return Object.fromEntries(properties.map(prop => ([prop, styles.getPropertyValue(prop)])));
 }
 
-function getInlineStyles (element, properties) {
-    if (!element) {
-        return null;
-    }
-
-    const styles = element.style;
-    return Object.fromEntries(properties.map(prop => ([prop, styles.getPropertyValue(prop)])));
-}
-
-// Merge Inline styles with Computed styles.
-// Inline has higher specificty, unless '!important' exists in computed styles.
 function getAllStyles(element, properties) {
-    const inlineStyles = getInlineStyles(element, properties);
-    const computedStyles = getComputedStyles(element, properties);
-    const allStyles = {};
-    for (const styleName in inlineStyles) {
-        if (!inlineStyles[styleName].includes('!important') && computedStyles.hasOwnProperty(styleName) && computedStyles[styleName].includes('!important')) {
-            allStyles[styleName] = computedStyles[styleName];
-        } else {
-            allStyles[styleName] = inlineStyles[styleName];
-        }
-    }
-    return allStyles;
+    return getComputedStyles(element, properties);
 }
 
 function summarizeElement(element) {
