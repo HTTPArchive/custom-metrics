@@ -28,12 +28,12 @@ function getLcpElement() {
         const attributes = getAttributes(element);
         const styles = getAllStyles(element, ['background-image', 'pointer-events', 'position', 'width', 'height']);
         return {
-            startTime: startTime.toPrecision(3),
+            startTime,
             nodeName: element?.nodeName,
             url,
             size,
-            loadTime: loadTime.toPrecision(3),
-            renderTime: renderTime.toPrecision(3),
+            loadTime,
+            renderTime,
             attributes,
             boundingClientRect: element?.getBoundingClientRect().toJSON(),
             naturalWidth: element?.naturalWidth,
