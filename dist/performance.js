@@ -28,12 +28,12 @@ function getLcpElement() {
         const attributes = getAttributes(element);
         const styles = getAllStyles(element, ['background-image', 'pointer-events', 'position', 'width', 'height']);
         return {
-            startTime,
+            startTime: startTime.toPrecision(3),
             nodeName: element?.nodeName,
             url,
             size,
-            loadTime,
-            renderTime,
+            loadTime: loadTime.toPrecision(3),
+            renderTime: renderTime.toPrecision(3),
             attributes,
             boundingClientRect: element?.getBoundingClientRect().toJSON(),
             naturalWidth: element?.naturalWidth,
@@ -200,7 +200,7 @@ function doesElementCoverPercentageOfViewport(element, percentage) {
 
 function getPercentOfViewport(element) {
         const elementBCR = element.getBoundingClientRect();
-        return (elementBCR.width * elementBCR.height * calcOcclusion(elementBCR)) / (window.innerWidth * window.innerHeight);
+        return ((elementBCR.width * elementBCR.height * calcOcclusion(elementBCR)) / (window.innerWidth * window.innerHeight)).toPrecision(3);
 }
 
 // Calculate Element : Viewport Intersection ratio without Intersection Observer
