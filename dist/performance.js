@@ -24,7 +24,7 @@ function getLcpElement() {
             resolve(naiveLcpEntry);
         }).observe({ type: "largest-contentful-paint", buffered: true });
     }).then(({ startTime, element, url, size, loadTime, renderTime }) => {
-        const cover90viewport = doesElementCoverPercentageOfViewport(element, 90);
+        const cover90viewport = doesElementCoverPercentageOfViewport(element, 0.9);
         const attributes = getAttributes(element);
         const styles = getAllStyles(element, ['background-image', 'pointer-events', 'position', 'width', 'height']);
         return {
@@ -168,7 +168,7 @@ function getGamingMetrics(rawDoc, lcp_elem_stats) {
             }
         }
 
-        returnObj['fidIframeOverlaySoft'] = doesElementCoverPercentageOfViewport(iframeElement, 90);
+        returnObj['fidIframeOverlaySoft'] = doesElementCoverPercentageOfViewport(iframeElement, 0.9);
 
     });
 
@@ -187,20 +187,14 @@ function getGamingMetrics(rawDoc, lcp_elem_stats) {
     return returnObj;
 }
 
-// Source: https://stackoverflow.com/questions/57786082/determine-how-much-of-the-viewport-is-covered-by-element-intersectionobserver
-// percentage is a whole number (ex: 90, not .9)
 function doesElementCoverPercentageOfViewport(element, percentage) {
-        const percentOfViewport = getPercentOfViewport(element) * 100;
-
-        if (percentOfViewport > percentage) {
-            return true;
-        }
-        return false;
+    return getPercentOfViewport(element) > percentage;
 }
 
+// Source: https://stackoverflow.com/questions/57786082/determine-how-much-of-the-viewport-is-covered-by-element-intersectionobserver
 function getPercentOfViewport(element) {
-        const elementBCR = element.getBoundingClientRect();
-        return ((elementBCR.width * elementBCR.height * calcOcclusion(elementBCR)) / (window.innerWidth * window.innerHeight)).toPrecision(3);
+    const elementBCR = element.getBoundingClientRect();
+    return ((elementBCR.width * elementBCR.height * calcOcclusion(elementBCR)) / (window.innerWidth * window.innerHeight)).toPrecision(3);
 }
 
 // Calculate Element : Viewport Intersection ratio without Intersection Observer
