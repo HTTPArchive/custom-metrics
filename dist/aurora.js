@@ -57,6 +57,19 @@ function getSvelteVersion() {
   return window.__svelte?.v ? Array.from(window.__svelte?.v).toString() : null;
 }
 
+// Detects standard feature flag usage
+function getFeatureFlags() {
+  function getFeatureNames(name) {
+    return window.performance.getEntriesByName(name).map(mark => mark.detail?.feature).filter(Boolean);
+  }
+
+  return Array.from(new Set([
+    // Some frameworks used the old name before it changed
+    ...getFeatureNames("mark_use_counter"),
+    ...getFeatureNames("mark_feature_usage"),
+  ]));
+}
+
 return {
     ng_version: runSafely(getAngularVersion),
     ng_img_user: runSafely(isAngularImageDirUser),
@@ -64,5 +77,6 @@ return {
     nuxt_version: runSafely(getNuxtVersion),
     nuxt_vue_version: runSafely(getVueVersionForNuxt),
     react_version: runSafely(getReactVersion),
-    svelte_version: runSafely(getSvelteVersion)
+    svelte_version: runSafely(getSvelteVersion),
+    feature_flags: runSafely(getFeatureFlags),
 };
