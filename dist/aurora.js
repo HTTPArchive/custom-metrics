@@ -34,6 +34,12 @@ function getAngularImagePriorityCount() {
     return document.querySelectorAll('img[ng-img]:is([priority],[fetchpriority=high])').length;
 }
 
+// Detects Angular server context
+function getAngularServerContext() {
+  const contextEl = document.querySelector('[ng-server-context]');
+  return contextEl?.getAttribute('ng-server-context');
+}
+
 // Detects Vue version for Nuxt apps
 // Nuxt only exposes its own version for Nuxt apps on v3.3+
 function getVueVersionForNuxt() {
@@ -74,6 +80,7 @@ return {
     ng_version: runSafely(getAngularVersion),
     ng_img_user: runSafely(isAngularImageDirUser),
     ng_priority_img_count: runSafely(getAngularImagePriorityCount),
+    ng_server_context: runSafely(getAngularServerContext),
     nuxt_version: runSafely(getNuxtVersion),
     nuxt_vue_version: runSafely(getVueVersionForNuxt),
     react_version: runSafely(getReactVersion),
