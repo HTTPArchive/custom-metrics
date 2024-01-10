@@ -343,8 +343,9 @@ const patterns = {
   'Origin Private File System': {
     regEx: /navigator\.storage\.getDirectory\s*\(\)/g,
     where: 'JavaScript',
-    supported: (async () => 'getDirectory' in StorageManager.prototype)(),
-    featureDetection: `(async () => 'getDirectory' in StorageManager.prototype)()`,
+    supported: (async () =>
+      'StorageManager' in self && 'getDirectory' in StorageManager.prototype)(),
+    featureDetection: `(async () => 'StorageManager' in self && 'getDirectory' in StorageManager.prototype)()`,
     documentation: 'https://web.dev/origin-private-file-system/',
     blinkFeatureID: 3428,
   },

@@ -65,4 +65,4 @@ responseBodies.forEach((har) => {
 return result;
 `;
 
-fs.writeFileSync('./dist/fugu-apis.js', `// [fugu-apis]\n\n${patterns}${script}`, {encoding: 'utf-8'});
+fs.writeFileSync('./dist/fugu-apis.js', `// [fugu-apis]\n\n${patterns}${script}`, {encoding: 'utf-8', flag: 'w'});
