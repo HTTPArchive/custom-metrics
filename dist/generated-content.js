@@ -13,7 +13,7 @@ if (htmlInitial && htmlAfter) {
   generatedContent = (htmlAfterSize - htmlInitialSize) / 1024;
 }
 
-return { 
+return JSON.stringify({
   percent: generatedContentPercent.toFixed(2),
-  sizeInKB: generatedContent.toFixed(2)
-}
+  sizeInKB: generatedContent.toFixed(2),
+});
