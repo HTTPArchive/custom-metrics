@@ -324,6 +324,16 @@ function getLcpResponseObject(lcpUrl) {
     return responseObject;
 }
 
+function getSpeculationRules() {
+    return Array.from(document.querySelectorAll('script[type=speculationrules]')).map(script => {
+        try {
+            return JSON.parse(script.innerHTML);
+        } catch (error) {
+            return null;
+        }
+    });
+}
+
 return Promise.all([getLcpElement()]).then(([lcp_elem_stats]) => {
     const lcpUrl = lcp_elem_stats.url;
     const rawDoc = getRawHtmlDocument();
@@ -356,6 +366,7 @@ return Promise.all([getLcpElement()]).then(([lcp_elem_stats]) => {
         lcp_preload: lcpPreload,
         web_vitals_js: getWebVitalsJS(),
         gaming_metrics: gamingMetrics,
+        speculation_rules: getSpeculationRules(),
     };
 }).catch(error => {
     return {error};
