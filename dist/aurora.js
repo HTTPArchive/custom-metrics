@@ -55,7 +55,7 @@ function getNuxtVersion() {
 
 // Detects Next.js version
 function getNextVersion() {
-  return window.next.version;
+  return window.next?.version;
 }
 
 // Detects if the Next.js Script component is in use on the page
