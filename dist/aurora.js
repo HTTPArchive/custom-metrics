@@ -53,6 +53,41 @@ function getNuxtVersion() {
   return window['__unctx__']?.get('nuxt-app')?.use()?.versions?.nuxt;
 }
 
+// Detects Next.js version
+function getNextVersion() {
+  return window.next.version;
+}
+
+// Detects if the Next.js Script component is in use on the page
+function isNextScriptUser() {
+  return !!document.querySelector('script[data-nscript]');
+}
+
+// Detects if the Next.js third parties lib is in use on the page
+function isNextThirdPartiesUser() {
+  return !!document.querySelector('script[data-ntpc]');
+}
+
+// Detects count of script tags injected with the Next.js Script component using the beforeInteractive strategy
+function getNextScriptBeforeInteractiveCount() {
+  return document.querySelectorAll('script[data-nscript=beforeInteractive]').length;
+}
+
+// Detects count of script tags injected with the Next.js Script component using the afterInteractive strategy
+function getNextScriptAfterInteractiveCount() {
+  return document.querySelectorAll('script[data-nscript=afterInteractive]').length;
+}
+
+// Detects count of script tags injected with the Next.js Script component using the lazyOnload strategy
+function getNextScriptLazyOnLoadCount() {
+  return document.querySelectorAll('script[data-nscript=lazyOnload]').length;
+}
+
+// Detects count of script tags injected with the Next.js Script component using the worker strategy
+function getNextScriptWorkerCount() {
+  return document.querySelectorAll('script[data-nscript=worker]').length;
+}
+
 // Detects React version (set earlier by inject_script)
 function getReactVersion() {
   return window.react_renderer_version;
@@ -83,6 +118,13 @@ return {
     ng_server_context: runSafely(getAngularServerContext),
     nuxt_version: runSafely(getNuxtVersion),
     nuxt_vue_version: runSafely(getVueVersionForNuxt),
+    next_version: runSafely(getNextVersion),
+    next_script_user: runSafely(isNextScriptUser),
+    next_third_parties_user: runSafely(isNextThirdPartiesUser),
+    next_script_before_interactive_count: runSafely(getNextScriptBeforeInteractiveCount),
+    next_script_after_interactive_count: runSafely(getNextScriptAfterInteractiveCount),
+    next_script_lazy_on_load_count: runSafely(getNextScriptLazyOnLoadCount),
+    next_script_worker_count: runSafely(getNextScriptWorkerCount),
     react_version: runSafely(getReactVersion),
     svelte_version: runSafely(getSvelteVersion),
     feature_flags: runSafely(getFeatureFlags),
