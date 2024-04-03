@@ -154,7 +154,7 @@ function getWordPressContentType() {
 /**
  * Obtains data about Interactivity API elements on the page..
  *
- * @returns {{}[]}
+ * @returns {object} Object with fields `usesInteractivityAPI`, `interactiveElementsCount`, and `interactiveElements`.
  */
 function getInteractivityAPIData() {
   // Look for data-wp-interactive elements.
