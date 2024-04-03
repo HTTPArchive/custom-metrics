@@ -151,12 +151,31 @@ function getWordPressContentType() {
   return content;
 }
 
+/**
+ * Obtains data about Interactivity API elements on the page..
+ *
+ * @returns {{}[]}
+ */
+function getInteractivityAPIData() {
+  // Look for data-wp-interactive elements.
+  const interactiveElements = document.querySelectorAll('[data-wp-interactive]');
+
+  return {
+    usesInteractivityAPI: interactiveElements.length > 0,
+    interactiveElementsCount: interactiveElements.length,
+    interactiveElements: Array.from(interactiveElements).map((element) => {
+      return element.dataset.wpInteractive;
+    } )
+  };
+}
+
 const wordpress = {
   block_theme: usesBlockTheme(),
   has_embed_block: hasWordPressEmbedBlock(),
   embed_block_count: getWordPressEmbedBlockCounts(),
   scripts: getWordPressScripts(),
   content_type: getWordPressContentType(),
+  interactivity_api: getInteractivityAPIData(),
 };
 
 return {
