@@ -154,9 +154,9 @@ function getWordPressContentType() {
 /**
  * Obtains data about Interactivity API elements on the page..
  *
- * @returns {object} Object with fields `usesInteractivityAPI`, `interactiveRegionsCount`, and `interactiveRegionTypeCounts`.
+ * @returns {object} Object with fields `total` and `total_by_type`.
  */
-function getInteractivityAPIData() {
+function getInteractivityAPIRegionCounts() {
   // Look for data-wp-interactive elements.
   const interactiveRegions = document.querySelectorAll('[data-wp-interactive]');
 
@@ -168,10 +168,18 @@ function getInteractivityAPIData() {
   })
 
   return {
-    usesInteractivityAPI: interactiveRegions.length > 0,
-    interactiveRegionsCount: interactiveRegions.length,
-    interactiveRegionTypeCounts: regionTypeCounts,
+    total: interactiveRegions.length,
+    total_by_type: regionTypeCounts,
   };
+}
+
+/**
+ * Check if the page uses the interactivity API.
+ *
+ * @returns {boolean} Whether any interactivity API regions are present.
+ */
+function usesInteractivityAPI() {
+  return !!document.querySelector('[data-wp-interactive]');
 }
 
 const wordpress = {
@@ -180,7 +188,8 @@ const wordpress = {
   embed_block_count: getWordPressEmbedBlockCounts(),
   scripts: getWordPressScripts(),
   content_type: getWordPressContentType(),
-  interactivity_api: getInteractivityAPIData(),
+  uses_interactivity_api: usesInteractivityAPI(),
+  interactivity_api_region_count: getInteractivityAPIRegionCounts(),
 };
 
 return {
