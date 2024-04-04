@@ -152,12 +152,12 @@ function getWordPressContentType() {
 }
 
 /**
- * Obtains data about Interactivity API elements on the page..
+ * Obtains data about Interactivity API regions on the page.
  *
  * @returns {object} Object with fields `total` and `total_by_type`.
  */
 function getInteractivityAPIRegionCounts() {
-  // Look for data-wp-interactive elements.
+  // Look for data-wp-interactive regions.
   const interactiveRegions = document.querySelectorAll('[data-wp-interactive]');
 
   // Count the regions by type.
