@@ -154,18 +154,23 @@ function getWordPressContentType() {
 /**
  * Obtains data about Interactivity API elements on the page..
  *
- * @returns {object} Object with fields `usesInteractivityAPI`, `interactiveElementsCount`, and `interactiveElements`.
+ * @returns {object} Object with fields `usesInteractivityAPI`, `interactiveRegionsCount`, and `interactiveRegionTypeCounts`.
  */
 function getInteractivityAPIData() {
   // Look for data-wp-interactive elements.
-  const interactiveElements = document.querySelectorAll('[data-wp-interactive]');
+  const interactiveRegions = document.querySelectorAll('[data-wp-interactive]');
+
+  // Count the regions by type.
+  const regionTypeCounts = [];
+  interactiveRegions.forEach( region => {
+    const type = region.getAttribute('data-wp-interactive');
+    regionTypeCounts[ type ] = ( regionTypeCounts[ type ] || 0 ) + 1;
+  })
 
   return {
-    usesInteractivityAPI: interactiveElements.length > 0,
-    interactiveElementsCount: interactiveElements.length,
-    interactiveElements: Array.from(interactiveElements).map((element) => {
-      return element.dataset.wpInteractive;
-    } )
+    usesInteractivityAPI: interactiveRegions.length > 0,
+    interactiveRegionsCount: interactiveRegions.length,
+    interactiveRegionTypeCounts: regionTypeCounts,
   };
 }
 
