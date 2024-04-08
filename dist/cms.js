@@ -174,7 +174,7 @@ function getInteractivityAPIUsage() {
     } catch ( e ) {
       namespace = regionAttribute;
     }
-    if ( '' !== namespace ) {
+    if ( 'string' === typeof namespace && '' !== namespace ) {
       regionNamespaceCounts[ namespace ] = ( regionNamespaceCounts[ namespace ] || 0 ) + 1;
     }
   })
