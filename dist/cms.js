@@ -163,8 +163,20 @@ function getInteractivityAPIUsage() {
   // Count the regions by namespace.
   const regionNamespaceCounts = [];
   interactiveRegions.forEach( region => {
-    const namespace = region.getAttribute('data-wp-interactive');
-    regionNamespaceCounts[ namespace ] = ( regionNamespaceCounts[ namespace ] || 0 ) + 1;
+    // Extract the namespace from JSON or as a string
+    var namespace = '';
+    const regionAttribute = region.getAttribute('data-wp-interactive');
+    try {
+      const regionData = JSON.parse( regionAttribute );
+      if ( regionData.namespace && 'string' === typeof regionData.namespace ) {
+        namespace = regionData.namespace;
+      }
+    } catch ( e ) {
+      namespace = regionAttribute;
+    }
+    if ( '' !== namespace ) {
+      regionNamespaceCounts[ namespace ] = ( regionNamespaceCounts[ namespace ] || 0 ) + 1;
+    }
   })
 
   return {
