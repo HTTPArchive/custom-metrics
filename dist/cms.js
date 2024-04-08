@@ -161,7 +161,7 @@ function getInteractivityAPIUsage() {
   const interactiveRegions = document.querySelectorAll('[data-wp-interactive]');
 
   // Count the regions by namespace.
-  const regionNamespaceCounts = {}
+  const regionNamespaceCounts = {};
   interactiveRegions.forEach( region => {
     // Extract the namespace from JSON or as a string
     let namespace = '';
