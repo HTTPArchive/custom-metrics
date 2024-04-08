@@ -1,9 +1,15 @@
 // [cookies]
 
-async function getCookieStore() {
-  return await cookieStore.getAll();
+function getCookieStore() {
+  return cookieStore.getAll();
 }
 
-return {
-  cookie_store: getCookieStore(),
-};
+return Promise.all([
+  getCookieStore(),
+]).then(([
+  cookie_store
+]) => {
+  return {
+    cookie_store,
+  };
+});
