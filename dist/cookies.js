@@ -26,7 +26,7 @@ function getHTTPOnlyCookies() {
         // Examples: HttpOnly, Secure, and Partitioned.
         return [key, value ?? null];
       }));
-      
+
       let expires = new Date(directives.expires)?.getTime();
       if (directives['Max-Age']) {
         // Max-Age takes precedence over Expires, per MDN.
