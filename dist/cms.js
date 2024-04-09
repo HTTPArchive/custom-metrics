@@ -151,12 +151,57 @@ function getWordPressContentType() {
   return content;
 }
 
+/**
+ * Obtains data about Interactivity API usage on the page.
+ *
+ * @returns {object} Object with fields `total_regions` and `total_regions_by_namespace`.
+ */
+function getInteractivityAPIUsage() {
+  // Look for data-wp-interactive regions.
+  const interactiveRegions = document.querySelectorAll('[data-wp-interactive]');
+
+  // Count the regions by namespace.
+  const regionNamespaceCounts = {};
+  interactiveRegions.forEach( region => {
+    // Extract the namespace from JSON or as a string
+    let namespace = '';
+    const regionAttribute = region.getAttribute('data-wp-interactive');
+    try {
+      const regionData = JSON.parse( regionAttribute );
+      if ( regionData.namespace && 'string' === typeof regionData.namespace ) {
+        namespace = regionData.namespace;
+      }
+    } catch ( e ) {
+      namespace = regionAttribute;
+    }
+    if ( 'string' === typeof namespace && '' !== namespace ) {
+      regionNamespaceCounts[ namespace ] = ( regionNamespaceCounts[ namespace ] || 0 ) + 1;
+    }
+  })
+
+  return {
+    total_regions: interactiveRegions.length,
+    total_regions_by_namespace: regionNamespaceCounts,
+  };
+}
+
+/**
+ * Check if the page uses the interactivity API.
+ *
+ * @returns {boolean} Whether any interactivity API regions are present.
+ */
+function usesInteractivityAPI() {
+  return !!document.querySelector('[data-wp-interactive]');
+}
+
 const wordpress = {
   block_theme: usesBlockTheme(),
   has_embed_block: hasWordPressEmbedBlock(),
   embed_block_count: getWordPressEmbedBlockCounts(),
   scripts: getWordPressScripts(),
   content_type: getWordPressContentType(),
+  uses_interactivity_api: usesInteractivityAPI(),
+  interactivity_api_usage: getInteractivityAPIUsage(),
 };
 
 return {
