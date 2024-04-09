@@ -56,10 +56,15 @@ return Promise.all([
 ]).then(([
   cookieStore
 ]) => {
-  const httpOnlyCookies = getHTTPOnlyCookies();
-
-  return [
-    ...cookieStore,
-    ...httpOnlyCookies
-  ];
+  let httpOnlyCookies = [];
+  try {
+    httpOnlyCookies = getHTTPOnlyCookies();
+  } catch {}
+  
+  return {
+    allCookies: [
+      ...cookieStore,
+      ...httpOnlyCookies
+    ]
+  };
 });
