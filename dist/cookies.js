@@ -26,8 +26,7 @@ function getHTTPOnlyCookies() {
         // Examples: HttpOnly, Secure, and Partitioned.
         return [key, value ?? null];
       }));
-
-      const url = new URL(request.url);
+      
       let expires = new Date(directives.expires)?.getTime();
       if (directives['Max-Age']) {
         // Max-Age takes precedence over Expires, per MDN.
@@ -37,10 +36,10 @@ function getHTTPOnlyCookies() {
       return {
         name: cookie_name,
         value: cookie_value,
-        domain: url.hostname,
         expires,
+        domain: directives.Domain,
         path: directives.Path,
-        sameSite: directives.SameSite,
+        sameSite: directives.SameSite?.toLowerCase(),
         httpOnly: 'HttpOnly' in directives,
         secure: 'Secure' in directives,
         partitioned: 'Partitioned' in directives,
@@ -60,7 +59,7 @@ return Promise.all([
   try {
     httpOnlyCookies = getHTTPOnlyCookies();
   } catch {}
-  
+
   return {
     allCookies: [
       ...cookieStore,
