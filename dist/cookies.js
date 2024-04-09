@@ -1,7 +1,14 @@
 // [cookies]
 
 function getCookieStore() {
-  return cookieStore.getAll();
+  return cookieStore.getAll().then(cookies => {
+    return cookies.map(cookie => {
+      return {
+        ...cookie,
+        httpOnly: false,
+      };
+    });
+  });
 }
 
 function getHTTPOnlyCookies() {
