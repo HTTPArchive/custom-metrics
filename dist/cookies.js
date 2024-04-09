@@ -4,7 +4,7 @@ function getCookieStore() {
   return cookieStore.getAll();
 }
 
-function getHTTPCookies() {
+function getHTTPOnlyCookies() {
   const requests = $WPT_REQUESTS;
   return requests.filter(request => {
     return 'set-cookie' in (request.response_headers ?? {})
@@ -27,30 +27,39 @@ function getHTTPCookies() {
         return [key, value ?? null];
       }));
 
+      const url = new URL(request.url);
+      let expires = new Date(directives.expires)?.getTime();
+      if (directives['Max-Age']) {
+        // Max-Age takes precedence over Expires, per MDN.
+        expires = Date.now() + directives['Max-Age'] * 1000;
+      }
+
       return {
-        request_id: request.id,
-        request_url: request.url,
-        cookie_name,
-        cookie_value,
-        response_header: value,
-        directives,
-        http_only: 'HttpOnly' in directives,
+        name: cookie_name,
+        value: cookie_value,
+        domain: url.hostname,
+        expires,
+        path: directives.Path,
+        sameSite: directives.SameSite,
+        httpOnly: 'HttpOnly' in directives,
         secure: 'Secure' in directives,
         partitioned: 'Partitioned' in directives,
       };
     });
+  }).filter(cookie => {
+    return cookie.httpOnly
   });
 }
 
 return Promise.all([
   getCookieStore(),
 ]).then(([
-  cookie_store
+  cookieStore
 ]) => {
-  const response_headers = getHTTPCookies();
+  const httpOnlyCookies = getHTTPOnlyCookies();
 
-  return {
-    cookie_store,
-    response_headers
-  };
+  return [
+    ...cookieStore,
+    ...httpOnlyCookies
+  ];
 });
