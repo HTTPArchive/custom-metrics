@@ -177,14 +177,6 @@ return JSON.stringify({
    */
   document_interestCohort: testPropertyStringInResponseBodies('document.+interestCohort'),
 
-  /**
-   * Global Privacy Control
-   * https://globalprivacycontrol.org/
-   */
-  navigator_globalPrivacyControl: testPropertyStringInResponseBodies(
-    'navigator.+globalPrivacyControl'
-  ),
-
   // Sensitive resources
 
   /**
