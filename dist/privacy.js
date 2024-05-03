@@ -178,12 +178,6 @@ return JSON.stringify({
   document_interestCohort: testPropertyStringInResponseBodies('document.+interestCohort'),
 
   /**
-   * Do Not Track (DNT)
-   * https://www.eff.org/issues/do-not-track
-   */
-  navigator_doNotTrack: testPropertyStringInResponseBodies('navigator.+doNotTrack'),
-
-  /**
    * Global Privacy Control
    * https://globalprivacycontrol.org/
    */
