@@ -241,23 +241,6 @@ return JSON.stringify({
     }
   })(),
 
-  /**
-   * Ads Transparency Spotlight Data Disclosure schema
-   * Only for top frame, can't access child frames (same-origin policy)
-   */
-  ads_transparency_spotlight: (() => {
-    // Check `meta` tag cf. https://github.com/Ads-Transparency-Spotlight/documentation/blob/main/implement.md
-    meta_tag = document.querySelector('meta[name="AdsMetadata"]');
-    let ats = {
-      present: meta_tag != null,
-      ads_metadata: null,
-    };
-    if (ats.present) {
-      ats.ads_metadata = meta_tag.content;
-    }
-    return ats;
-  })(),
-
   // Sensitive resources
 
   /**
