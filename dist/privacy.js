@@ -130,7 +130,7 @@ return JSON.stringify({
     }
 
     const privacy_links = Array.from(document.querySelectorAll('a')).filter(a =>
-     pattern.test(a.innerText) // && pattern.test(a.href) && (isSameDomain(a.href) || isRelativeURL(a.href))
+      pattern.test(a.innerText) // && pattern.test(a.href) && (isSameDomain(a.href) || isRelativeURL(a.href))
     ).map(
       a => ({
         //href: a.href
