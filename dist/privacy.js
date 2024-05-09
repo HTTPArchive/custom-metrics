@@ -168,15 +168,6 @@ return JSON.stringify({
     return ats;
   })(),
 
-  /**
-   * FLoC (Federated Learning of Cohorts) - deprecated
-   *
-   * Test site: https://floc.glitch.me/
-   *
-   * @todo Check function/variable accesses through string searches (wrappers cannot be used, as the metrics are only collected at the end of the test)
-   */
-  document_interestCohort: testPropertyStringInResponseBodies('document.+interestCohort'),
-
   // Sensitive resources
 
   /**
