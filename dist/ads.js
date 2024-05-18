@@ -11,7 +11,7 @@ const fetchAndParse = async (url, parser) => {
   setTimeout(() => controller.abort(), 5000);
 
   try {
-    const response = await fetch(url, { signal });
+    const response = await fetch(url, { signal, redirect: 'follow' });
     return parser(response);
   } catch (error) {
     return {
@@ -84,7 +84,7 @@ const parseAdsTxt = async (response) => {
     // Count unique and remove domain Sets for now
     for (let accountType of Object.values(result.account_types)) {
       accountType.domain_count = accountType.domains.size;
-      delete accountType.domains // Keeping a list of domains may be valuable for further research, e.g. accountType.domains = [...accountType.domains];
+      accountType.domains = [...accountType.domains]; // delete accountType.domains
     }
     result.variables = [...result.variables];
   }
@@ -127,7 +127,8 @@ const parseSellersJSON = async (response) => {
             seller_count: 0,
           }
         },
-        passthrough_count: 0
+        passthrough_count: 0,
+        confidential_count: 0
       }
     };
 
@@ -135,6 +136,17 @@ const parseSellersJSON = async (response) => {
     result.seller_count = content.sellers.length;
 
     for (let seller of content.sellers) {
+      // Validating records
+      if (!seller.seller_type && !seller.domain) {
+        continue;
+      }
+      if (!seller.seller_type) {
+        seller.seller_type = "";
+      }
+      if (!seller.domain) {
+        seller.domain = "";
+      }
+
       // Seller records
       let type = seller.seller_type.trim().toLowerCase(),
         domain = seller.domain.trim().toLowerCase();
@@ -147,12 +159,17 @@ const parseSellersJSON = async (response) => {
       if (seller.is_passthrough) {
         result.passthrough_count += 1;
       }
+
+      // Confidential
+      if (seller.is_confidential) {
+        result.confidential_count += 1;
+      }
     }
 
     // Count unique and remove domain Sets for now
     for (let seller_type of Object.values(result.seller_types)) {
       seller_type.domain_count = seller_type.domains.size;
-      delete seller_type.domains //seller_type.domains = [...seller_type.domains];
+      seller_type.domains = [...seller_type.domains]; // delete seller_type.domains;
     }
   };
 
