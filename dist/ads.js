@@ -10,6 +10,11 @@ const fetchAndParse = async (url, parser) => {
   const { signal } = controller;
   setTimeout(() => controller.abort(), 5000);
 
+  // Google being popular ad-exchange hosting sellers.json at custom location, added its support
+  if (url.endsWith("google.com/sellers.json")) {
+    url = "https://storage.googleapis.com/adx-rtb-dictionaries/sellers.json"
+  }
+
   try {
     const response = await fetch(url, { signal, redirect: 'follow' });
     return parser(response);
