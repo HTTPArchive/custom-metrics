@@ -6,15 +6,16 @@ const SELLER_TYPES = ['publisher', 'intermediary', 'both'];
 const isPresent = (response, endings) => response.ok && endings.some(ending => response.url.endsWith(ending));
 
 const fetchAndParse = async (url, parser) => {
-  const controller = new AbortController();
-  const { signal } = controller;
-  setTimeout(() => controller.abort(), 5000);
-
+  let timeout = 5000;
   // Google being popular ad-exchange hosting sellers.json at custom location, added its support
-  if (url.endsWith("google.com/sellers.json")) {
+  if (document.location.origin.toLowerCase().includes("google") || url.toLowerCase().includes("sellers.json")) {
+    timeout = 10000;
     url = "https://storage.googleapis.com/adx-rtb-dictionaries/sellers.json"
   }
-
+  const controller = new AbortController();
+  const { signal } = controller;
+  setTimeout(() => controller.abort(), timeout);
+  
   try {
     const response = await fetch(url, { signal, redirect: 'follow' });
     return parser(response);
@@ -34,6 +35,7 @@ const parseAdsTxt = async (response) => {
   let result = {
     present: isPresent(response, ['/ads.txt', '/app-ads.txt']),
     status: response.status,
+    redirected: response.redirected,
   };
 
   if (result.present && content) {
@@ -53,8 +55,7 @@ const parseAdsTxt = async (response) => {
         },
         line_count: 0,
         variables: new Set(),
-        variable_count: 0,
-        redirected: response.redirected,
+        variable_count: 0
       }
     };
 
@@ -142,19 +143,8 @@ const parseSellersJSON = async (response) => {
 
     for (let seller of content.sellers) {
       // Validating records
-      if (!seller.seller_type || !seller.id) {
+      if (!seller.seller_type && !seller.id) {
         continue;
-      }
-      if (!seller.domain) {
-        seller.domain = "";
-      }
-
-      // Seller records
-      let type = seller.seller_type.trim().toLowerCase(),
-        domain = seller.domain.trim().toLowerCase();
-      if (Object.keys(result.seller_types).includes(type)) {
-        result.seller_types[type].domains.add(domain);
-        result.seller_types[type].seller_count += 1;
       }
 
       // Passthrough
@@ -165,6 +155,18 @@ const parseSellersJSON = async (response) => {
       // Confidential
       if (seller.is_confidential) {
         result.confidential_count += 1;
+      }
+      
+      if (!seller.domain) {
+        continue;
+      }
+
+      // Seller records
+      let type = seller.seller_type.trim().toLowerCase(),
+        domain = seller.domain.trim().toLowerCase();
+      if (Object.keys(result.seller_types).includes(type)) {
+        result.seller_types[type].domains.add(domain);
+        result.seller_types[type].seller_count += 1;
       }
     }
 
@@ -181,7 +183,7 @@ const parseSellersJSON = async (response) => {
 return Promise.all([
   fetchAndParse("/ads.txt", parseAdsTxt).catch(e => e),
   fetchAndParse("/app-ads.txt", parseAdsTxt).catch(e => e),
-  fetchAndParse("/sellers.json", parseSellersJSON).catch(e => e),
+  fetchAndParse("sellers.json", parseSellersJSON).catch(e => e),
 ]).then((all_data) => {
   return JSON.stringify({
     ads: all_data[0],
