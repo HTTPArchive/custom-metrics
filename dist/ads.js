@@ -142,7 +142,7 @@ const parseSellersJSON = async (response) => {
 
     for (let seller of content.sellers) {
       // Validating records
-      if (!seller.seller_type && !seller.domain) {
+      if (!seller.seller_type || !seller.id) {
         continue;
       }
       if (!seller.seller_type) {
