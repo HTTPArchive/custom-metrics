@@ -145,9 +145,6 @@ const parseSellersJSON = async (response) => {
       if (!seller.seller_type || !seller.id) {
         continue;
       }
-      if (!seller.seller_type) {
-        seller.seller_type = "";
-      }
       if (!seller.domain) {
         seller.domain = "";
       }
