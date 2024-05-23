@@ -6,13 +6,11 @@ const SELLER_TYPES = ['publisher', 'intermediary', 'both'];
 const isPresent = (response, endings) => response.ok && endings.some(ending => response.url.endsWith(ending));
 
 const fetchAndParse = async (url, parser) => {
-  let timeout = 5000;
-  // Google being popular ad-exchange hosting sellers.json at custom location, added its support
-  /* Removing because Google's sellers.json is huge with >1M entries.
-  if (document.location.origin.toLowerCase().includes("google") || url.toLowerCase().includes("sellers.json")) {
-    timeout = 10000;
-    url = "https://storage.googleapis.com/adx-rtb-dictionaries/sellers.json"
-  }
+  const timeout = 5000;
+  /*
+  Google's sellers.json size is 120Mb as of May 2024 - too big for custom metrics.
+  It's available at realtimebidding.google.com/sellers.json, so not part of crawled pages list.
+  More details: https://support.google.com/authorizedbuyers/answer/9895942
   */
   const controller = new AbortController();
   const { signal } = controller;
@@ -92,9 +90,9 @@ const parseAdsTxt = async (response) => {
     // Count unique and remove domain Sets for now
     for (let accountType of Object.values(result.account_types)) {
       accountType.domain_count = accountType.domains.size;
-      accountType.domains = [...accountType.domains]; // delete accountType.domains
+      accountType.domains = Array.from(accountType.domains); // delete accountType.domains
     }
-    result.variables = [...result.variables];
+    result.variables = Array.from(result.variables);
   }
 
   return result;
@@ -144,8 +142,9 @@ const parseSellersJSON = async (response) => {
     result.seller_count = content.sellers.length;
 
     for (let seller of content.sellers) {
+      const stype = seller.seller_type.trim().toLowerCase();
       // Validating records
-      if (!seller.seller_type && !seller.id) {
+      if (!SELLER_TYPES.includes(stype) || !seller.seller_id) {
         continue;
       }
 
@@ -159,23 +158,18 @@ const parseSellersJSON = async (response) => {
         result.confidential_count += 1;
       }
       
-      if (!seller.domain) {
-        continue;
-      }
-
       // Seller records
-      let type = seller.seller_type.trim().toLowerCase(),
-        domain = seller.domain.trim().toLowerCase();
-      if (Object.keys(result.seller_types).includes(type)) {
-        result.seller_types[type].domains.add(domain);
-        result.seller_types[type].seller_count += 1;
+      if (seller.domain) {
+        const domain = seller.domain.trim().toLowerCase();
+        result.seller_types[stype].domains.add(domain);
+        result.seller_types[stype].seller_count += 1;
       }
     }
 
     // Count unique and remove domain Sets for now
     for (let seller_type of Object.values(result.seller_types)) {
       seller_type.domain_count = seller_type.domains.size;
-      seller_type.domains = [...seller_type.domains]; // delete seller_type.domains;
+      seller_type.domains = Array.from(seller_type.domains); // delete seller_type.domains;
     }
   };
 
@@ -194,6 +188,6 @@ return Promise.all([
   });
 }).catch(error => {
   return JSON.stringify({
-    error: error
+    error: error.message
   });
 });
