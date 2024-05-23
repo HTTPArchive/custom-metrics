@@ -24,6 +24,11 @@ var wptImages = function (win) {
               el.getBoundingClientRect().right >= 0 &&
               el.getBoundingClientRect().top <= window.innerHeight &&
               el.getBoundingClientRect().left <= window.innerWidth,
+            bytesPerPixel:
+              (performance.getEntriesByName(el.currentSrc)[0]
+                ?.encodedBodySize *
+                8) /
+              (el.width * el.height),
           });
         }
       }
