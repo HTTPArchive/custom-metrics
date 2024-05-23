@@ -19,7 +19,7 @@ const fetchAndParse = async (url, parser) => {
   setTimeout(() => controller.abort(), timeout);
   
   try {
-    const response = await fetch(url, { signal, redirect: 'follow' });
+    const response = await fetch(url, { signal });
     return parser(response);
   } catch (error) {
     return {
