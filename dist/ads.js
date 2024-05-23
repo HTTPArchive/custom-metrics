@@ -8,10 +8,12 @@ const isPresent = (response, endings) => response.ok && endings.some(ending => r
 const fetchAndParse = async (url, parser) => {
   let timeout = 5000;
   // Google being popular ad-exchange hosting sellers.json at custom location, added its support
+  /* Removing because Google's sellers.json is huge with >1M entries.
   if (document.location.origin.toLowerCase().includes("google") || url.toLowerCase().includes("sellers.json")) {
     timeout = 10000;
     url = "https://storage.googleapis.com/adx-rtb-dictionaries/sellers.json"
   }
+  */
   const controller = new AbortController();
   const { signal } = controller;
   setTimeout(() => controller.abort(), timeout);
@@ -183,7 +185,7 @@ const parseSellersJSON = async (response) => {
 return Promise.all([
   fetchAndParse("/ads.txt", parseAdsTxt).catch(e => e),
   fetchAndParse("/app-ads.txt", parseAdsTxt).catch(e => e),
-  fetchAndParse("sellers.json", parseSellersJSON).catch(e => e),
+  fetchAndParse("/sellers.json", parseSellersJSON).catch(e => e),
 ]).then((all_data) => {
   return JSON.stringify({
     ads: all_data[0],
