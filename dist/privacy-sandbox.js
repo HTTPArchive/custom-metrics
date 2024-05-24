@@ -44,9 +44,9 @@ let seenThirdParties = [];
     let receiverObserving = false;
 
     // If the request is to fetch a javascript file or HTML document, perform string search in the returned file content for usage of Topics API
-    // document.browsingTopics() [JS] or fetch() request call includes: {browsingTopics: true} or XHR request call includes: {deprecatedBrowsingTopics: true}
+    // document.browsingTopics() [JS] or fetch() request call includes: {browsingTopics: true} or XHR request call includes: {deprecatedBrowsingTopics: true} (to be deprecated)
     if (isScript || isDocument) {
-      if (request.response_body && (request.response_body.includes('browsingTopics') || request.response_body.includes('BrowsingTopics'))) {
+      if (request.response_body && (request.response_body.includes('browsingTopics') || request.response_body.includes('deprecatedBrowsingTopics'))) {
         jsUsage = true;
       }
     }
