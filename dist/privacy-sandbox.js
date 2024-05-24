@@ -6,8 +6,17 @@ let requests = $WPT_BODIES;
 const cannonicalFirstPartyDomain = getCanonicalDomain(document.location.hostname);
 
 let result = {
-  topicsAvailable: document.featurePolicy.allowsFeature('browsing-topics'),
-  thirdPartiesUsingBrowsingTopics: {}
+  'topicsAPI': {
+    'topicsAvailable': document.featurePolicy.allowsFeature('browsing-topics'),
+    'usingBrowsingTopics': [],
+    'topicsAccessJs': [],
+    'topicsAccessHeader': [],
+    'observingTopics': []
+  },
+  'protected_audience': {
+    // Protected Audience API metrics
+  },
+  attestationPublished: []
 }
 
 function getCanonicalDomain(hostname) {
@@ -38,10 +47,11 @@ let seenThirdParties = [];
     const url = new URL(request.url);
     const isScript = request.type === 'Script';
     const isDocument = request.type === 'Document';
+    const cannonicalRequestDomain = getCanonicalDomain(url.hostname);
 
     let thirdPartyDomain = '';
-    // Maps all first party hostnames to the corresponding cannonical first party domain to truly consider only third-parties 
-    if (getCanonicalDomain(url.hostname) !== cannonicalFirstPartyDomain) {
+    // Maps all first party hostnames to the corresponding cannonical first party domain to truly consider only third-parties
+    if (cannonicalRequestDomain !== cannonicalFirstPartyDomain) {
       thirdPartyDomain = url.hostname;
     }
     if (thirdPartyDomain && seenThirdParties.includes(thirdPartyDomain)) {
@@ -49,40 +59,38 @@ let seenThirdParties = [];
     }
     seenThirdParties.push(thirdPartyDomain);
 
-    let jsUsage = false;
-    let headerUsage = false;
-    let receiverObserving = false;
-
     // If the request is to fetch a javascript file or HTML document, perform string search in the returned file content for usage of Topics API
     // document.browsingTopics() [JS] or fetch() request call includes: {browsingTopics: true} or XHR request call includes: {deprecatedBrowsingTopics: true} (to be deprecated)
     if (isScript || isDocument) {
       if (request.response_body && (request.response_body.includes('browsingTopics') || request.response_body.includes('deprecatedBrowsingTopics'))) {
-        jsUsage = true;
+        result['topicsAPI']['topicsAccessJs'].push(thirdPartyDomain);
       }
     }
 
     // Checking request header usage of Topics: header: 'Sec-Browsing-Topics: true'
     if ('Sec-Browsing-Topics' in request.request_headers) {
-      headerUsage = true;
+      result['topicsAPI']['topicsAccessHeader'].push(thirdPartyDomain);
       // Checking is sent Topics are observed by the receiver using response header 'Observe-Browsing-Topics'
       // If value is ?1 then they are observed else they are not observed
       if (request.response_headers['Observe-Browsing-Topics'] === '?1') {
-        receiverObserving = true;
+        result['topicsAPI']['observingTopics'].push(thirdPartyDomain);
       }
     }
 
-    if (thirdPartyDomain && (jsUsage || headerUsage)) {
-      // Checking if the third party has published an attestation for Privacy Sandbox
-      const tldPlus1Origin = 'https://' + url.hostname.split('.').slice(-2).join('.');
-      result.thirdPartiesUsingBrowsingTopics[thirdPartyDomain] = {
-        topicsAccessJs: jsUsage,
-        topicsAccessHeader: headerUsage,
-        observingTopics: receiverObserving,
-        attestationPublished: await fetchAndCheckAttestation(`${url.origin}/.well-known/privacy-sandbox-attestations.json`),
-        tldPlus1AttestationPublished: await fetchAndCheckAttestation(`${tldPlus1Origin}/.well-known/privacy-sandbox-attestations.json`)
-      };
+    const attestationPublished = await fetchAndCheckAttestation(`${url.origin}/.well-known/privacy-sandbox-attestations.json`);
+    if (attestationPublished) {
+      result.attestationPublished.push(thirdPartyDomain);
     }
-  };
+    const tldPlus1AttestationPublished = await fetchAndCheckAttestation(`${'https://'+cannonicalRequestDomain}/.well-known/privacy-sandbox-attestations.json`);
+    if (tldPlus1AttestationPublished) {
+        result.attestationPublished.push(cannonicalRequestDomain);
+    }
+  }
+
+  result['topicsAPI']['usingBrowsingTopics'] = Array.from(new Set([
+    ...result['topicsAPI']['topicsAccessJs'],
+    ...result['topicsAPI']['topicsAccessHeader']
+  ]));
 })();
 
 return result;
