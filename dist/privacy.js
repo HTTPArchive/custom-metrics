@@ -296,5 +296,84 @@ return JSON.stringify({
     navigator_geolocation_watchPosition: testPropertyStringInResponseBodies(
       'navigator.+geolocation.+watchPosition'
     ),
-  }
+  },
+  
+  fingerprinting2024: (() => {
+    //These are determined by looking at the tests in https://github.com/fingerprintjs/fingerprintjs
+    const fingerprintingAPIs = [
+      'ApplePaySession.canMakePayments',
+      'getChannelData', //audioContext
+      'toDataURL', //canvas
+      'getImageData', //canvas, not actually used by fingerprintJS
+      'screen.colorDepth',
+      'color-gamut',
+      'prefers-contrast',
+      'cpuClass',
+      'deviceMemory',
+      'forced-colors',
+      'hardwareConcurrency',
+      'dynamic-range',
+      'indexedDB',
+      'inverted-colors',
+      'navigator.language', //"language" would be too generic here
+      'navigator.userLanguage', //TODO exists?
+      'localStorage',
+      'min-monochrome',
+      'max-monochrome',
+      'openDatabase',
+      'navigator.oscpu',
+      'pdfViewerEnabled',
+      'navigator.platform', //"platform" would be too generic
+      'navigator.plugins',
+      'attributionSourceId',
+      'prefers-reduced-motion',
+      'prefers-reduced-transparency',
+      'availWidth',
+      'availHeight',
+      'screen.width',
+      'screen.height',
+      'sessionStorage',
+      'resolvedOptions().timeZone',
+      'getTimezoneOffset',
+      'maxTouchPoints',
+      'ontouchstart',
+      'navigator.vendor',
+      'vendorUnmasked',
+      'rendererUnmasked',
+      'shadingLanguageVersion',
+      'WEBGL_debug_renderer_info',
+      'getShaderPrecisionFormat'
+  ].map(api => api.toLowerCase())
+
+  const response_bodies = $WPT_BODIES.filter(body => body.type === 'Document' || body.type === 'Script')
+
+  let fingerprintingUsageCounts = {}
+  let likelyFingerprintingScripts = []
+
+  response_bodies.forEach(req => {
+    let total_occurrences = 0
+
+    let body = req.response_body.toLowerCase()
+
+    fingerprintingAPIs.forEach(api => {
+      let api_occurrences = 0
+      let index = body.indexOf(api)
+      while (index !== -1) {
+        api_occurrences++
+        index = body.indexOf(api, index + 1)
+      }
+
+      if (api_occurrences > 0) {
+        fingerprintingUsageCounts[api] = (fingerprintingUsageCounts[api] || 0) + api_occurrences
+      }
+      total_occurrences += api_occurrences
+    })
+
+    if (total_occurrences >= 5) { //TODO what should this threshold be?
+      likelyFingerprintingScripts.push(req.url)
+    }
+  })
+
+  return {counts: fingerprintingUsageCounts, likelyFingerprintingScripts}
+  })()
 });
