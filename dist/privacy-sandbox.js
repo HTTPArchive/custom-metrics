@@ -3,11 +3,20 @@
 // Header Usage Reference: https://developers.google.com/privacy-sandbox/relevance/topics/demo#the-topics-api-demo
 
 let requests = $WPT_BODIES;
-const firstPartyDomain = document.location.hostname;
+const cannonicalFirstPartyDomain = getCanonicalDomain(document.location.hostname);
 
 let result = {
   topicsAvailable: document.featurePolicy.allowsFeature('browsing-topics'),
   thirdPartiesUsingBrowsingTopics: {}
+}
+
+function getCanonicalDomain(hostname) {
+  const parts = hostname.split('.').reverse();
+  if (parts.length >= 2) {
+    return `${parts[1]}.${parts[0]}`;
+  } else {
+    return hostname;
+  }
 }
 
 async function fetchAndCheckAttestation(url) {
@@ -31,7 +40,8 @@ let seenThirdParties = [];
     const isDocument = request.type === 'Document';
 
     let thirdPartyDomain = '';
-    if (url.hostname !== firstPartyDomain) {
+    // Maps all first party hostnames to the corresponding cannonical first party domain to truly consider only third-parties 
+    if (getCanonicalDomain(url.hostname) !== cannonicalFirstPartyDomain) {
       thirdPartyDomain = url.hostname;
     }
     if (thirdPartyDomain && seenThirdParties.includes(thirdPartyDomain)) {
