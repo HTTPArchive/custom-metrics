@@ -169,9 +169,11 @@ return Promise.all([
         } else if (line.startsWith('CSAF: ')) {
           data['csaf'].push(line.substring(6).trim());
         } else {
-          let [name, value] = line.split(': ');
-          if (name && value) {
-            data['other'].push([name.trim(), value.trim()]);
+          if (!line.startsWith('#')) {
+            let [name, value] = line.split(': ');
+            if (name && value) {
+              data['other'].push([name.trim(), value.trim()]);
+            }
           }
         }
       }   
