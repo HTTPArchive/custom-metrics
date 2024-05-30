@@ -139,17 +139,43 @@ return Promise.all([
       if (text.startsWith('-----BEGIN PGP SIGNED MESSAGE-----')) {
         data['signed'] = true;
       }
-      for(let line of text.split('\n')) {
-        if (line.startsWith('Canonical: ')) {
-          data['canonical'] = line.substring(11);
-        } else if (line.startsWith('Encryption: ')) {
-          data['encryption'] = line.substring(12);
+      data['contact'] = [];
+      data['expires'] = [];
+      data['encryption'] = [];
+      data['acknowledgments'] = [];
+      data['preferred_languages'] = [];
+      data['canonical'] = [];
+      data['policy'] = [];
+      data['hiring'] = [];
+      data['csaf'] = [];
+      data['other'] = []; // [(name, value)]
+      for (let line of text.split('\n')) {
+        if (line.startsWith('Contact: ')) {
+          data['contact'].push(line.substring(9).trim());
         } else if (line.startsWith('Expires: ')) {
-          data['expires'] = line.substring(9);
+          data['expires'].push(line.substring(9).trim());
+        } else if (line.startsWith('Encryption: ')) {
+          data['encryption'].push(line.substring(12).trim());
+        } else if (line.startsWith('Acknowledgments: ')) {
+          data['acknowledgments'].push(line.substring(17).trim());
+        } else if (line.startsWith('Preferred-Languages: ')) {
+          data['preferred_languages'].push(line.substring(21).trim());
+        } else if (line.startsWith('Canonical: ')) {
+          data['canonical'].push(line.substring(11).trim());
         } else if (line.startsWith('Policy: ')) {
-          data['policy'] = line.substring(8);
+          data['policy'].push(line.substring(8).trim());
+        } else if (line.startsWith('Hiring: ')) {
+          data['hiring'].push(line.substring(8).trim());
+        } else if (line.startsWith('CSAF: ')) {
+          data['csaf'].push(line.substring(6).trim());
+        } else {
+          let [name, value] = line.split(': ');
+          if (name && value) {
+            data['other'].push([name.trim(), value.trim()]);
+          }
         }
-      }
+      }   
+      // Optional
       return data;
     });
   }),
