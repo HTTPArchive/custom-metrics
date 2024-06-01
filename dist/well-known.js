@@ -176,8 +176,18 @@ return Promise.all([
             }
           }
         }
-      }   
-      // Optional
+      }
+      // Required fields exist
+      data['all_required_exist'] = (data['contact'].length && data['expires'].length) > 0;
+      // Fields that are only allowed once do not occur twice
+      data['only_one_requirement_broken'] = false;
+      for (let field of ['expires', 'preferred_languages']) {
+        if (data[field].length > 1) {
+          data['only_one_requirement_broken'] = true;
+        }
+      }
+      // Valid: Required fields exist and only one requirement is not broken. Does not check value content at the moment (e.g., if expires is a valid ISO 8601 date).
+      data['valid'] = data['all_required_exist'] && (!data['only_one_requirement_broken'])
       return data;
     });
   }),
