@@ -346,5 +346,26 @@ return JSON.stringify({
     navigator_geolocation_watchPosition: testPropertyStringInResponseBodies(
       'navigator.+geolocation.+watchPosition'
     ),
-  }
+  },
+
+  /**
+   * List of hostnames with CNAME record
+   */
+  request_hostnames_with_cname: (() => {
+    let results = {};
+
+    for (const request of $WPT_REQUESTS) {
+      request_hostname = (new URL(request.url)).hostname;
+
+      for (const [origin, dns_info] of Object.entries($WPT_DNS)) {
+        dns_hostname = (new URL(origin)).hostname;
+
+        if (dns_hostname === request_hostname) {
+          results[dns_hostname] = dns_info.results.canonical_names[0];
+        }
+      }
+    }
+
+    return results;
+  })()
 });
