@@ -73,7 +73,7 @@ let seenThirdParties = [];
     seenThirdParties.push(thirdPartyDomain);
 
     /**
-     * Topics API 
+     * Topics API
      * API Usage Reference: https://developers.google.com/privacy-sandbox/relevance/topics/demo#the-topics-api-demo
      * Header Usage Reference: https://developers.google.com/privacy-sandbox/relevance/topics/demo#the-topics-api-demo
      */
@@ -104,10 +104,10 @@ let seenThirdParties = [];
     }
 
     /**
-     * Attribution Reporting API 
+     * Attribution Reporting API
      * https://developer.mozilla.org/en-US/docs/Web/API/Attribution_Reporting_API
      */
-    
+
     // Checking if the request header includes 'Attribution-Reporting-Eligible' to initiate the registration of source or trigger
     if ('attribution-reporting-eligible' in request.request_headers.toLowerCase()) {
       result['attributionReportingAPI']['attributionReportingEligibleHeader']['sentTo'].push(cannonicalRequestDomain);
