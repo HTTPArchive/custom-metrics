@@ -1,6 +1,11 @@
 //[privacy-sandbox]
-// Topics API Usage Reference: https://developers.google.com/privacy-sandbox/relevance/topics/demo#the-topics-api-demo
-// Header Usage Reference: https://developers.google.com/privacy-sandbox/relevance/topics/demo#the-topics-api-demo
+/*
+Topics API Usage Reference: https://developers.google.com/privacy-sandbox/relevance/topics/demo#the-topics-api-demo
+
+Header Usage Reference: https://developers.google.com/privacy-sandbox/relevance/topics/demo#the-topics-api-demo
+
+Required command line flags: --enable-features=BrowsingTopics,InterestGroupStorage,PrivacySandboxAdsAPIsOverride
+*/
 
 let requests = $WPT_BODIES;
 const cannonicalFirstPartyDomain = getCanonicalDomain(document.location.hostname);
@@ -13,9 +18,7 @@ let result = {
     'topicsAccessHeader': [],
     'observingTopics': []
   },
-  'protected_audience': {
-    // Protected Audience API metrics
-  },
+  'protected_audience': {},
   attestationPublished: []
 }
 
@@ -44,9 +47,10 @@ async function fetchAndCheckAttestation(url) {
 let seenThirdParties = [];
 (async () => {
   for (const request of requests) {
-    const url = new URL(request.url);
-    const isScript = request.type === 'Script';
-    const isDocument = request.type === 'Document';
+    const url = new URL(request.full_url);
+    // FIX THIS --- IS IT request.request_type OR request.type?
+    const isScript = request.request_type === 'Script';
+    const isDocument = request.request_type === 'Document';
     const cannonicalRequestDomain = getCanonicalDomain(url.hostname);
 
     let thirdPartyDomain = '';
@@ -68,22 +72,20 @@ let seenThirdParties = [];
     }
 
     // Checking request header usage of Topics: header: 'Sec-Browsing-Topics: true'
-    if ('Sec-Browsing-Topics' in request.request_headers) {
+    if ('sec-browsing-topics' in request.request_headers.toLowerCase()) {
       result['topicsAPI']['topicsAccessHeader'].push(thirdPartyDomain);
-      // Checking is sent Topics are observed by the receiver using response header 'Observe-Browsing-Topics'
-      // If value is ?1 then they are observed else they are not observed
-      if (request.response_headers['Observe-Browsing-Topics'] === '?1') {
-        result['topicsAPI']['observingTopics'].push(thirdPartyDomain);
-      }
+    }
+
+    // Checking if sent Topics in the request (either via JS or headers) are observed by the receiver using response header 'Observe-Browsing-Topics'
+    // If value is ?1 then they are observed else they are not observed
+    let respHeaders = new Map(Object.entries(request.response_headers).map(([key, value]) => [key.toLowerCase(), value]));
+    if (respHeaders.has('observe-browsing-topics') && respHeaders.get('observe-browsing-topics') === "?1") {
+      result['topicsAPI']['observingTopics'].push(thirdPartyDomain);
     }
 
     const attestationPublished = await fetchAndCheckAttestation(`${url.origin}/.well-known/privacy-sandbox-attestations.json`);
     if (attestationPublished) {
       result.attestationPublished.push(thirdPartyDomain);
-    }
-    const tldPlus1AttestationPublished = await fetchAndCheckAttestation(`${'https://'+cannonicalRequestDomain}/.well-known/privacy-sandbox-attestations.json`);
-    if (tldPlus1AttestationPublished) {
-        result.attestationPublished.push(cannonicalRequestDomain);
     }
   }
 
