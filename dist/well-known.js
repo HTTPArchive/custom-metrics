@@ -188,6 +188,12 @@ return Promise.all([
       }
       // Valid: Required fields exist and only one requirement is not broken. Does not check value content at the moment (e.g., if expires is a valid ISO 8601 date).
       data['valid'] = data['all_required_exist'] && (!data['only_one_requirement_broken'])
+      // Delete empty fields for storage optimization
+      for (let key in data) {
+        if (Array.isArray(data[key]) && data[key].length === 0) {
+          delete data[key];
+        }
+      }
       return data;
     });
   }),
