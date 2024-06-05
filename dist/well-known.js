@@ -131,10 +131,15 @@ return Promise.all([
     let data = {
       status: r.status,
       redirected: r.redirected,
-      url: r.url
+      url: r.url,
+      content_type: r.headers.get("content-type")
     };
 
     return r.text().then(text => {
+      // Abort if final status is not okay (e.g., 404 or 500)
+      if (!r.ok) {
+        return data;
+      }
       data['signed'] = false;
       if (text.startsWith('-----BEGIN PGP SIGNED MESSAGE-----')) {
         data['signed'] = true;
