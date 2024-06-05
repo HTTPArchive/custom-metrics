@@ -1,10 +1,9 @@
 //[privacy-sandbox]
-/*
-Topics API Usage Reference: https://developers.google.com/privacy-sandbox/relevance/topics/demo#the-topics-api-demo
-
-Header Usage Reference: https://developers.google.com/privacy-sandbox/relevance/topics/demo#the-topics-api-demo
-
-Required command line flags: --enable-features=BrowsingTopics,InterestGroupStorage,PrivacySandboxAdsAPIsOverride
+/**
+ * Topics API
+ * Protected Audience API
+ * Attribution Reporting API
+ * Required command line flags: --enable-features=BrowsingTopics,InterestGroupStorage,PrivacySandboxAdsAPIsOverride
 */
 
 let requests = $WPT_BODIES;
@@ -18,7 +17,18 @@ let result = {
     'topicsAccessHeader': [],
     'observingTopics': []
   },
-  'protected_audience': {},
+  'protectedAudienceAPI': {},
+  'attributionReportingAPI': {
+    'attributionReportingAvailable': document.featurePolicy.allowsFeature('attribution-reporting'),
+    'attributionReportingEligibleHeader': {
+      'sentByBrowser': false,
+      'sentTo': [],
+    },
+    'completedRegistrations': {
+      'AttributionReportingRegisterSourceHeader': {},
+      'AttributionReportingRegisterTriggerHeader': []
+    },
+  },
   attestationPublished: []
 }
 
@@ -48,9 +58,8 @@ let seenThirdParties = [];
 (async () => {
   for (const request of requests) {
     const url = new URL(request.full_url);
-    // FIX THIS --- IS IT request.request_type OR request.type?
-    const isScript = request.request_type === 'Script';
-    const isDocument = request.request_type === 'Document';
+    const isScript = request.type === 'Script';
+    const isDocument = request.type === 'Document';
     const cannonicalRequestDomain = getCanonicalDomain(url.hostname);
 
     let thirdPartyDomain = '';
@@ -62,6 +71,12 @@ let seenThirdParties = [];
         continue;
     }
     seenThirdParties.push(thirdPartyDomain);
+
+    /**
+     * Topics API 
+     * API Usage Reference: https://developers.google.com/privacy-sandbox/relevance/topics/demo#the-topics-api-demo
+     * Header Usage Reference: https://developers.google.com/privacy-sandbox/relevance/topics/demo#the-topics-api-demo
+     */
 
     // If the request is to fetch a javascript file or HTML document, perform string search in the returned file content for usage of Topics API
     // document.browsingTopics() [JS] or fetch() request call includes: {browsingTopics: true} or XHR request call includes: {deprecatedBrowsingTopics: true} (to be deprecated)
@@ -87,12 +102,43 @@ let seenThirdParties = [];
     if (attestationPublished) {
       result.attestationPublished.push(thirdPartyDomain);
     }
+
+    /**
+     * Attribution Reporting API 
+     * https://developer.mozilla.org/en-US/docs/Web/API/Attribution_Reporting_API
+     */
+    
+    // Checking if the request header includes 'Attribution-Reporting-Eligible' to initiate the registration of source or trigger
+    if ('attribution-reporting-eligible' in request.request_headers.toLowerCase()) {
+      result['attributionReportingAPI']['attributionReportingEligibleHeader']['sentTo'].push(cannonicalRequestDomain);
+    }
+
+    // Checking if the response header includes 'Attribution-Reporting-Register-Source' or 'Attribution-Reporting-Register-Trigger' to complete registration of source or trigger
+    // Source registration happens on seller (e.g., publisher) website where impression is registered and trigger registration happens on buyer (e.g., advertiser) website where conversion completes.
+    // Each entry in result['attributionReportingAPI']['completedRegistrations']['AttributionReportingRegisterSourceHeader'] is represented as {cannonicalRequestDomain: {"destination": "", "eventEpsilon": 0}}
+    // Higher the epsilon, the more the privacy protection
+    if ('attribution-reporting-register-source' in respHeaders) {
+      jsonString = respHeaders.get('attribution-reporting-register-source');
+      const { destination, event_level_epsilon } = JSON.parse(jsonString);
+      if (!result['attributionReportingAPI']['completedRegistrations']['AttributionReportingRegisterSourceHeader'][cannonicalRequestDomain]) {
+        result['attributionReportingAPI']['completedRegistrations']['AttributionReportingRegisterSourceHeader'][cannonicalRequestDomain] = [];
+      }
+      result['attributionReportingAPI']['completedRegistrations']['AttributionReportingRegisterSourceHeader'][cannonicalRequestDomain].push({"destination": destination, "eventEpsilon": event_level_epsilon});
+    } else if ('attribution-reporting-register-trigger' in respHeaders) {
+      result['attributionReportingAPI']['completedRegistrations']['AttributionReportingRegisterTriggerHeader'].push(cannonicalRequestDomain);
+    }
   }
 
   result['topicsAPI']['usingBrowsingTopics'] = Array.from(new Set([
     ...result['topicsAPI']['topicsAccessJs'],
     ...result['topicsAPI']['topicsAccessHeader']
   ]));
+
+  // if "Attribution-Reporting-Eligible" request header is sent to more than one domains, set sentByBrowser to true
+  if (result['attributionReportingAPI']['attributionReportingEligibleHeader']['sentTo'].length > 0) {
+    result['attributionReportingAPI']['attributionReportingEligibleHeader']['sentByBrowser'] = true;
+  }
+
 })();
 
 return result;
