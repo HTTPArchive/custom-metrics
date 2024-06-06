@@ -6,13 +6,11 @@
 // 3. Test your change by following the instructions at https://github.com/HTTPArchive/almanac.httparchive.org/issues/33#issuecomment-502288773.
 // 4. Submit a PR to update this file.
 
-const response_bodies = $WPT_BODIES.filter(body => body.type === 'Document' || body.type === 'Script')
+const response_bodies = $WPT_BODIES.filter(body => (body.response_body && (body.type === 'Document' || body.type === 'Script')))
 
 /**
  * @function testPropertyStringInResponseBodies
  * Test that a JS property string is accessed in response bodies
- * (given that wrapping properties to log accesses is not possible as metrics run at the end)
- * only in Document and Script resources (HTML/JS)
  * inspired by https://github.com/HTTPArchive/legacy.httparchive.org/blob/master/custom_metrics/event-names.js
  *
  * @param {string} pattern - Regex pattern to match in the response bodies.
@@ -21,14 +19,7 @@ const response_bodies = $WPT_BODIES.filter(body => body.type === 'Document' || b
 function testPropertyStringInResponseBodies(pattern) {
   try {
     let re = new RegExp(pattern);
-    return response_bodies
-      .some(body => {
-        if (body.response_body) {
-          return re.test(body.response_body);
-        } else {
-          return false;
-        }
-      });
+    return response_bodies.some(body => body.response_body ? re.test(body.response_body) : false);
   } catch (error) {
     return error.toString();
   }
@@ -217,6 +208,20 @@ return JSON.stringify({
     }
   })(),
 
+  /**
+   * Do Not Track (DNT)
+   * https://www.eff.org/issues/do-not-track
+   */
+  navigator_doNotTrack: testPropertyStringInResponseBodies('doNotTrack'),
+
+  /**
+   * Global Privacy Control
+   * https://globalprivacycontrol.org/
+   */
+  navigator_globalPrivacyControl: testPropertyStringInResponseBodies(
+    'globalPrivacyControl'
+  ),
+
   // Sensitive resources
 
   /**
@@ -301,13 +306,13 @@ return JSON.stringify({
    */
   media_devices: {
     navigator_mediaDevices_enumerateDevices: testPropertyStringInResponseBodies(
-      'navigator.+mediaDevices.+enumerateDevices'
+      'mediaDevices.+enumerateDevices'
     ),
     navigator_mediaDevices_getUserMedia: testPropertyStringInResponseBodies(
-      'navigator.+mediaDevices.+getUserMedia'
+      'mediaDevices.+getUserMedia'
     ),
     navigator_mediaDevices_getDisplayMedia: testPropertyStringInResponseBodies(
-      'navigator.+mediaDevices.+getDisplayMedia'
+      'mediaDevices.+getDisplayMedia'
     ),
   },
 
@@ -317,10 +322,10 @@ return JSON.stringify({
    */
   geolocation: {
     navigator_geolocation_getCurrentPosition: testPropertyStringInResponseBodies(
-      'navigator.+geolocation.+getCurrentPosition'
+      'geolocation.+getCurrentPosition'
     ),
     navigator_geolocation_watchPosition: testPropertyStringInResponseBodies(
-      'navigator.+geolocation.+watchPosition'
+      'geolocation.+watchPosition'
     ),
   },
 
