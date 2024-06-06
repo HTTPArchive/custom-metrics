@@ -17,7 +17,20 @@ let result = {
     'topicsAccessHeader': [],
     'observingTopics': []
   },
-  'protectedAudienceAPI': {},
+  'protectedAudienceAPI': {
+    'protectedAudienceAvailable': document.featurePolicy.allowsFeature('join-ad-interest-group'),
+    'interestGroups': {
+      'joinAdInterestGroup': [],
+      'leaveAdInterestGroup': [],
+      'updateAdInterestGroups': [],
+      'clearOriginJoinedAdInterestGroups': []
+    },
+    'runAdAuction': [],
+    'generateBid': [],
+    'scoreAd': [],
+    'reportWin': [],
+    'reportResult': []
+  },
   'attributionReportingAPI': {
     'attributionReportingAvailable': document.featurePolicy.allowsFeature('attribution-reporting'),
     'attributionReportingEligibleHeader': {
@@ -101,6 +114,43 @@ let seenThirdParties = [];
     const attestationPublished = await fetchAndCheckAttestation(`${url.origin}/.well-known/privacy-sandbox-attestations.json`);
     if (attestationPublished) {
       result.attestationPublished.push(thirdPartyDomain);
+    }
+
+    /**
+     * Protected Audience API
+     * https://github.com/WICG/turtledove/blob/main/FLEDGE.md
+     * https://developers.google.com/privacy-sandbox/relevance/protected-audience
+     */
+
+    // Checking if the request header includes 'Sec-Interest-Group-Storage' to join, leave or update an interest group
+    if (isScript || isDocument) {
+      if (request.response_body && (request.response_body.includes('joinAdInterestGroup('))) {
+        result['protectedAudienceAPI']['interestGroups']['joinAdInterestGroup'].push(cannonicalRequestDomain);
+      }
+      if (request.response_body && (request.response_body.includes('leaveAdInterestGroup('))) {
+        result['protectedAudienceAPI']['interestGroups']['leaveAdInterestGroup'].push(cannonicalRequestDomain);
+      }
+      if (request.response_body && (request.response_body.includes('updateAdInterestGroups('))) {
+        result['protectedAudienceAPI']['interestGroups']['updateAdInterestGroups'].push(cannonicalRequestDomain);
+      }
+      if (request.response_body && (request.response_body.includes('clearOriginJoinedAdInterestGroups('))) {
+        result['protectedAudienceAPI']['interestGroups']['clearOriginJoinedAdInterestGroups'].push(cannonicalRequestDomain);
+      }
+      if (request.response_body && (request.response_body.includes('runAdAuction('))) {
+        result['protectedAudienceAPI']['runAdAuction'].push(cannonicalRequestDomain);
+      }
+      if (request.response_body && (request.response_body.includes('generateBid('))) {
+        result['protectedAudienceAPI']['generateBid'].push(cannonicalRequestDomain);
+      }
+      if (request.response_body && (request.response_body.includes('scoreAd('))) {
+        result['protectedAudienceAPI']['scoreAd'].push(cannonicalRequestDomain);
+      }
+      if (request.response_body && (request.response_body.includes('reportWin('))) {
+        result['protectedAudienceAPI']['reportWin'].push(cannonicalRequestDomain);
+      }
+      if (request.response_body && (request.response_body.includes('reportResult(') || request.response_body.includes('sendReportTo('))) {
+        result['protectedAudienceAPI']['reportResult'].push(cannonicalRequestDomain);
+      }
     }
 
     /**
