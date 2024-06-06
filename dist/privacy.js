@@ -107,34 +107,10 @@ return JSON.stringify({
     }
     const pattern = new RegExp(`(?:${keywords})`, 'gi');
 
-    const extractDomainFromHostname = (hostname) => {
-      const domainRegex = /^(?:.*\.)?(.+\..+)$/;
-      const matches = hostname.match(domainRegex);
-      return matches ? matches[1] : null;
-    }
-
-    const extractDomainFromURL = (url) => {
-      const domainRegex = /^(?:https?:)?\/\/(?:.*\.)?([^:\/&?]+\.[^\/:&?]+)/;
-      const matches = url.match(domainRegex);
-      return matches ? matches[1] : null;
-    }
-
-    function isSameDomain(url) {
-      const currentDomain = extractDomainFromHostname(window.location.hostname);
-      const urlDomain = extractDomainFromURL(url);
-      return currentDomain === urlDomain;
-    }
-
-    const isRelativeURL = (url) => {
-      return /^(?!(?:http|ftp)s?:\/\/|[A-Za-z]:\\|\/\/).*/.test(url);
-    }
-
     const privacy_links = Array.from(document.querySelectorAll('a')).filter(a =>
-      pattern.test(a.innerText) // && pattern.test(a.href) && (isSameDomain(a.href) || isRelativeURL(a.href))
+      pattern.test(a.innerText)
     ).map(
       a => ({
-        //href: a.href
-        //keywords: a.innerText.match(pattern),
         text: a.innerText,
       })
     );
