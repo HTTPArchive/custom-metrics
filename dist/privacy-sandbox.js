@@ -73,19 +73,19 @@ let seenDomains = [];
     const url = new URL(request.full_url);
     const isScript = request.type === 'Script';
     const isDocument = request.type === 'Document';
-    const cannonicalRequestDomain = getCanonicalDomain(url.hostname);
+    let cannonicalRequestDomain = getCanonicalDomain(url.hostname);
     if (cannonicalRequestDomain !== cannonicalFirstPartyDomain) {
       cannonicalRequestDomain = url.hostname;
     }
     let reqHeaders = new Map(Object.entries(request.request_headers).map(([key, value]) => [key.toLowerCase(), value]));
     let respHeaders = new Map(Object.entries(request.response_headers).map(([key, value]) => [key.toLowerCase(), value]));
-    
+
 
     /***********************************************************************************************************************
      * Topics API
      * API Usage Reference: https://developers.google.com/privacy-sandbox/relevance/topics/demo#the-topics-api-demo
      * Header Usage Reference: https://developers.google.com/privacy-sandbox/relevance/topics/demo#the-topics-api-demo
-     * 
+     *
      * Test sites:
      * - https://www.operafootball.com/
      ***********************************************************************************************************************/
