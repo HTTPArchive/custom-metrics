@@ -227,16 +227,11 @@ return JSON.stringify({
   /**
    * Permissions policy
    * https://www.w3.org/TR/permissions-policy-1/#introspection
+   * Previously known as Feature policy
+   * iframes properties in `almanac` and `security` custom metrics.
    */
   document_permissionsPolicy: testPropertyStringInResponseBodies('document.+permissionsPolicy'),
-
-  /**
-   * Feature policy
-   * (previous name of Permission policy: https://www.w3.org/TR/permissions-policy-1/#introduction)
-   */
   document_featurePolicy: testPropertyStringInResponseBodies('document.+featurePolicy'),
-
-  // Permissions Policy / Feature Policy on iframes already implemented in `security.js` custom metrics.
 
   /**
    * Referrer Policy
@@ -249,13 +244,11 @@ return JSON.stringify({
       link_relations: null,
     };
     // Referrer policy set for entire document using `meta` tag
-    // Test site: https://www.cnet.com/
     let referrer_meta_tag = document.querySelector('meta[name="referrer"]');
     if (referrer_meta_tag) {
       rp.entire_document_policy = referrer_meta_tag.content; // Get policy value
     }
     // Referrer policy set for individual requests with the `referrerpolicy` attribute
-    // Test site: https://www.brilio.net/
     let referrerpolicy_attributes = document.querySelectorAll('[referrerpolicy]');
     // Leave `individual_requests` at `null` if no attributes are found.
     if (referrerpolicy_attributes.length > 0) {
@@ -281,8 +274,8 @@ return JSON.stringify({
           []
         );
     }
+
     // Referrer policy set for a link using `noreferrer` link relation
-    // Test site: https://www.cnet.com/
     let noreferrer_link_relations = document.querySelectorAll('[rel*="noreferrer"]');
     // Leave `link_relations` at `null` if no attributes are found.
     if (noreferrer_link_relations.length > 0) {
