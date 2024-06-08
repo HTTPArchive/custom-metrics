@@ -148,7 +148,7 @@ async function fetchAndCheckResponse(url) {
  * response (note: does not especially mean that attestation file is valid)
  * Attestation is supposed to be under same https://origin than API caller, no redirect
  * https://github.com/privacysandbox/attestation
- * only required for attribution reporting, topics, protected audience, shared 
+ * only required for attribution reporting, topics, protected audience, shared
  * storage, and private aggregation APIs so far
  * we check anyway if response returned for any caller of any API we detect (if
  * they call 1 API they are likely to call others too and so have that file published)
