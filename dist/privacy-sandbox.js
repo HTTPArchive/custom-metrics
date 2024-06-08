@@ -27,7 +27,7 @@ let result = { // alphabetical order for organization
     'completedRegistrations': {
       'AttributionReportingRegisterSourceHeader': {},
       'AttributionReportingRegisterTriggerHeader': []
-    },
+    }
   },
   'federatedCredentialsManager': {
     // navigator.recordFederatedLogin
@@ -93,24 +93,25 @@ let result = { // alphabetical order for organization
 
 /**
  * @function checkResponseBody
- * Check if provided pattern is present in the response body of the request
+ * Check if provided pattern or string is present in the response body of the request
  * Check for Script and Document only (JS/HTML)
  *
  * @param {request} request - Request to search in body for pattern
- * @param {string} pattern - Regex pattern to match in response body.
- * @return {boolean} - True, if pattern found.
+ * @param {string} pattern - Regex pattern to match in response body
+ * @param {boolean} isRegex - True, if pattern is regex
+ * @return {boolean} - True, if pattern found
  */
-function checkResponseBody(request, pattern) {
+function checkResponseBody(request, pattern, isRegex = true) {
   const isScript = request.type === 'Script';
   const isDocument = request.type === 'Document';
 
-  if (isScript || isDocument) {
+  if ((isScript || isDocument) && request.response_body) {
     try {
-      let re = new RegExp(pattern);
-      if (request.response_body) {
+      if (isRegex) {
+        let re = new RegExp(pattern);
         return re.test(request.response_body);
       } else {
-        return false;
+        return request.response_body.includes(pattern);
       }
     } catch (error) {
       return error.toString();
@@ -119,6 +120,8 @@ function checkResponseBody(request, pattern) {
     return false;
   }
 }
+
+
 
 /**
  * @function fetchAndCheckResponse
@@ -191,18 +194,15 @@ async function apiCallerAdd(origin) {
     }
 
     // Checking if the response header includes
-    // 'Attribution-Reporting-Register-Source' or
-    // 'Attribution-Reporting-Register-Trigger' to complete registration of
-    // source or trigger Source registration happens on seller (e.g., publisher)
-    // website where impression is registered and trigger registration happens
-    // on buyer (e.g., advertiser) website where conversion completes. Each
-    // entry in
-    // result['attributionReportingAPI']['completedRegistrations']['AttributionReportingRegisterSourceHeader']
+    // 'Attribution-Reporting-Register-Source' or 'Attribution-Reporting-Register-Trigger'
+    // to complete registration of source or trigger
+    // Source registration happens on seller (e.g., publisher) website where impression is registered and
+    // Trigger registration happens on buyer (e.g., advertiser) website where conversion completes.
+    // Each entry in result['attributionReportingAPI']['completedRegistrations']['AttributionReportingRegisterSourceHeader']
     // is represented as {requestDomain: {"destination": "", "eventEpsilon": 0}}
     // Higher the epsilon, the more the privacy protection
     if (respHeaders.has('attribution-reporting-register-source')) {
-      jsonString = respHeaders.get('attribution-reporting-register-source');
-      const { destination, event_level_epsilon } = JSON.parse(jsonString);
+      const { destination, event_level_epsilon } = JSON.parse(respHeaders.get('attribution-reporting-register-source'));
       if (!result['attributionReportingAPI']['completedRegistrations']['AttributionReportingRegisterSourceHeader'][requestDomain]) {
         result['attributionReportingAPI']['completedRegistrations']['AttributionReportingRegisterSourceHeader'][requestDomain] = [];
       }
@@ -235,7 +235,7 @@ async function apiCallerAdd(origin) {
      * Documentation: https://web.dev/articles/floc
      * Test site: https://floc.glitch.me/
      **************************************************************************/
-    if (checkResponseBody(request, 'document.interestCohort')) {
+    if (checkResponseBody(request, 'document.interestCohort', false)) {
       // [javascript] 'document.interestCohort()'
       result['floc']['interestCohort'].push(requestDomain);
       await apiCallerAdd(requestDomain);
@@ -268,31 +268,31 @@ async function apiCallerAdd(origin) {
      * - https://protected-audience-demo-publisher.web.app/
      **************************************************************************/
 
-    if (checkResponseBody(request, 'joinAdInterestGroup')) {
+    if (checkResponseBody(request, 'joinAdInterestGroup', false)) {
       result['protectedAudienceAPI']['interestGroups']['joinAdInterestGroup'].push(requestDomain);
     }
-    if (checkResponseBody(request, 'leaveAdInterestGroup')) {
+    if (checkResponseBody(request, 'leaveAdInterestGroup', false)) {
       result['protectedAudienceAPI']['interestGroups']['leaveAdInterestGroup'].push(requestDomain);
     }
-    if (checkResponseBody(request, 'updateAdInterestGroups')) {
+    if (checkResponseBody(request, 'updateAdInterestGroups', false)) {
       result['protectedAudienceAPI']['interestGroups']['updateAdInterestGroups'].push(requestDomain);
     }
-    if (checkResponseBody(request, 'clearOriginJoinedAdInterestGroups')) {
+    if (checkResponseBody(request, 'clearOriginJoinedAdInterestGroups', false)) {
       result['protectedAudienceAPI']['interestGroups']['clearOriginJoinedAdInterestGroups'].push(requestDomain);
     }
-    if (checkResponseBody(request, 'runAdAuction')) {
+    if (checkResponseBody(request, 'runAdAuction', false)) {
       result['protectedAudienceAPI']['runAdAuction'].push(requestDomain);
     }
-    if (checkResponseBody(request, 'generateBid')) {
+    if (checkResponseBody(request, 'generateBid', false)) {
       result['protectedAudienceAPI']['generateBid'].push(requestDomain);
     }
-    if (checkResponseBody(request, 'scoreAd')) {
+    if (checkResponseBody(request, 'scoreAd', false)) {
       result['protectedAudienceAPI']['scoreAd'].push(requestDomain);
     }
-    if (checkResponseBody(request, 'reportWin')) {
+    if (checkResponseBody(request, 'reportWin', false)) {
       result['protectedAudienceAPI']['reportWin'].push(requestDomain);
     }
-    if (checkResponseBody(request, 'reportResult') || request.response_body.includes('sendReportTo')) {
+    if (checkResponseBody(request, 'reportResult', false) || request.response_body.includes('sendReportTo', false)) {
       result['protectedAudienceAPI']['reportResult'].push(requestDomain);
     }
 
@@ -340,11 +340,13 @@ async function apiCallerAdd(origin) {
     } else if (checkResponseBody(request, 'document.browsingTopics\(\s*{\s*skipObservation\s*:\s*true\s*}\s*\)')) {
       // [javascript] 'document.browsingTopics({skipObservation:true})'
       topicsCallJs = true;
-    } else if (checkResponseBody(request, 'browsingTopics') || checkResponseBody(request, 'deprecatedBrowsingTopics')) {
+    } else if (checkResponseBody(request, 'browsingTopics', false) || checkResponseBody(request, 'deprecatedBrowsingTopics', false)) {
       // [fetch] '{browsingTopics: true}'
       // [XHR] '{deprecatedBrowsingTopics: true}' (to be deprecated)
       topicsCallJs = true;
-    } else if (reqHeaders.has('sec-browsing-topics')) {
+    }
+
+    if (reqHeaders.has('sec-browsing-topics')) {
       // [request header] 'Sec-Browsing-Topics: true'
       topicsCallHeader = true;
     }
