@@ -3,14 +3,14 @@
  * Topics API
  * Protected Audience API
  * Attribution Reporting API
- * 
- * 
+ *
+ *
  * List of APIs verified by @yohhaan:
  * - FLoC API
  * - Topics API
- 
+ *
  * Required command line flags: --enable-features=BrowsingTopics,InterestGroupStorage,PrivacySandboxAdsAPIsOverride
- * 
+ *
  * Documentation Permissions Policy: https://developers.google.com/privacy-sandbox/relevance/setup/web/permissions-policy
 */
 
@@ -95,7 +95,7 @@ let result = { // alphabetical order for organization
  * @function checkResponseBody
  * Check if provided pattern is present in the response body of the request
  * Check for Script and Document only (JS/HTML)
- * 
+ *
  * @param {request} request - Request to search in body for pattern
  * @param {string} pattern - Regex pattern to match in response body.
  * @return {boolean} - True, if pattern found.
@@ -123,7 +123,7 @@ function checkResponseBody(request, pattern) {
 /**
  * @function fetchAndCheckResponse
  * Fetch url and if response returns true
- * 
+ *
  * @param {string} url - url to fetch.
  * @return {boolean} - True, if response.
  */
@@ -149,10 +149,10 @@ async function fetchAndCheckResponse(url) {
  * Attestation is supposed to be under same https://origin than API caller, no redirect
  * https://github.com/privacysandbox/attestation
  * only required for attribution reporting, topics, protected audience, shared 
- * storage, and private aggregation APIs so far 
+ * storage, and private aggregation APIs so far
  * we check anyway if response returned for any caller of any API we detect (if
  * they call 1 API they are likely to call others too and so have that file published)
- * 
+ *
  * @param {string} origin - API caller origin
  */
 async function apiCallerAdd(origin) {
@@ -261,7 +261,7 @@ async function apiCallerAdd(origin) {
      * Protected Audience API (previously FLEDGE)
      * https://github.com/WICG/turtledove/blob/main/FLEDGE.md
      * https://developers.google.com/privacy-sandbox/relevance/protected-audience
-     * 
+     *
      * Test sites:
      * - https://protected-audience-demo.web.app/
      * - https://protected-audience-demo-advertiser.web.app/
@@ -325,39 +325,32 @@ async function apiCallerAdd(origin) {
      * Topics API
      * API Usage Reference: https://developers.google.com/privacy-sandbox/relevance/topics/demo#the-topics-api-demo
      * Header Usage Reference: https://developers.google.com/privacy-sandbox/relevance/topics/demo#the-topics-api-demo
-     * Test sites: 
+     * Test sites:
      *  - https://pets-animals-pets-cats.glitch.me/
      *  - https://tennis-tennis.glitch.me/
      *  - https://www.operafootball.com/
      **************************************************************************/
     let topicsCallJs = false;
     let topicsCallHeader = false;
-    let skipObservation = false;
+    let skipObservation = true;
 
     if (checkResponseBody(request, 'document.browsingTopics\(\s*\)')) {
-      // [javascript] 'document.browsingTopics()' 
+      // [javascript] 'document.browsingTopics()'
       topicsCallJs = true;
     } else if (checkResponseBody(request, 'document.browsingTopics\(\s*{\s*skipObservation\s*:\s*true\s*}\s*\)')) {
-      // [javascript] 'document.browsingTopics({skipObservation:true})' 
+      // [javascript] 'document.browsingTopics({skipObservation:true})'
       topicsCallJs = true;
-      skipObservation = true;
     } else if (checkResponseBody(request, 'browsingTopics') || checkResponseBody(request, 'deprecatedBrowsingTopics')) {
       // [fetch] '{browsingTopics: true}'
       // [XHR] '{deprecatedBrowsingTopics: true}' (to be deprecated)
       topicsCallJs = true;
-      skipObservation = true;
-      // [response header] 'Observe-Browsing-Topics: ?1' to include page in topics calculation
-      if (respHeaders.has('observe-browsing-topics') && respHeaders.get('observe-browsing-topics') === "?1") {
-        skipObservation = false;
-      }
     } else if (reqHeaders.has('sec-browsing-topics')) {
       // [request header] 'Sec-Browsing-Topics: true'
       topicsCallHeader = true;
-      skipObservation = true;
-      // [response header] 'Observe-Browsing-Topics: ?1' to include page in topics calculation
-      if (respHeaders.has('observe-browsing-topics') && respHeaders.get('observe-browsing-topics') === "?1") {
+    }
+    // [response header] 'Observe-Browsing-Topics: ?1' to include page in topics calculation
+    if (respHeaders.has('observe-browsing-topics') && respHeaders.get('observe-browsing-topics') === "?1") {
         skipObservation = false;
-      }
     }
 
     /** Update result
