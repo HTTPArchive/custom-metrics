@@ -82,7 +82,6 @@ let result = { // alphabetical order for organization
     'browsing-topics': document.featurePolicy.allowsFeature('browsing-topics'),
     'browsingTopicsJs': [],
     'browsingTopicsHeader': [],
-    'skipObservation': []
   },
   'userAgentClientHints': {
     // https://developer.chrome.com/docs/privacy-security/user-agent-client-hints#user-agent-response-and-request-headers
@@ -147,7 +146,18 @@ async function fetchAndCheckResponse(url) {
 /**
  * @function apiCallerAdd
  * Add provided caller API origin to results if not already present
- * Also check attestation file and set value to true if there is a request
+ *
+ * @param {string} origin - API caller origin
+ */
+function apiCallerAdd(origin) {
+  if (!(origin in result.apiCallersAttestation)) {
+    result.apiCallersAttestation[origin] = null;
+  }
+}
+
+/**
+ * @function fetchAttestations
+ * Check attestation file and set value to true if there is a request
  * response (note: does not especially mean that attestation file is valid)
  * Attestation is supposed to be under same https://origin than API caller, no redirect
  * https://github.com/privacysandbox/attestation
@@ -158,8 +168,8 @@ async function fetchAndCheckResponse(url) {
  *
  * @param {string} origin - API caller origin
  */
-async function apiCallerAdd(origin) {
-  if (!(origin in result.apiCallersAttestation)) {
+async function fetchAttestations() {
+  for (const [origin, _] of Object.entries(result.apiCallersAttestation)) {
     const attestation = fetchAndCheckResponse(`${'https://' + origin}/.well-known/privacy-sandbox-attestations.json`);
     result.apiCallersAttestation[origin] = attestation;
   }
@@ -190,7 +200,7 @@ async function apiCallerAdd(origin) {
     // Checking if the request header includes 'Attribution-Reporting-Eligible' to initiate the registration of source or trigger
     if (reqHeaders.has('attribution-reporting-eligible')) {
       result['attributionReportingAPI']['attributionReportingEligibleHeader']['sentTo'].push(requestDomain);
-      await apiCallerAdd(requestDomain);
+      apiCallerAdd(requestDomain);
     }
 
     // Checking if the response header includes
@@ -207,10 +217,10 @@ async function apiCallerAdd(origin) {
         result['attributionReportingAPI']['completedRegistrations']['AttributionReportingRegisterSourceHeader'][requestDomain] = [];
       }
       result['attributionReportingAPI']['completedRegistrations']['AttributionReportingRegisterSourceHeader'][requestDomain].push({ "destination": destination, "eventEpsilon": event_level_epsilon });
-      await apiCallerAdd(requestDomain);
+      apiCallerAdd(requestDomain);
     } else if (respHeaders.has('attribution-reporting-register-trigger')) {
       result['attributionReportingAPI']['completedRegistrations']['AttributionReportingRegisterTriggerHeader'].push(requestDomain);
-      await apiCallerAdd(requestDomain);
+      apiCallerAdd(requestDomain);
     }
 
     /***************************************************************************
@@ -235,10 +245,10 @@ async function apiCallerAdd(origin) {
      * Documentation: https://web.dev/articles/floc
      * Test site: https://floc.glitch.me/
      **************************************************************************/
-    if (checkResponseBody(request, 'document.interestCohort', false)) {
+    if (checkResponseBody(request, 'document.interestCohort\(\s*\)')) {
       // [javascript] 'document.interestCohort()'
       result['floc']['interestCohort'].push(requestDomain);
-      await apiCallerAdd(requestDomain);
+      apiCallerAdd(requestDomain);
     }
 
     /***************************************************************************
@@ -270,30 +280,39 @@ async function apiCallerAdd(origin) {
 
     if (checkResponseBody(request, 'joinAdInterestGroup', false)) {
       result['protectedAudienceAPI']['interestGroups']['joinAdInterestGroup'].push(requestDomain);
+      apiCallerAdd(requestDomain);
     }
     if (checkResponseBody(request, 'leaveAdInterestGroup', false)) {
       result['protectedAudienceAPI']['interestGroups']['leaveAdInterestGroup'].push(requestDomain);
+      apiCallerAdd(requestDomain);
     }
     if (checkResponseBody(request, 'updateAdInterestGroups', false)) {
       result['protectedAudienceAPI']['interestGroups']['updateAdInterestGroups'].push(requestDomain);
+      apiCallerAdd(requestDomain);
     }
     if (checkResponseBody(request, 'clearOriginJoinedAdInterestGroups', false)) {
       result['protectedAudienceAPI']['interestGroups']['clearOriginJoinedAdInterestGroups'].push(requestDomain);
+      apiCallerAdd(requestDomain);
     }
     if (checkResponseBody(request, 'runAdAuction', false)) {
       result['protectedAudienceAPI']['runAdAuction'].push(requestDomain);
+      apiCallerAdd(requestDomain);
     }
     if (checkResponseBody(request, 'generateBid', false)) {
       result['protectedAudienceAPI']['generateBid'].push(requestDomain);
+      apiCallerAdd(requestDomain);
     }
     if (checkResponseBody(request, 'scoreAd', false)) {
       result['protectedAudienceAPI']['scoreAd'].push(requestDomain);
+      apiCallerAdd(requestDomain);
     }
     if (checkResponseBody(request, 'reportWin', false)) {
       result['protectedAudienceAPI']['reportWin'].push(requestDomain);
+      apiCallerAdd(requestDomain);
     }
     if (checkResponseBody(request, 'reportResult', false) || request.response_body.includes('sendReportTo', false)) {
       result['protectedAudienceAPI']['reportResult'].push(requestDomain);
+      apiCallerAdd(requestDomain);
     }
 
 
@@ -330,48 +349,42 @@ async function apiCallerAdd(origin) {
      *  - https://tennis-tennis.glitch.me/
      *  - https://www.operafootball.com/
      **************************************************************************/
-    let topicsCallJs = false;
-    let topicsCallHeader = false;
-    let skipObservation = true;
 
     if (checkResponseBody(request, 'document.browsingTopics\(\s*\)')) {
       // [javascript] 'document.browsingTopics()'
-      topicsCallJs = true;
-    } else if (checkResponseBody(request, 'document.browsingTopics\(\s*{\s*skipObservation\s*:\s*true\s*}\s*\)')) {
+      result['topicsAPI']['browsingTopicsJs'].push({ "origin": requestDomain, "skipObservation": false });
+      apiCallerAdd(requestDomain);
+    }
+    if (checkResponseBody(request, 'document.browsingTopics\(\s*\{\s*skipObservation\s*:\s*true\s*\}\s*\)')) {
       // [javascript] 'document.browsingTopics({skipObservation:true})'
-      topicsCallJs = true;
-    } else if (checkResponseBody(request, 'browsingTopics', false) || checkResponseBody(request, 'deprecatedBrowsingTopics', false)) {
+      result['topicsAPI']['browsingTopicsJs'].push({ "origin": requestDomain, "skipObservation": true });
+      apiCallerAdd(requestDomain);
+    }
+    if (checkResponseBody(request, '\{\s*browsingTopics\s*:\s*true\s*\}') || checkResponseBody(request, '\{\s*deprecatedBrowsingTopics\s*:\s*true\s*\}')) {
       // [fetch] '{browsingTopics: true}'
       // [XHR] '{deprecatedBrowsingTopics: true}' (to be deprecated)
-      topicsCallJs = true;
+      if (respHeaders.has('observe-browsing-topics') && respHeaders.get('observe-browsing-topics') === "?1") {
+        // [response header] 'Observe-Browsing-Topics: ?1' to include page in topics calculation
+        result['topicsAPI']['browsingTopicsJs'].push({ "origin": requestDomain, "skipObservation": false });
+        apiCallerAdd(requestDomain);
+      } else {
+        result['topicsAPI']['browsingTopicsJs'].push({ "origin": requestDomain, "skipObservation": true });
+        apiCallerAdd(requestDomain);
+      }
     }
 
     if (reqHeaders.has('sec-browsing-topics')) {
       // [request header] 'Sec-Browsing-Topics: true'
-      topicsCallHeader = true;
-    }
-    // [response header] 'Observe-Browsing-Topics: ?1' to include page in topics calculation
-    if (respHeaders.has('observe-browsing-topics') && respHeaders.get('observe-browsing-topics') === "?1") {
-        skipObservation = false;
+      if (respHeaders.has('observe-browsing-topics') && respHeaders.get('observe-browsing-topics') === "?1") {
+        // [response header] 'Observe-Browsing-Topics: ?1' to include page in topics calculation
+        result['topicsAPI']['browsingTopicsHeader'].push({ "origin": requestDomain, "skipObservation": false });
+        apiCallerAdd(requestDomain);
+      } else {
+        result['topicsAPI']['browsingTopicsHeader'].push({ "origin": requestDomain, "skipObservation": true });
+        apiCallerAdd(requestDomain);
+      }
     }
 
-    /** Update result
-     * Todo / Note: we may want to switch to object instead of array, so that API
-     * caller appears only once ? if so, we could also get rid of skipObservation
-     * by encoding in object for key = requestDomain, the value = skipObservation
-     * (same for other APIs)
-     */
-    if (topicsCallJs) {
-      result['topicsAPI']['browsingTopicsJs'].push(requestDomain)
-      await apiCallerAdd(requestDomain);
-    }
-    if (topicsCallHeader) {
-      result['topicsAPI']['browsingTopicsHeader'].push(requestDomain)
-      await apiCallerAdd(requestDomain);
-    }
-    if (skipObservation) {
-      result['topicsAPI']['skipObservation'].push(requestDomain)
-    }
 
     /***************************************************************************
      * User Client Hints
@@ -391,7 +404,11 @@ async function apiCallerAdd(origin) {
     result['attributionReportingAPI']['attributionReportingEligibleHeader']['sentByBrowser'] = true;
   }
 
+  //fetch attestation files
+  //TODO: check that it actually returns something (figure out promise/async/await, etc.)
+  fetchAttestations();
 
 })();
 
 return result;
+
