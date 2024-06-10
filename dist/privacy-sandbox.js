@@ -1,16 +1,17 @@
 //[privacy-sandbox]
 /**
+ * Attribution Reporting API
+ * Federated Credentials Manager API
+ * Fenced Frames API
+ * FLoC API
  * Topics API
  * Protected Audience API
- * Attribution Reporting API
- *
- *
- * List of APIs verified by @yohhaan:
- * - FLoC API
- * - Topics API
+ * Private Aggregation API
+ * Private State Tokens API
+ * Shared Storage API
+ * Storage Access API
  *
  * Required command line flags: --enable-features=BrowsingTopics,InterestGroupStorage,PrivacySandboxAdsAPIsOverride
- *
  * Documentation Permissions Policy: https://developers.google.com/privacy-sandbox/relevance/setup/web/permissions-policy
 */
 
@@ -109,6 +110,7 @@ let result = { // alphabetical order for organization
 }
 
 
+
 /**
  * @function checkResponseBody
  * Check if provided pattern or string is present in the response body of the request
@@ -162,6 +164,31 @@ async function fetchAndCheckResponse(url) {
 }
 
 
+
+/** 
+ * @function getDomain
+ * Get cannonical domain from URL for attestation check
+ * 
+ * @param {string} url - request URL to get domain from
+ */
+function getDomain(url) {
+  const hostname = new URL(url).hostname;
+  const parts = hostname.split('.');
+
+  // Second level labels with >150K requests in all.requests
+  const secondLevelLabels = ['com', 'co', 'edu', 'gov', 'org', 'ac', 'or', 'go', 'gob', 'net', 'ne', 'sch', 'in'];
+
+  if (parts.length <= 2) {
+    return hostname;
+  } else if (secondLevelLabels.includes(parts.at(-2))) {
+    return parts.slice(-3).join('.');
+  } else {
+    return parts.slice(-2).join('.');
+  }
+}
+
+
+
 /**
  * @function apiCallerAdd
  * Add provided caller API domain to results if not already present
@@ -173,6 +200,8 @@ function apiCallerAdd(domain) {
     result.apiCallersAttestation[domain] = null;
   }
 }
+
+
 
 /**
  * @function fetchAttestations
@@ -195,10 +224,13 @@ async function fetchAttestations() {
 }
 
 
+
 (async () => {
   for (const request of requests) {
     const url = new URL(request.url);
     const requestDomain = url.hostname; //hostname of API caller is supposed to be website enrolled too for attestation
+    const cannonicalRequestDomain = getDomain(url);
+    apiCallerAdd(cannonicalRequestDomain);
 
     let reqHeaders = new Map(Object.entries(request.request_headers).map(([key, value]) => [key.toLowerCase(), value]));
     let respHeaders = new Map(Object.entries(request.response_headers).map(([key, value]) => [key.toLowerCase(), value]));
@@ -215,11 +247,10 @@ async function fetchAttestations() {
      * https://developer.mozilla.org/en-US/docs/Web/API/Attribution_Reporting_API
      **************************************************************************/
 
-
     // Checking if the request header includes 'Attribution-Reporting-Eligible' to initiate the registration of source or trigger
     if (reqHeaders.has('attribution-reporting-eligible')) {
       result['attributionReportingAPI']['attributionReportingEligibleHeader']['sentTo'].push(requestDomain);
-      apiCallerAdd(requestDomain);
+      
     }
 
     // Checking if the response header includes
@@ -236,10 +267,8 @@ async function fetchAttestations() {
         result['attributionReportingAPI']['completedRegistrations']['AttributionReportingRegisterSourceHeader'][requestDomain] = [];
       }
       result['attributionReportingAPI']['completedRegistrations']['AttributionReportingRegisterSourceHeader'][requestDomain].push({ "destination": destination, "eventEpsilon": event_level_epsilon });
-      apiCallerAdd(requestDomain);
     } else if (respHeaders.has('attribution-reporting-register-trigger')) {
       result['attributionReportingAPI']['completedRegistrations']['AttributionReportingRegisterTriggerHeader'].push(requestDomain);
-      apiCallerAdd(requestDomain);
     }
 
     /***************************************************************************
@@ -251,22 +280,18 @@ async function fetchAttestations() {
     if (checkResponseBody(request, 'navigator.credentials.get\(')) {
       // [javascript] 'navigator.credentials.get(options)'
       result['federatedCredentialsManager']['get'].push(requestDomain);
-      apiCallerAdd(requestDomain);
     }
     if (checkResponseBody(request, 'IdentityProvider.getUserInfo\(')) {
       // [javascript] 'IdentityProvider.getUserInfo(config)'
       result['federatedCredentialsManager']['getUserInfo'].push(requestDomain);
-      apiCallerAdd(requestDomain);
     }
     if (checkResponseBody(request, 'IdentityProvider.close\(\s*\)')) {
       // [javascript] 'IdentityProvider.close()'
       result['federatedCredentialsManager']['close'].push(requestDomain);
-      apiCallerAdd(requestDomain);
     }
     if (checkResponseBody(request, 'navigator.login.setStatus\(')) {
       // [javascript] 'navigator.login.setStatus(status)'
       result['federatedCredentialsManager']['setStatus'].push(requestDomain);
-      apiCallerAdd(requestDomain);
     }
 
     /***************************************************************************
@@ -278,12 +303,10 @@ async function fetchAttestations() {
     if (checkResponseBody(request, 'document.createElement\("fencedframe"\)')) {
       // [javascript] 'document.createElement("fencedframe");'
       result['fencedFrame']['fencedFrameJs'].push(requestDomain);
-      apiCallerAdd(requestDomain);
     }
     if (checkResponseBody(request, 'setSharedStorageContext\(')) {
       // [javascript] 'FencedFrameConfig.setSharedStorageContext(context)'
       result['fencedFrame']['setSharedStorageContext'].push(requestDomain);
-      apiCallerAdd(requestDomain);
     }
 
     if (reqHeaders.has('sec-fetch-dest') && reqHeaders.get('sec-fetch-dest') === "fencedframe") {
@@ -292,28 +315,23 @@ async function fetchAttestations() {
         // [response header] 'Supports-Loading-Mode: fenced-frame' for document
         // to be loaded in fencedframe
         result['fencedFrame']['fencedFrameHeader'].push(requestDomain);
-        apiCallerAdd(requestDomain);
       }
     }
 
     if (checkResponseBody(request, 'window.fence.getNestedConfigs\(\s*\)')) {
       // [javascript] 'window.fence.getNestedConfigs()'
       result['fencedFrame']['getNestedConfigs'].push(requestDomain);
-      apiCallerAdd(requestDomain);
     }
 
     if (checkResponseBody(request, 'window.fence.reportEvent\(')) {
       // [javascript] 'window.fence.reportEvent(event)'
       result['fencedFrame']['reportEvent'].push(requestDomain);
-      apiCallerAdd(requestDomain);
     }
 
     if (checkResponseBody(request, 'window.fence.setReportEventDataForAutomaticBeacons\(')) {
       // [javascript] 'window.fence.setReportEventDataForAutomaticBeacons(event)'
       result['fencedFrame']['setReportEventDataForAutomaticBeacons'].push(requestDomain);
-      apiCallerAdd(requestDomain);
     }
-
 
     /***************************************************************************
      * FLoC (deprecated - are some still calling it?))
@@ -323,7 +341,6 @@ async function fetchAttestations() {
     if (checkResponseBody(request, 'document.interestCohort\(\s*\)')) {
       // [javascript] 'document.interestCohort()'
       result['floc']['interestCohort'].push(requestDomain);
-      apiCallerAdd(requestDomain);
     }
 
     /***************************************************************************
@@ -335,17 +352,14 @@ async function fetchAttestations() {
     if (checkResponseBody(request, 'privateAggregation.contributeToHistogram\(')) {
       // [javascript] 'privateAggregation.contributeToHistogram({ bucket: <bucket>, value: <value> })'
       result['privateAggregation']['contributeToHistogram'].push(requestDomain);
-      apiCallerAdd(requestDomain);
     }
     if (checkResponseBody(request, 'privateAggregation.contributeToHistogramOnEvent\(')) {
       // [javascript] 'privateAggregation.reportContributionForEvent(eventType, contribution)'
       result['privateAggregation']['contributeToHistogramOnEvent'].push(requestDomain);
-      apiCallerAdd(requestDomain);
     }
     if (checkResponseBody(request, 'privateAggregation.enableDebugMode\(')) {
       // [javascript] 'privateAggregation.enableDebugMode({ <debugKey: debugKey> })'
       result['privateAggregation']['enableDebugMode'].push(requestDomain);
-      apiCallerAdd(requestDomain);
     }
 
     /***************************************************************************
@@ -359,23 +373,19 @@ async function fetchAttestations() {
     if (checkResponseBody(request, 'document.hasPrivateToken\(')) {
       // [javascript] 'document.hasPrivateToken(<issuer>>)'
       result['privateStateTokens']['hasPrivateToken'].push(requestDomain);
-      apiCallerAdd(requestDomain);
     }
 
     if (checkResponseBody(request, 'document.hasRedemptionRecord\(')) {
       // [javascript] 'document.hasRedemptionRecord(<issuer>>)'
       result['privateStateTokens']['hasRedemptionRecord'].push(requestDomain);
-      apiCallerAdd(requestDomain);
     }
     if (reqHeaders.has('sec-private-state-token')) {
       // [header] 'Sec-Private-State-Token'
       result['privateStateTokens']['Sec-Private-State-Token'].push(requestDomain);
-      apiCallerAdd(requestDomain);
     }
     if (reqHeaders.has('sec-redemption-record')) {
       // [header] 'Sec-Redemption-Record'
       result['privateStateTokens']['Sec-Redemption-Record'].push(requestDomain);
-      apiCallerAdd(requestDomain);
     }
 
     /***************************************************************************
@@ -391,39 +401,30 @@ async function fetchAttestations() {
 
     if (checkResponseBody(request, 'joinAdInterestGroup', false)) {
       result['protectedAudienceAPI']['interestGroups']['joinAdInterestGroup'].push(requestDomain);
-      apiCallerAdd(requestDomain);
     }
     if (checkResponseBody(request, 'leaveAdInterestGroup', false)) {
       result['protectedAudienceAPI']['interestGroups']['leaveAdInterestGroup'].push(requestDomain);
-      apiCallerAdd(requestDomain);
     }
     if (checkResponseBody(request, 'updateAdInterestGroups', false)) {
       result['protectedAudienceAPI']['interestGroups']['updateAdInterestGroups'].push(requestDomain);
-      apiCallerAdd(requestDomain);
     }
     if (checkResponseBody(request, 'clearOriginJoinedAdInterestGroups', false)) {
       result['protectedAudienceAPI']['interestGroups']['clearOriginJoinedAdInterestGroups'].push(requestDomain);
-      apiCallerAdd(requestDomain);
     }
     if (checkResponseBody(request, 'runAdAuction', false)) {
       result['protectedAudienceAPI']['runAdAuction'].push(requestDomain);
-      apiCallerAdd(requestDomain);
     }
     if (checkResponseBody(request, 'generateBid', false)) {
       result['protectedAudienceAPI']['generateBid'].push(requestDomain);
-      apiCallerAdd(requestDomain);
     }
     if (checkResponseBody(request, 'scoreAd', false)) {
       result['protectedAudienceAPI']['scoreAd'].push(requestDomain);
-      apiCallerAdd(requestDomain);
     }
     if (checkResponseBody(request, 'reportWin', false)) {
       result['protectedAudienceAPI']['reportWin'].push(requestDomain);
-      apiCallerAdd(requestDomain);
     }
     if (checkResponseBody(request, 'reportResult', false) || request.response_body.includes('sendReportTo', false)) {
       result['protectedAudienceAPI']['reportResult'].push(requestDomain);
-      apiCallerAdd(requestDomain);
     }
 
     /***************************************************************************
@@ -437,40 +438,33 @@ async function fetchAttestations() {
     if (checkResponseBody(request, 'window.sharedStorage.append\(')) {
       // [javascript] window.sharedStorage.append(key, value)
       result['sharedStorage']['append'].push(requestDomain);
-      apiCallerAdd(requestDomain);
     }
     if (checkResponseBody(request, 'window.sharedStorage.clear\(\s*\)')) {
       // [javascript] window.sharedStorage.clear()
       result['sharedStorage']['clear'].push(requestDomain);
-      apiCallerAdd(requestDomain);
     }
     if (checkResponseBody(request, 'window.sharedStorage.delete\(')) {
       // [javascript] window.sharedStorage.delete(key)
       result['sharedStorage']['delete'].push(requestDomain);
-      apiCallerAdd(requestDomain);
     }
     if (checkResponseBody(request, 'window.sharedStorage.set\(')) {
       // [javascript] window.sharedStorage.set(key, value, options)
       result['sharedStorage']['set'].push(requestDomain);
-      apiCallerAdd(requestDomain);
     }
 
     // WindowSharedStorage
     if (checkResponseBody(request, 'window.sharedStorage.run\(')) {
       // [javascript] window.sharedStorage.run(name, options)
       result['sharedStorage']['run'].push(requestDomain);
-      apiCallerAdd(requestDomain);
     }
     if (checkResponseBody(request, 'window.sharedStorage.selectURL\(')) {
       // [javascript] window.sharedStorage.run(name, urls, options)
       result['sharedStorage']['selectURL'].push(requestDomain);
-      apiCallerAdd(requestDomain);
     }
 
     if (checkResponseBody(request, 'window.sharedStorage.worklet.addModule\(')) {
       // [javascript] window.sharedStorage.worklet.addModule()
       result['sharedStorage']['addModule'].push(requestDomain);
-      apiCallerAdd(requestDomain);
     }
 
     /***************************************************************************
@@ -482,25 +476,21 @@ async function fetchAttestations() {
     if (checkResponseBody(request, 'document.hasStorageAccess\(\s*\)')) {
       // [javascript] document.hasStorageAccess()
       result['relatedWebsiteSet']['hasStorageAccess'].push(requestDomain);
-      apiCallerAdd(requestDomain);
     }
 
     if (checkResponseBody(request, 'document.hasUnpartitionedCookieAccess\(\s*\)')) {
       // [javascript] document.hasUnpartitionedCookieAccess()
       result['relatedWebsiteSet']['hasUnpartitionedCookieAccess'].push(requestDomain);
-      apiCallerAdd(requestDomain);
     }
 
     if (checkResponseBody(request, 'document.requestStorageAccess\(')) {
       // [javascript] document.requestStorageAccess(types: optional)
       result['relatedWebsiteSet']['requestStorageAccess'].push(requestDomain);
-      apiCallerAdd(requestDomain);
     }
 
     if (checkResponseBody(request, 'document.requestStorageAccessFor\(')) {
       // [javascript] document.requestStorageAccessFor(requestedOrigin)
       result['relatedWebsiteSet']['requestStorageAccessFor'].push(requestDomain);
-      apiCallerAdd(requestDomain);
     }
 
     /***************************************************************************
@@ -516,12 +506,10 @@ async function fetchAttestations() {
     if (checkResponseBody(request, 'document.browsingTopics\(\s*\)')) {
       // [javascript] 'document.browsingTopics()'
       result['topicsAPI']['browsingTopicsJs'].push({ "domain": requestDomain, "skipObservation": false });
-      apiCallerAdd(requestDomain);
     }
     if (checkResponseBody(request, 'document.browsingTopics\(\s*\{\s*skipObservation\s*:\s*true\s*\}\s*\)')) {
       // [javascript] 'document.browsingTopics({skipObservation:true})'
       result['topicsAPI']['browsingTopicsJs'].push({ "domain": requestDomain, "skipObservation": true });
-      apiCallerAdd(requestDomain);
     }
     if (checkResponseBody(request, '\{\s*browsingTopics\s*:\s*true\s*\}') || checkResponseBody(request, '\{\s*deprecatedBrowsingTopics\s*:\s*true\s*\}')) {
       // [fetch] '{browsingTopics: true}'
@@ -529,10 +517,8 @@ async function fetchAttestations() {
       if (respHeaders.has('observe-browsing-topics') && respHeaders.get('observe-browsing-topics') === "?1") {
         // [response header] 'Observe-Browsing-Topics: ?1' to include page in topics calculation
         result['topicsAPI']['browsingTopicsJs'].push({ "domain": requestDomain, "skipObservation": false });
-        apiCallerAdd(requestDomain);
       } else {
         result['topicsAPI']['browsingTopicsJs'].push({ "domain": requestDomain, "skipObservation": true });
-        apiCallerAdd(requestDomain);
       }
     }
 
@@ -541,13 +527,10 @@ async function fetchAttestations() {
       if (respHeaders.has('observe-browsing-topics') && respHeaders.get('observe-browsing-topics') === "?1") {
         // [response header] 'Observe-Browsing-Topics: ?1' to include page in topics calculation
         result['topicsAPI']['browsingTopicsHeader'].push({ "domain": requestDomain, "skipObservation": false });
-        apiCallerAdd(requestDomain);
       } else {
         result['topicsAPI']['browsingTopicsHeader'].push({ "domain": requestDomain, "skipObservation": true });
-        apiCallerAdd(requestDomain);
       }
     }
-
 
     /***************************************************************************
      * User Client Hints
@@ -555,21 +538,21 @@ async function fetchAttestations() {
      * Test site(s):
      **************************************************************************/
 
-    //Todo
-    // privacy chapter decided to implement in BQ
+    // TODO
+    // Privacy chapter decided to implement in BQ
 
   }
 
 
   // After going through all requests
-  // if "Attribution-Reporting-Eligible" request header is sent to more than one
-  // domains, set sentByBrowser to true
+  // if "Attribution-Reporting-Eligible" request header is sent to more than one domains, 
+  // then set sentByBrowser to true
   if (result['attributionReportingAPI']['attributionReportingEligibleHeader']['sentTo'].length > 0) {
     result['attributionReportingAPI']['attributionReportingEligibleHeader']['sentByBrowser'] = true;
   }
 
-  //fetch attestation files
-  //TODO: check that it actually returns something (figure out promise/async/await, etc.)
+  // Fetch attestation files
+  // TODO: check that it actually returns something (figure out promise/async/await, etc.)
   fetchAttestations();
 
 })();
