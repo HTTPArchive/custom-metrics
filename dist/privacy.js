@@ -321,7 +321,6 @@ return JSON.stringify({
       'geolocation.+watchPosition'
     ),
   },
-  
   /**
    * List of hostnames with CNAME record
    */
