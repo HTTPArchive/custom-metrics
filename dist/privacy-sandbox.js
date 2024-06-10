@@ -44,7 +44,7 @@ let result = { // alphabetical order for organization
   },
   'fedCM': [],
   'fencedFrames': [],
-  'floc': [],// (deprecated API: are some still calling it?)
+  'floc': [], // (deprecated API: are some still calling it?)
   'privateAggregation': [],
   'privateStateTokens': [], // (previously Trust Tokens)
   'protectedAudienceAPI': { // (previously FLEDGE)
@@ -63,10 +63,12 @@ let result = { // alphabetical order for organization
   'sharedStorage': [],
   'storageAccess': [],
   'topicsAPI': [],
-  'userAgentClientHints': [] // privacy chapter decided to implement in BQ, but it could be easier to do it here directly
+  'userAgentClientHints': [] // Privacy chapter decided to implement in BQ, but it could be easier to do it here directly
   // https://developer.chrome.com/docs/privacy-security/user-agent-client-hints#user-agent-response-and-request-headers
   // https://wicg.github.io/client-hints-infrastructure/#policy-controlled-features
 }
+
+
 
 /**
  * @function checkResponseBody
@@ -178,6 +180,25 @@ async function fetchAttestations() {
     const attestation = fetchAndCheckResponse(`${'https://' + domain}/.well-known/privacy-sandbox-attestations.json`);
     result.apiCallersAttestation[domain] = attestation;
   }
+}
+
+
+
+/**
+ * @function retainUniqueDomains
+ * Retains only unique domains in all lists in the result object
+ * 
+ * @param {obj} result - result object to check
+ */
+function retainUniqueDomains(obj) {
+  for (let key in obj) {
+    if (Array.isArray(obj[key])) {
+      obj[key] = [...new Set(obj[key])];
+    } else if (typeof obj[key] === 'object' && obj[key] !== null) {
+      obj[key] = retainUniqueDomains(obj[key]);
+    }
+  }
+  return obj;
 }
 
 
@@ -518,6 +539,9 @@ async function fetchAttestations() {
   if (result['attributionReportingAPI']['attributionReportingEligibleHeader']['sentTo'].length > 0) {
     result['attributionReportingAPI']['attributionReportingEligibleHeader']['sentByBrowser'] = true;
   }
+
+  // Retaining only unique domains in the results
+  result = retainUniqueDomains(result)
 
   // Fetch attestation files
   // TODO: check that it actually returns something (figure out promise/async/await, etc.)
