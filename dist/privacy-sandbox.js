@@ -10,6 +10,7 @@
  * Shared Storage API
  * Storage Access API
  * Topics API
+ * User Client Hints
  *
  * Required command line flags: --enable-features=BrowsingTopics,InterestGroupStorage,PrivacySandboxAdsAPIsOverride
  */
@@ -66,8 +67,6 @@ let result = { // alphabetical order for organization
   // https://developer.chrome.com/docs/privacy-security/user-agent-client-hints#user-agent-response-and-request-headers
   // https://wicg.github.io/client-hints-infrastructure/#policy-controlled-features
 }
-
-
 
 /**
  * @function checkResponseBody
@@ -514,7 +513,7 @@ async function fetchAttestations() {
 
 
   // After going through all requests
-  // if "Attribution-Reporting-Eligible" request header is sent to more than one domains, 
+  // if "Attribution-Reporting-Eligible" request header is sent to more than one domains,
   // then set sentByBrowser to true
   if (result['attributionReportingAPI']['attributionReportingEligibleHeader']['sentTo'].length > 0) {
     result['attributionReportingAPI']['attributionReportingEligibleHeader']['sentByBrowser'] = true;
