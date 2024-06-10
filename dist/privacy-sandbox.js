@@ -67,13 +67,6 @@ let result = { // alphabetical order for organization
     'reportWin': [],
     'reportResult': []
   },
-  'relatedWebsiteSet': {
-    'top-level-storage-access': document.featurePolicy.allowsFeature('top-level-storage-access'),
-    'hasStorageAccess': [],
-    'hasUnpartitionedCookieAccess': [],
-    'requestStorageAccess': [],
-    'requestStorageAccessFor': []
-  },
   'sharedStorage': {
     'shared-storage': document.featurePolicy.allowsFeature('shared-storage'),
     'shared-storage-select-url': document.featurePolicy.allowsFeature('shared-storage-select-url'),
@@ -89,6 +82,11 @@ let result = { // alphabetical order for organization
   },
   'storageAccess': {
     'storage-access': document.featurePolicy.allowsFeature('storage-access'),
+    'top-level-storage-access': document.featurePolicy.allowsFeature('top-level-storage-access'), //Related Website Set
+    'hasStorageAccess': [],
+    'hasUnpartitionedCookieAccess': [],
+    'requestStorageAccess': [],
+    'requestStorageAccessFor': []
   },
   'topicsAPI': {
     'browsing-topics': document.featurePolicy.allowsFeature('browsing-topics'),
@@ -341,37 +339,6 @@ async function fetchAttestations() {
       apiCallerAdd(requestDomain);
     }
 
-
-    /***************************************************************************
-     * Related Website Set
-     * Documentation: https://developer.mozilla.org/en-US/docs/Web/API/Storage_Access_API
-     * Test site(s):
-     **************************************************************************/
-
-    if (checkResponseBody(request, 'document.hasStorageAccess\(\s*\)')) {
-      // [javascript] document.hasStorageAccess()
-      result['relatedWebsiteSet']['hasStorageAccess'].push(requestDomain);
-      apiCallerAdd(requestDomain);
-    }
-
-    if (checkResponseBody(request, 'document.hasUnpartitionedCookieAccess\(\s*\)')) {
-      // [javascript] document.hasUnpartitionedCookieAccess()
-      result['relatedWebsiteSet']['hasUnpartitionedCookieAccess'].push(requestDomain);
-      apiCallerAdd(requestDomain);
-    }
-
-    if (checkResponseBody(request, 'document.requestStorageAccess\(')) {
-      // [javascript] document.requestStorageAccess(types: optional)
-      result['relatedWebsiteSet']['requestStorageAccess'].push(requestDomain);
-      apiCallerAdd(requestDomain);
-    }
-
-    if (checkResponseBody(request, 'document.requestStorageAccessFor\(')) {
-      // [javascript] document.requestStorageAccessFor(requestedOrigin)
-      result['relatedWebsiteSet']['requestStorageAccessFor'].push(requestDomain);
-      apiCallerAdd(requestDomain);
-    }
-
     /***************************************************************************
      * Shared Storage
      * Documentation: https://developer.mozilla.org/en-US/docs/Web/API/SharedStorage
@@ -421,11 +388,33 @@ async function fetchAttestations() {
 
     /***************************************************************************
      * Storage Access
-     * Documentation:
+     * Documentation: https://developer.mozilla.org/en-US/docs/Web/API/Storage_Access_API
      * Test site(s):
      **************************************************************************/
 
-    //Todo
+    if (checkResponseBody(request, 'document.hasStorageAccess\(\s*\)')) {
+      // [javascript] document.hasStorageAccess()
+      result['relatedWebsiteSet']['hasStorageAccess'].push(requestDomain);
+      apiCallerAdd(requestDomain);
+    }
+
+    if (checkResponseBody(request, 'document.hasUnpartitionedCookieAccess\(\s*\)')) {
+      // [javascript] document.hasUnpartitionedCookieAccess()
+      result['relatedWebsiteSet']['hasUnpartitionedCookieAccess'].push(requestDomain);
+      apiCallerAdd(requestDomain);
+    }
+
+    if (checkResponseBody(request, 'document.requestStorageAccess\(')) {
+      // [javascript] document.requestStorageAccess(types: optional)
+      result['relatedWebsiteSet']['requestStorageAccess'].push(requestDomain);
+      apiCallerAdd(requestDomain);
+    }
+
+    if (checkResponseBody(request, 'document.requestStorageAccessFor\(')) {
+      // [javascript] document.requestStorageAccessFor(requestedOrigin)
+      result['relatedWebsiteSet']['requestStorageAccessFor'].push(requestDomain);
+      apiCallerAdd(requestDomain);
+    }
 
     /***************************************************************************
      * Topics API
