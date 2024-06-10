@@ -10,7 +10,7 @@
  * Shared Storage API
  * Storage Access API
  * Topics API
- * User Client Hints
+ * User Client Hints API
  *
  * Required command line flags: --enable-features=BrowsingTopics,InterestGroupStorage,PrivacySandboxAdsAPIsOverride
  */
@@ -62,8 +62,8 @@ let result = { // alphabetical order for organization
   },
   'sharedStorage': [],
   'storageAccess': [],
-  'topicsAPI': [],
-  'userAgentClientHints': [] // Privacy chapter decided to implement in BQ, but it could be easier to do it here directly
+  'topics': [],
+  'userAgentClientHints': [] // privacy chapter decided to implement in BQ, but it could be easier to do it here directly
   // https://developer.chrome.com/docs/privacy-security/user-agent-client-hints#user-agent-response-and-request-headers
   // https://wicg.github.io/client-hints-infrastructure/#policy-controlled-features
 }
@@ -126,7 +126,9 @@ async function fetchAndCheckResponse(url) {
 
 /**
  * @function getDomain
- * Get cannonical domain from URL for attestation check
+ * Get canonical domain from URL for attestation check
+ * Note: it would be ideal for this to have access to the Public Suffix List
+ * Meanwhile this is a best-effort approach
  *
  * @param {string} url - request URL to get domain from
  */
@@ -207,8 +209,8 @@ function retainUniqueDomains(obj) {
   for (const request of requests) {
     const url = new URL(request.url);
     const requestDomain = url.hostname; //hostname of API caller is supposed to be website enrolled too for attestation
-    const cannonicalRequestDomain = getDomain(url);
-    apiCallerAdd(cannonicalRequestDomain);
+    const canonicalRequestDomain = getDomain(url);
+    apiCallerAdd(canonicalRequestDomain);
 
     let reqHeaders = new Map(Object.entries(request.request_headers).map(([key, value]) => [key.toLowerCase(), value]));
     let respHeaders = new Map(Object.entries(request.response_headers).map(([key, value]) => [key.toLowerCase(), value]));
@@ -491,20 +493,20 @@ function retainUniqueDomains(obj) {
 
     if (checkResponseBody(request, 'document.browsingTopics\(\s*\)')) {
       // [javascript] 'document.browsingTopics()'
-      result['topicsAPI'].push({ "domain": requestDomain, "api": 'browsingTopicsJs', "skipObservation": false });
+      result['topics'].push({ "domain": requestDomain, "api": 'browsingTopicsJs', "skipObservation": false });
     }
     if (checkResponseBody(request, 'document.browsingTopics\(\s*\{\s*skipObservation\s*:\s*true\s*\}\s*\)')) {
       // [javascript] 'document.browsingTopics({skipObservation:true})'
-      result['topicsAPI'].push({ "domain": requestDomain, "api": 'browsingTopicsJs', "skipObservation": true });
+      result['topics'].push({ "domain": requestDomain, "api": 'browsingTopicsJs', "skipObservation": true });
     }
     if (checkResponseBody(request, '\{\s*browsingTopics\s*:\s*true\s*\}') || checkResponseBody(request, '\{\s*deprecatedBrowsingTopics\s*:\s*true\s*\}')) {
       // [fetch] '{browsingTopics: true}'
       // [XHR] '{deprecatedBrowsingTopics: true}' (to be deprecated)
       if (respHeaders.has('observe-browsing-topics') && respHeaders.get('observe-browsing-topics') === "?1") {
         // [response header] 'Observe-Browsing-Topics: ?1' to include page in topics calculation
-        result['topicsAPI'].push({ "domain": requestDomain, "api": 'browsingTopicsJs', "skipObservation": false });
+        result['topics'].push({ "domain": requestDomain, "api": 'browsingTopicsJs', "skipObservation": false });
       } else {
-        result['topicsAPI'].push({ "domain": requestDomain, "api": 'browsingTopicsJs', "skipObservation": true });
+        result['topics'].push({ "domain": requestDomain, "api": 'browsingTopicsJs', "skipObservation": true });
       }
     }
 
@@ -512,9 +514,9 @@ function retainUniqueDomains(obj) {
       // [request header] 'Sec-Browsing-Topics: true'
       if (respHeaders.has('observe-browsing-topics') && respHeaders.get('observe-browsing-topics') === "?1") {
         // [response header] 'Observe-Browsing-Topics: ?1' to include page in topics calculation
-        result['topicsAPI'].push({ "domain": requestDomain, "api": 'browsingTopicsHeader', "skipObservation": false });
+        result['topics'].push({ "domain": requestDomain, "api": 'browsingTopicsHeader', "skipObservation": false });
       } else {
-        result['topicsAPI'].push({ "domain": requestDomain, "api": 'browsingTopicsHeader', "skipObservation": true });
+        result['topics'].push({ "domain": requestDomain, "api": 'browsingTopicsHeader', "skipObservation": true });
       }
     }
 
@@ -530,6 +532,11 @@ function retainUniqueDomains(obj) {
       // [javascript] 'navigator.userAgentData.getHighEntropyValues([])
       result['userAgentClientHints'].push({ "domain": requestDomain, "api": 'getHighEntropyValues' });
     }
+    //https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Accept-CH
+    if (respHeaders.has('accept-ch')) {
+      result['userAgentClientHints'].push({ "domain": requestDomain, "api": 'Accept-CH', "value": respHeaders.get('accept-ch') });
+    }
+
   }
 
 
