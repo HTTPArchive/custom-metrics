@@ -32,40 +32,17 @@ let result = { // alphabetical order for organization
     'storage-access': document.featurePolicy.allowsFeature('storage-access'),
     'top-level-storage-access': document.featurePolicy.allowsFeature('top-level-storage-access'),
   },
-  'attributionReportingAPI': {
-    'attributionReportingEligibleHeader': {
-      'sentByBrowser': false,
-      'sentTo': [],
-    },
-    'completedRegistrations': {
-      'AttributionReportingRegisterSourceHeader': {},
-      'AttributionReportingRegisterTriggerHeader': []
-    }
-  },
+  'attributionReportingAPI': [],
   'fedCM': [],
   'fencedFrames': [],
   'floc': [], // (deprecated API: are some still calling it?)
   'privateAggregation': [],
   'privateStateTokens': [], // (previously Trust Tokens)
-  'protectedAudienceAPI': { // (previously FLEDGE)
-    'interestGroups': {
-      'joinAdInterestGroup': [],
-      'leaveAdInterestGroup': [],
-      'updateAdInterestGroups': [],
-      'clearOriginJoinedAdInterestGroups': []
-    },
-    'runAdAuction': [],
-    'generateBid': [],
-    'scoreAd': [],
-    'reportWin': [],
-    'reportResult': []
-  },
+  'protectedAudienceAPI': [], // (previously FLEDGE)
   'sharedStorage': [],
   'storageAccess': [],
   'topics': [],
-  'userAgentClientHints': [] // privacy chapter decided to implement in BQ, but it could be easier to do it here directly
-  // https://developer.chrome.com/docs/privacy-security/user-agent-client-hints#user-agent-response-and-request-headers
-  // https://wicg.github.io/client-hints-infrastructure/#policy-controlled-features
+  'userAgentClientHints': []
 }
 
 
@@ -115,7 +92,7 @@ async function fetchAndCheckResponse(url) {
   setTimeout(() => controller.abort(), 5000);
 
   try {
-    const response = await fetch(url, { signal, mode: 'no-cors' });
+    const response = await fetch(url, { signal });
     return response ? true : false;
   } catch (error) {
     return false;
@@ -189,6 +166,7 @@ async function fetchAttestations() {
 /**
  * @function retainUniqueDomains
  * Retains only unique domains in all lists in the result object
+ * Deletes any key that is set to empty value
  *
  * @param {obj} result - result object to check
  */
@@ -196,8 +174,14 @@ function retainUniqueDomains(obj) {
   for (let key in obj) {
     if (Array.isArray(obj[key])) {
       obj[key] = [...new Set(obj[key])];
+      if (obj[key].length === 0) {
+        delete obj[key];
+      }
     } else if (typeof obj[key] === 'object' && obj[key] !== null) {
       obj[key] = retainUniqueDomains(obj[key]);
+      if (Object.keys(obj[key]).length === 0) {
+        delete obj[key];
+      }
     }
   }
   return obj;
@@ -208,7 +192,7 @@ function retainUniqueDomains(obj) {
 (async () => {
   for (const request of requests) {
     const url = new URL(request.url);
-    const requestDomain = url.hostname; //hostname of API caller is supposed to be website enrolled too for attestation
+    const requestDomain = url.hostname;
     const canonicalRequestDomain = getDomain(url);
     apiCallerAdd(canonicalRequestDomain);
 
@@ -229,25 +213,18 @@ function retainUniqueDomains(obj) {
 
     // Checking if the request header includes 'Attribution-Reporting-Eligible' to initiate the registration of source or trigger
     if (reqHeaders.has('attribution-reporting-eligible')) {
-      result['attributionReportingAPI']['attributionReportingEligibleHeader']['sentTo'].push(requestDomain);
+      result['attributionReportingAPI'].push({ "domain": requestDomain, "api": 'attribution-reporting-eligible' });
     }
 
-    // Checking if the response header includes
-    // 'Attribution-Reporting-Register-Source' or 'Attribution-Reporting-Register-Trigger'
-    // to complete registration of source or trigger
-    // Source registration happens on seller (e.g., publisher) website where impression is registered and
-    // Trigger registration happens on buyer (e.g., advertiser) website where conversion completes.
-    // Each entry in result['attributionReportingAPI']['completedRegistrations']['AttributionReportingRegisterSourceHeader']
-    // is represented as {requestDomain: {"destination": "", "eventEpsilon": 0}}
-    // Higher the epsilon, the more the privacy protection
+    // Source registration happens on seller (e.g., publisher) website where impression is registered
     if (respHeaders.has('attribution-reporting-register-source')) {
+      // Higher the epsilon, the more the privacy protection
       const { destination, event_level_epsilon } = JSON.parse(respHeaders.get('attribution-reporting-register-source'));
-      if (!result['attributionReportingAPI']['completedRegistrations']['AttributionReportingRegisterSourceHeader'][requestDomain]) {
-        result['attributionReportingAPI']['completedRegistrations']['AttributionReportingRegisterSourceHeader'][requestDomain] = [];
-      }
-      result['attributionReportingAPI']['completedRegistrations']['AttributionReportingRegisterSourceHeader'][requestDomain].push({ "destination": destination, "eventEpsilon": event_level_epsilon });
-    } else if (respHeaders.has('attribution-reporting-register-trigger')) {
-      result['attributionReportingAPI']['completedRegistrations']['AttributionReportingRegisterTriggerHeader'].push(requestDomain);
+      result['attributionReportingAPI'].push({ "domain": requestDomain, "api": 'attribution-reporting-register-source', "destination": destination, "eventEpsilon": event_level_epsilon });
+    }
+    // Trigger registration happens on buyer (e.g., advertiser) website where conversion completes
+    if (respHeaders.has('attribution-reporting-register-trigger')) {
+      result['attributionReportingAPI'].push({ "domain": requestDomain, "api": 'attribution-reporting-register-trigger' });
     }
 
     /***************************************************************************
@@ -385,31 +362,31 @@ function retainUniqueDomains(obj) {
      **************************************************************************/
 
     if (checkResponseBody(request, 'joinAdInterestGroup', false)) {
-      result['protectedAudienceAPI']['interestGroups']['joinAdInterestGroup'].push(requestDomain);
+      result['protectedAudienceAPI'].push({ "domain": requestDomain, "api": 'joinAdInterestGroup' });
     }
     if (checkResponseBody(request, 'leaveAdInterestGroup', false)) {
-      result['protectedAudienceAPI']['interestGroups']['leaveAdInterestGroup'].push(requestDomain);
+      result['protectedAudienceAPI'].push({ "domain": requestDomain, "api": 'leaveAdInterestGroup' });
     }
     if (checkResponseBody(request, 'updateAdInterestGroups', false)) {
-      result['protectedAudienceAPI']['interestGroups']['updateAdInterestGroups'].push(requestDomain);
+      result['protectedAudienceAPI'].push({ "domain": requestDomain, "api": 'updateAdInterestGroups' });
     }
     if (checkResponseBody(request, 'clearOriginJoinedAdInterestGroups', false)) {
-      result['protectedAudienceAPI']['interestGroups']['clearOriginJoinedAdInterestGroups'].push(requestDomain);
+      result['protectedAudienceAPI'].push({ "domain": requestDomain, "api": 'clearOriginJoinedAdInterestGroups' });
     }
     if (checkResponseBody(request, 'runAdAuction', false)) {
-      result['protectedAudienceAPI']['runAdAuction'].push(requestDomain);
+      result['protectedAudienceAPI'].push({ "domain": requestDomain, "api": 'runAdAuction' });
     }
     if (checkResponseBody(request, 'generateBid', false)) {
-      result['protectedAudienceAPI']['generateBid'].push(requestDomain);
+      result['protectedAudienceAPI'].push({ "domain": requestDomain, "api": 'generateBid' });
     }
     if (checkResponseBody(request, 'scoreAd', false)) {
-      result['protectedAudienceAPI']['scoreAd'].push(requestDomain);
+      result['protectedAudienceAPI'].push({ "domain": requestDomain, "api": 'scoreAd' });
     }
     if (checkResponseBody(request, 'reportWin', false)) {
-      result['protectedAudienceAPI']['reportWin'].push(requestDomain);
+      result['protectedAudienceAPI'].push({ "domain": requestDomain, "api": 'reportWin' });
     }
     if (checkResponseBody(request, 'reportResult', false) || request.response_body.includes('sendReportTo', false)) {
-      result['protectedAudienceAPI']['reportResult'].push(requestDomain);
+      result['protectedAudienceAPI'].push({ "domain": requestDomain, "api": 'reportResult' });
     }
 
     /***************************************************************************
@@ -523,6 +500,8 @@ function retainUniqueDomains(obj) {
     /***************************************************************************
      * User Client Hints
      * Documentation: https://developer.chrome.com/docs/privacy-security/user-agent-client-hints
+     * Header Usage: https://developer.chrome.com/docs/privacy-security/user-agent-client-hints#user-agent-response-and-request-headers
+     * Other Usage: https://wicg.github.io/client-hints-infrastructure/#policy-controlled-features
      * Test site(s):
      * - https://user-agent-client-hints.glitch.me/
      * - https://user-agent-client-hints.glitch.me/headers
@@ -532,19 +511,11 @@ function retainUniqueDomains(obj) {
       // [javascript] 'navigator.userAgentData.getHighEntropyValues([])
       result['userAgentClientHints'].push({ "domain": requestDomain, "api": 'getHighEntropyValues' });
     }
-    //https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Accept-CH
+    // https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Accept-CH
     if (respHeaders.has('accept-ch')) {
       result['userAgentClientHints'].push({ "domain": requestDomain, "api": 'Accept-CH', "value": respHeaders.get('accept-ch') });
     }
 
-  }
-
-
-  // After going through all requests
-  // if "Attribution-Reporting-Eligible" request header is sent to more than one domains,
-  // then set sentByBrowser to true
-  if (result['attributionReportingAPI']['attributionReportingEligibleHeader']['sentTo'].length > 0) {
-    result['attributionReportingAPI']['attributionReportingEligibleHeader']['sentByBrowser'] = true;
   }
 
   // Retaining only unique domains in the results
@@ -557,4 +528,3 @@ function retainUniqueDomains(obj) {
 })();
 
 return result;
-
