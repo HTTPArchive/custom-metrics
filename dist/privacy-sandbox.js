@@ -30,13 +30,19 @@ let result = { // alphabetical order for organization
     }
   },
   'federatedCredentialsManager': {
-    // navigator.recordFederatedLogin
+    'identity-credentials-get': document.featurePolicy.allowsFeature('identity-credentials-get'),
+    'get': [],
+    'getUserInfo': [],
+    'close': [],
+    'setStatus': [],
   },
   'fencedFrames': { // https://developers.google.com/privacy-sandbox/relevance/fenced-frame
-    // window.HTMLFencedFrameElement
-    // window.FencedFrameConfig
-    // FencedFrameConfig.setSharedStorageContext
-    // 'setSharedStorageContext': []
+    'fencedFrameJs': [],
+    'fencedFrameHeader': [],
+    'getNestedConfigs': [],
+    'reportEvent': [],
+    'setReportEventDataForAutomaticBeacons': [],
+    'setSharedStorageContext': []
   },
   'floc': {// (deprecated API: are some still calling it?)
     'interest-cohort': document.featurePolicy.allowsFeature('interest-cohort'),
@@ -235,20 +241,76 @@ async function fetchAttestations() {
 
     /***************************************************************************
      * Federated Credentials Manager
-     * Documentation:
+     * Documentation: https://developer.mozilla.org/en-US/docs/Web/API/FedCM_API
      * Test site(s):
      **************************************************************************/
 
-    //Todo
-
+    if (checkResponseBody(request, 'navigator.credentials.get\(')) {
+      // [javascript] 'navigator.credentials.get(options)'
+      result['federatedCredentialsManager']['get'].push(requestDomain);
+      apiCallerAdd(requestDomain);
+    }
+    if (checkResponseBody(request, 'IdentityProvider.getUserInfo\(')) {
+      // [javascript] 'IdentityProvider.getUserInfo(config)'
+      result['federatedCredentialsManager']['getUserInfo'].push(requestDomain);
+      apiCallerAdd(requestDomain);
+    }
+    if (checkResponseBody(request, 'IdentityProvider.close\(\s*\)')) {
+      // [javascript] 'IdentityProvider.close()'
+      result['federatedCredentialsManager']['close'].push(requestDomain);
+      apiCallerAdd(requestDomain);
+    }
+    if (checkResponseBody(request, 'navigator.login.setStatus\(')) {
+      // [javascript] 'navigator.login.setStatus(status)'
+      result['federatedCredentialsManager']['setStatus'].push(requestDomain);
+      apiCallerAdd(requestDomain);
+    }
 
     /***************************************************************************
      * Fenced Frames
-     * Documentation:
+     * Documentation: https://developer.mozilla.org/en-US/docs/Web/API/Fenced_frame_API
      * Test site(s):
      **************************************************************************/
 
-    //Todo
+    if (checkResponseBody(request, 'document.createElement\("fencedframe"\)')) {
+      // [javascript] 'document.createElement("fencedframe");'
+      result['fencedFrame']['fencedFrameJs'].push(requestDomain);
+      apiCallerAdd(requestDomain);
+    }
+    if (checkResponseBody(request, 'setSharedStorageContext\(')) {
+      // [javascript] 'FencedFrameConfig.setSharedStorageContext(context)'
+      result['fencedFrame']['setSharedStorageContext'].push(requestDomain);
+      apiCallerAdd(requestDomain);
+    }
+
+    if (reqHeaders.has('sec-fetch-dest') && reqHeaders.get('sec-fetch-dest') === "fencedframe") {
+      // [request header] 'Sec-Fetch-Dest: fencedframe'
+      if (respHeaders.has('supports-loading-mode') && respHeaders.get('supports-loading-mode') === "fenced-frame") {
+        // [response header] 'Supports-Loading-Mode: fenced-frame' for document
+        // to be loaded in fencedframe
+        result['fencedFrame']['fencedFrameHeader'].push(requestDomain);
+        apiCallerAdd(requestDomain);
+      }
+    }
+
+    if (checkResponseBody(request, 'window.fence.getNestedConfigs\(\s*\)')) {
+      // [javascript] 'window.fence.getNestedConfigs()'
+      result['fencedFrame']['getNestedConfigs'].push(requestDomain);
+      apiCallerAdd(requestDomain);
+    }
+
+    if (checkResponseBody(request, 'window.fence.reportEvent\(')) {
+      // [javascript] 'window.fence.reportEvent(event)'
+      result['fencedFrame']['reportEvent'].push(requestDomain);
+      apiCallerAdd(requestDomain);
+    }
+
+    if (checkResponseBody(request, 'window.fence.setReportEventDataForAutomaticBeacons\(')) {
+      // [javascript] 'window.fence.setReportEventDataForAutomaticBeacons(event)'
+      result['fencedFrame']['setReportEventDataForAutomaticBeacons'].push(requestDomain);
+      apiCallerAdd(requestDomain);
+    }
+
 
     /***************************************************************************
      * FLoC (deprecated - are some still calling it?))
