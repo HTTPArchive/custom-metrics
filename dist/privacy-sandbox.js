@@ -36,6 +36,7 @@ let result = { // alphabetical order for organization
     // window.HTMLFencedFrameElement
     // window.FencedFrameConfig
     // FencedFrameConfig.setSharedStorageContext
+    // 'setSharedStorageContext': []
   },
   'floc': {// (deprecated API: are some still calling it?)
     'interest-cohort': document.featurePolicy.allowsFeature('interest-cohort'),
@@ -43,9 +44,11 @@ let result = { // alphabetical order for organization
   },
   'privateAggregation': {
     'private-aggregation': document.featurePolicy.allowsFeature('private-aggregation'),
+    'contributeToHistogram': [],
+    'contributeToHistogramOnEvent': [],
+    'enableDebugMode': []
   },
   'privateStateTokens': {// (previously Trust Tokens)
-    'accessJs': []
     // document.hasTrustToken
     // document.hasRedemptionRecord
   },
@@ -66,14 +69,23 @@ let result = { // alphabetical order for organization
   },
   'relatedWebsiteSet': {
     'top-level-storage-access': document.featurePolicy.allowsFeature('top-level-storage-access'),
-    // document.hasStorageAccess
-    // document.requestStorageAccess
-    // document.requestStorageAccessFor
+    'hasStorageAccess': [],
+    'hasUnpartitionedCookieAccess': [],
+    'requestStorageAccess': [],
+    'requestStorageAccessFor': []
   },
   'sharedStorage': {
     'shared-storage': document.featurePolicy.allowsFeature('shared-storage'),
     'shared-storage-select-url': document.featurePolicy.allowsFeature('shared-storage-select-url'),
-    //window.sharedStorage
+    'append': [],
+    'clear': [],
+    'delete': [],
+    'set': [],
+    'run': [],
+    'selectURL': [],
+    'addModule': [],
+    // worklet methods discarded as we will catch who create such worklet by
+    // detecting addMoudle, run, etc.
   },
   'storageAccess': {
     'storage-access': document.featurePolicy.allowsFeature('storage-access'),
@@ -83,10 +95,10 @@ let result = { // alphabetical order for organization
     'browsingTopicsJs': [],
     'browsingTopicsHeader': [],
   },
-  'userAgentClientHints': {
-    // https://developer.chrome.com/docs/privacy-security/user-agent-client-hints#user-agent-response-and-request-headers
-    // https://wicg.github.io/client-hints-infrastructure/#policy-controlled-features
-  },
+  // 'userAgentClientHints': { // privacy chapter decided to implement in BQ
+  // https://developer.chrome.com/docs/privacy-security/user-agent-client-hints#user-agent-response-and-request-headers
+  // https://wicg.github.io/client-hints-infrastructure/#policy-controlled-features
+  // },
 }
 
 
@@ -253,11 +265,25 @@ async function fetchAttestations() {
 
     /***************************************************************************
      * Private Aggregation
-     * Documentation:
-     * Test site(s):
+     * Documentation: https://developers.google.com/privacy-sandbox/relevance/private-aggregation
+     * Test site(s): see https://shared-storage-demo.web.app/
      **************************************************************************/
 
-    //Todo
+    if (checkResponseBody(request, 'privateAggregation.contributeToHistogram\(')) {
+      // [javascript] 'privateAggregation.contributeToHistogram({ bucket: <bucket>, value: <value> })'
+      result['privateAggregation']['contributeToHistogram'].push(requestDomain);
+      apiCallerAdd(requestDomain);
+    }
+    if (checkResponseBody(request, 'privateAggregation.contributeToHistogramOnEvent\(')) {
+      // [javascript] 'privateAggregation.reportContributionForEvent(eventType, contribution)'
+      result['privateAggregation']['contributeToHistogramOnEvent'].push(requestDomain);
+      apiCallerAdd(requestDomain);
+    }
+    if (checkResponseBody(request, 'privateAggregation.enableDebugMode\(')) {
+      // [javascript] 'privateAggregation.enableDebugMode({ <debugKey: debugKey> })'
+      result['privateAggregation']['enableDebugMode'].push(requestDomain);
+      apiCallerAdd(requestDomain);
+    }
 
     /***************************************************************************
      * Private State Tokens
@@ -318,19 +344,80 @@ async function fetchAttestations() {
 
     /***************************************************************************
      * Related Website Set
-     * Documentation:
+     * Documentation: https://developer.mozilla.org/en-US/docs/Web/API/Storage_Access_API
      * Test site(s):
      **************************************************************************/
 
-    //Todo
+    if (checkResponseBody(request, 'document.hasStorageAccess\(\s*\)')) {
+      // [javascript] document.hasStorageAccess()
+      result['relatedWebsiteSet']['hasStorageAccess'].push(requestDomain);
+      apiCallerAdd(requestDomain);
+    }
+
+    if (checkResponseBody(request, 'document.hasUnpartitionedCookieAccess\(\s*\)')) {
+      // [javascript] document.hasUnpartitionedCookieAccess()
+      result['relatedWebsiteSet']['hasUnpartitionedCookieAccess'].push(requestDomain);
+      apiCallerAdd(requestDomain);
+    }
+
+    if (checkResponseBody(request, 'document.requestStorageAccess\(')) {
+      // [javascript] document.requestStorageAccess(types: optional)
+      result['relatedWebsiteSet']['requestStorageAccess'].push(requestDomain);
+      apiCallerAdd(requestDomain);
+    }
+
+    if (checkResponseBody(request, 'document.requestStorageAccessFor\(')) {
+      // [javascript] document.requestStorageAccessFor(requestedOrigin)
+      result['relatedWebsiteSet']['requestStorageAccessFor'].push(requestDomain);
+      apiCallerAdd(requestDomain);
+    }
 
     /***************************************************************************
      * Shared Storage
-     * Documentation:
+     * Documentation: https://developer.mozilla.org/en-US/docs/Web/API/SharedStorage
      * Test site(s):
+     * - https://shared-storage-demo.web.app/
+     *
      **************************************************************************/
+    // SharedStorage
+    if (checkResponseBody(request, 'window.sharedStorage.append\(')) {
+      // [javascript] window.sharedStorage.append(key, value)
+      result['sharedStorage']['append'].push(requestDomain);
+      apiCallerAdd(requestDomain);
+    }
+    if (checkResponseBody(request, 'window.sharedStorage.clear\(\s*\)')) {
+      // [javascript] window.sharedStorage.clear()
+      result['sharedStorage']['clear'].push(requestDomain);
+      apiCallerAdd(requestDomain);
+    }
+    if (checkResponseBody(request, 'window.sharedStorage.delete\(')) {
+      // [javascript] window.sharedStorage.delete(key)
+      result['sharedStorage']['delete'].push(requestDomain);
+      apiCallerAdd(requestDomain);
+    }
+    if (checkResponseBody(request, 'window.sharedStorage.set\(')) {
+      // [javascript] window.sharedStorage.set(key, value, options)
+      result['sharedStorage']['set'].push(requestDomain);
+      apiCallerAdd(requestDomain);
+    }
 
-    //Todo
+    // WindowSharedStorage
+    if (checkResponseBody(request, 'window.sharedStorage.run\(')) {
+      // [javascript] window.sharedStorage.run(name, options)
+      result['sharedStorage']['run'].push(requestDomain);
+      apiCallerAdd(requestDomain);
+    }
+    if (checkResponseBody(request, 'window.sharedStorage.selectURL\(')) {
+      // [javascript] window.sharedStorage.run(name, urls, options)
+      result['sharedStorage']['selectURL'].push(requestDomain);
+      apiCallerAdd(requestDomain);
+    }
+
+    if (checkResponseBody(request, 'window.sharedStorage.worklet.addModule\(')) {
+      // [javascript] window.sharedStorage.worklet.addModule()
+      result['sharedStorage']['addModule'].push(requestDomain);
+      apiCallerAdd(requestDomain);
+    }
 
     /***************************************************************************
      * Storage Access
@@ -393,6 +480,7 @@ async function fetchAttestations() {
      **************************************************************************/
 
     //Todo
+    // privacy chapter decided to implement in BQ
 
   }
 
