@@ -10,24 +10,49 @@ To add a new custom metric to HTTP Archive:
 
 1. For scripts that return a JSON object, the key should be named according to what it's measuring, for example `meta-nodes` returns an array of all `<meta>` nodes and their attributes:
 
-```js
-return JSON.stringify({
-  'meta-nodes': (() => {
-    // Returns a JSON array of meta nodes and their key/value attributes.
-    var nodes = document.querySelectorAll('head meta');
-    var metaNodes = parseNodes(nodes);
+    ```js
+    return JSON.stringify({
+      'meta-nodes': (() => {
+        // Returns a JSON array of meta nodes and their key/value attributes.
+        var nodes = document.querySelectorAll('head meta');
+        var metaNodes = parseNodes(nodes);
 
-    return metaNodes;
-  })(),
+        return metaNodes;
+      })(),
 
-  //  check if there is any picture tag containing an img tag
-  'has_picture_img': document.querySelectorAll('picture img').length > 0
-});
-```
+      //  check if there is any picture tag containing an img tag
+      'has_picture_img': document.querySelectorAll('picture img').length > 0
+    });
+    ```
 
 2. Test your changes on WPT using the workflow below.
 
 3. Submit a pull request. Include one or more links to test results in your PR description to verify that the script is working.
+
+## Custom WPT data objects
+
+The following objects are available for use in custom metrics:
+
+- `$WPT_REQUESTS` - All request data except for bodies (significantly smaller)
+- `$WPT_BODIES` - All request data including bodies in the "response_body" entry
+- `$WPT_ACCESSIBILITY_TREE` - Array of the nodes of the Chromium Accessibility tree (with the DOM node info recorded in node_info for each node in the array)
+- `$WPT_COOKIES` - Array of cookies set by the page
+- `$WPT_DNS` - Array of DNS records for the page
+
+More details can be found in the [WPT custom metrics documentation](https://docs.webpagetest.org/custom-metrics/).
+
+You can explore them by running WPT with the following custom metric:
+
+```js
+[custom_wpt_objects]
+return {
+  requests: $WPT_REQUESTS,
+  bodies: $WPT_BODIES,
+  accessibility: $WPT_ACCESSIBILITY_TREE,
+  cookies: $WPT_COOKIES,
+  dns: $WPT_DNS
+};
+```
 
 ## Testing
 
