@@ -189,7 +189,7 @@ async function fetchAttestations() {
 /**
  * @function retainUniqueDomains
  * Retains only unique domains in all lists in the result object
- * 
+ *
  * @param {obj} result - result object to check
  */
 function retainUniqueDomains(obj) {
