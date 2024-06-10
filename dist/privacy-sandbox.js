@@ -55,8 +55,11 @@ let result = { // alphabetical order for organization
     'enableDebugMode': []
   },
   'privateStateTokens': {// (previously Trust Tokens)
-    // document.hasTrustToken
-    // document.hasRedemptionRecord
+    'hasPrivateToken': [],
+    'hasRedemptionRecord': [],
+    'Sec-Private-State-Token': [],
+    'Sec-Redemption-Record': []
+    //other headers discarded as they only *may* be included (to pass more metadata)
   },
   'protectedAudienceAPI': { // (previously FLEDGE)
     'join-ad-interest-group': document.featurePolicy.allowsFeature('join-ad-interest-group'),
@@ -347,11 +350,33 @@ async function fetchAttestations() {
 
     /***************************************************************************
      * Private State Tokens
-     * Documentation:
+     * Documentation: https://github.com/WICG/trust-token-api/blob/main/README.md
      * Test site(s):
+     * - https://private-state-token-redeemer.glitch.me/
+     * - https://private-state-token-issuer.glitch.me/
      **************************************************************************/
 
-    //Todo
+    if (checkResponseBody(request, 'document.hasPrivateToken\(')) {
+      // [javascript] 'document.hasPrivateToken(<issuer>>)'
+      result['privateStateTokens']['hasPrivateToken'].push(requestDomain);
+      apiCallerAdd(requestDomain);
+    }
+
+    if (checkResponseBody(request, 'document.hasRedemptionRecord\(')) {
+      // [javascript] 'document.hasRedemptionRecord(<issuer>>)'
+      result['privateStateTokens']['hasRedemptionRecord'].push(requestDomain);
+      apiCallerAdd(requestDomain);
+    }
+    if (reqHeaders.has('sec-private-state-token')) {
+      // [header] 'Sec-Private-State-Token'
+      result['privateStateTokens']['Sec-Private-State-Token'].push(requestDomain);
+      apiCallerAdd(requestDomain);
+    }
+    if (reqHeaders.has('sec-redemption-record')) {
+      // [header] 'Sec-Redemption-Record'
+      result['privateStateTokens']['Sec-Redemption-Record'].push(requestDomain);
+      apiCallerAdd(requestDomain);
+    }
 
     /***************************************************************************
      * Protected Audience API (previously FLEDGE)
