@@ -17,7 +17,7 @@
 let requests = $WPT_BODIES;
 
 let result = { // alphabetical order for organization
-  apiCallersAttestation: {}, // object {origin (string): true/false} Note: true does not especially mean that attestation file is valid (need to check if JSON, compliant with JSON schema, etc.)
+  apiCallersAttestation: {}, // object {domain (string): true/false} Note: true does not especially mean that attestation file is valid (need to check if JSON, compliant with JSON schema, etc.)
   'attributionReportingAPI': {
     'attribution-reporting': document.featurePolicy.allowsFeature('attribution-reporting'),
     'attributionReportingEligibleHeader': {
@@ -157,13 +157,13 @@ async function fetchAndCheckResponse(url) {
 
 /**
  * @function apiCallerAdd
- * Add provided caller API origin to results if not already present
+ * Add provided caller API domain to results if not already present
  *
- * @param {string} origin - API caller origin
+ * @param {string} domain - API caller domain
  */
-function apiCallerAdd(origin) {
-  if (!(origin in result.apiCallersAttestation)) {
-    result.apiCallersAttestation[origin] = null;
+function apiCallerAdd(domain) {
+  if (!(domain in result.apiCallersAttestation)) {
+    result.apiCallersAttestation[domain] = null;
   }
 }
 
@@ -171,19 +171,19 @@ function apiCallerAdd(origin) {
  * @function fetchAttestations
  * Check attestation file and set value to true if there is a request
  * response (note: does not especially mean that attestation file is valid)
- * Attestation is supposed to be under same https://origin than API caller, no redirect
+ * Attestation is supposed to be under same https://domain than API caller, no redirect
  * https://github.com/privacysandbox/attestation
  * only required for attribution reporting, topics, protected audience, shared
  * storage, and private aggregation APIs so far
  * we check anyway if response returned for any caller of any API we detect (if
  * they call 1 API they are likely to call others too and so have that file published)
  *
- * @param {string} origin - API caller origin
+ * @param {string} domain - API caller domain
  */
 async function fetchAttestations() {
-  for (const [origin, _] of Object.entries(result.apiCallersAttestation)) {
-    const attestation = fetchAndCheckResponse(`${'https://' + origin}/.well-known/privacy-sandbox-attestations.json`);
-    result.apiCallersAttestation[origin] = attestation;
+  for (const [domain, _] of Object.entries(result.apiCallersAttestation)) {
+    const attestation = fetchAndCheckResponse(`${'https://' + domain}/.well-known/privacy-sandbox-attestations.json`);
+    result.apiCallersAttestation[domain] = attestation;
   }
 }
 
@@ -439,12 +439,12 @@ async function fetchAttestations() {
 
     if (checkResponseBody(request, 'document.browsingTopics\(\s*\)')) {
       // [javascript] 'document.browsingTopics()'
-      result['topicsAPI']['browsingTopicsJs'].push({ "origin": requestDomain, "skipObservation": false });
+      result['topicsAPI']['browsingTopicsJs'].push({ "domain": requestDomain, "skipObservation": false });
       apiCallerAdd(requestDomain);
     }
     if (checkResponseBody(request, 'document.browsingTopics\(\s*\{\s*skipObservation\s*:\s*true\s*\}\s*\)')) {
       // [javascript] 'document.browsingTopics({skipObservation:true})'
-      result['topicsAPI']['browsingTopicsJs'].push({ "origin": requestDomain, "skipObservation": true });
+      result['topicsAPI']['browsingTopicsJs'].push({ "domain": requestDomain, "skipObservation": true });
       apiCallerAdd(requestDomain);
     }
     if (checkResponseBody(request, '\{\s*browsingTopics\s*:\s*true\s*\}') || checkResponseBody(request, '\{\s*deprecatedBrowsingTopics\s*:\s*true\s*\}')) {
@@ -452,10 +452,10 @@ async function fetchAttestations() {
       // [XHR] '{deprecatedBrowsingTopics: true}' (to be deprecated)
       if (respHeaders.has('observe-browsing-topics') && respHeaders.get('observe-browsing-topics') === "?1") {
         // [response header] 'Observe-Browsing-Topics: ?1' to include page in topics calculation
-        result['topicsAPI']['browsingTopicsJs'].push({ "origin": requestDomain, "skipObservation": false });
+        result['topicsAPI']['browsingTopicsJs'].push({ "domain": requestDomain, "skipObservation": false });
         apiCallerAdd(requestDomain);
       } else {
-        result['topicsAPI']['browsingTopicsJs'].push({ "origin": requestDomain, "skipObservation": true });
+        result['topicsAPI']['browsingTopicsJs'].push({ "domain": requestDomain, "skipObservation": true });
         apiCallerAdd(requestDomain);
       }
     }
@@ -464,10 +464,10 @@ async function fetchAttestations() {
       // [request header] 'Sec-Browsing-Topics: true'
       if (respHeaders.has('observe-browsing-topics') && respHeaders.get('observe-browsing-topics') === "?1") {
         // [response header] 'Observe-Browsing-Topics: ?1' to include page in topics calculation
-        result['topicsAPI']['browsingTopicsHeader'].push({ "origin": requestDomain, "skipObservation": false });
+        result['topicsAPI']['browsingTopicsHeader'].push({ "domain": requestDomain, "skipObservation": false });
         apiCallerAdd(requestDomain);
       } else {
-        result['topicsAPI']['browsingTopicsHeader'].push({ "origin": requestDomain, "skipObservation": true });
+        result['topicsAPI']['browsingTopicsHeader'].push({ "domain": requestDomain, "skipObservation": true });
         apiCallerAdd(requestDomain);
       }
     }
