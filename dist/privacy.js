@@ -298,7 +298,7 @@ return JSON.stringify({
     ),
   },
   
-  fingerprinting2024: (() => {
+  fingerprinting: (() => {
     //These are determined by looking at the tests in https://github.com/fingerprintjs/fingerprintjs
     const fingerprintingAPIs = [
       'ApplePaySession.canMakePayments',
