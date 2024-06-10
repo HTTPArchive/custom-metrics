@@ -4,23 +4,34 @@
  * Federated Credentials Manager API
  * Fenced Frames API
  * FLoC API
- * Topics API
  * Protected Audience API
  * Private Aggregation API
  * Private State Tokens API
  * Shared Storage API
  * Storage Access API
+ * Topics API
  *
  * Required command line flags: --enable-features=BrowsingTopics,InterestGroupStorage,PrivacySandboxAdsAPIsOverride
- * Documentation Permissions Policy: https://developers.google.com/privacy-sandbox/relevance/setup/web/permissions-policy
-*/
+ */
 
 let requests = $WPT_BODIES;
 
 let result = { // alphabetical order for organization
   apiCallersAttestation: {}, // object {domain (string): true/false} Note: true does not especially mean that attestation file is valid (need to check if JSON, compliant with JSON schema, etc.)
-  'attributionReportingAPI': {
+  permissionsPolicy: { // Documentation Permissions Policy: https://developers.google.com/privacy-sandbox/relevance/setup/web/permissions-policy
     'attribution-reporting': document.featurePolicy.allowsFeature('attribution-reporting'),
+    'browsing-topics': document.featurePolicy.allowsFeature('browsing-topics'),
+    'identity-credentials-get': document.featurePolicy.allowsFeature('identity-credentials-get'),
+    'interest-cohort': document.featurePolicy.allowsFeature('interest-cohort'),
+    'join-ad-interest-group': document.featurePolicy.allowsFeature('join-ad-interest-group'),
+    'private-aggregation': document.featurePolicy.allowsFeature('private-aggregation'),
+    'run-ad-auction': document.featurePolicy.allowsFeature('run-ad-auction'),
+    'shared-storage': document.featurePolicy.allowsFeature('shared-storage'),
+    'shared-storage-select-url': document.featurePolicy.allowsFeature('shared-storage-select-url'),
+    'storage-access': document.featurePolicy.allowsFeature('storage-access'),
+    'top-level-storage-access': document.featurePolicy.allowsFeature('top-level-storage-access'),
+  },
+  'attributionReportingAPI': {
     'attributionReportingEligibleHeader': {
       'sentByBrowser': false,
       'sentTo': [],
@@ -30,41 +41,12 @@ let result = { // alphabetical order for organization
       'AttributionReportingRegisterTriggerHeader': []
     }
   },
-  'federatedCredentialsManager': {
-    'identity-credentials-get': document.featurePolicy.allowsFeature('identity-credentials-get'),
-    'get': [],
-    'getUserInfo': [],
-    'close': [],
-    'setStatus': [],
-  },
-  'fencedFrames': { // https://developers.google.com/privacy-sandbox/relevance/fenced-frame
-    'fencedFrameJs': [],
-    'fencedFrameHeader': [],
-    'getNestedConfigs': [],
-    'reportEvent': [],
-    'setReportEventDataForAutomaticBeacons': [],
-    'setSharedStorageContext': []
-  },
-  'floc': {// (deprecated API: are some still calling it?)
-    'interest-cohort': document.featurePolicy.allowsFeature('interest-cohort'),
-    'interestCohort': [],
-  },
-  'privateAggregation': {
-    'private-aggregation': document.featurePolicy.allowsFeature('private-aggregation'),
-    'contributeToHistogram': [],
-    'contributeToHistogramOnEvent': [],
-    'enableDebugMode': []
-  },
-  'privateStateTokens': {// (previously Trust Tokens)
-    'hasPrivateToken': [],
-    'hasRedemptionRecord': [],
-    'Sec-Private-State-Token': [],
-    'Sec-Redemption-Record': []
-    //other headers discarded as they only *may* be included (to pass more metadata)
-  },
+  'fedCM': [],
+  'fencedFrames': [],
+  'floc': [],// (deprecated API: are some still calling it?)
+  'privateAggregation': [],
+  'privateStateTokens': [], // (previously Trust Tokens)
   'protectedAudienceAPI': { // (previously FLEDGE)
-    'join-ad-interest-group': document.featurePolicy.allowsFeature('join-ad-interest-group'),
-    'run-ad-auction': document.featurePolicy.allowsFeature('run-ad-auction'),
     'interestGroups': {
       'joinAdInterestGroup': [],
       'leaveAdInterestGroup': [],
@@ -77,36 +59,12 @@ let result = { // alphabetical order for organization
     'reportWin': [],
     'reportResult': []
   },
-  'sharedStorage': {
-    'shared-storage': document.featurePolicy.allowsFeature('shared-storage'),
-    'shared-storage-select-url': document.featurePolicy.allowsFeature('shared-storage-select-url'),
-    'append': [],
-    'clear': [],
-    'delete': [],
-    'set': [],
-    'run': [],
-    'selectURL': [],
-    'addModule': [],
-    // worklet methods discarded as we will catch who create such worklet by
-    // detecting addMoudle, run, etc.
-  },
-  'storageAccess': {
-    'storage-access': document.featurePolicy.allowsFeature('storage-access'),
-    'top-level-storage-access': document.featurePolicy.allowsFeature('top-level-storage-access'), //Related Website Set
-    'hasStorageAccess': [],
-    'hasUnpartitionedCookieAccess': [],
-    'requestStorageAccess': [],
-    'requestStorageAccessFor': []
-  },
-  'topicsAPI': {
-    'browsing-topics': document.featurePolicy.allowsFeature('browsing-topics'),
-    'browsingTopicsJs': [],
-    'browsingTopicsHeader': [],
-  },
-  // 'userAgentClientHints': { // privacy chapter decided to implement in BQ
+  'sharedStorage': [],
+  'storageAccess': [],
+  'topicsAPI': [],
+  'userAgentClientHints': [] // privacy chapter decided to implement in BQ, but it could be easier to do it here directly
   // https://developer.chrome.com/docs/privacy-security/user-agent-client-hints#user-agent-response-and-request-headers
   // https://wicg.github.io/client-hints-infrastructure/#policy-controlled-features
-  // },
 }
 
 
@@ -165,10 +123,10 @@ async function fetchAndCheckResponse(url) {
 
 
 
-/** 
+/**
  * @function getDomain
  * Get cannonical domain from URL for attestation check
- * 
+ *
  * @param {string} url - request URL to get domain from
  */
 function getDomain(url) {
@@ -250,7 +208,7 @@ async function fetchAttestations() {
     // Checking if the request header includes 'Attribution-Reporting-Eligible' to initiate the registration of source or trigger
     if (reqHeaders.has('attribution-reporting-eligible')) {
       result['attributionReportingAPI']['attributionReportingEligibleHeader']['sentTo'].push(requestDomain);
-      
+
     }
 
     // Checking if the response header includes
@@ -275,38 +233,47 @@ async function fetchAttestations() {
      * Federated Credentials Manager
      * Documentation: https://developer.mozilla.org/en-US/docs/Web/API/FedCM_API
      * Test site(s):
+     * - https://fedcm-rp-demo.glitch.me/
+     * - https://fedcm-idp-demo.glitch.me/
      **************************************************************************/
 
     if (checkResponseBody(request, 'navigator.credentials.get\(')) {
       // [javascript] 'navigator.credentials.get(options)'
-      result['federatedCredentialsManager']['get'].push(requestDomain);
+      result['fedCM'].push({ "domain": requestDomain, "api": 'get' });
+      apiCallerAdd(requestDomain);
     }
     if (checkResponseBody(request, 'IdentityProvider.getUserInfo\(')) {
       // [javascript] 'IdentityProvider.getUserInfo(config)'
-      result['federatedCredentialsManager']['getUserInfo'].push(requestDomain);
+      result['fedCM'].push({ "domain": requestDomain, "api": 'getUserInfo' });
+      apiCallerAdd(requestDomain);
     }
     if (checkResponseBody(request, 'IdentityProvider.close\(\s*\)')) {
       // [javascript] 'IdentityProvider.close()'
-      result['federatedCredentialsManager']['close'].push(requestDomain);
+      result['fedCM'].push({ "domain": requestDomain, "api": 'close' });
+      apiCallerAdd(requestDomain);
     }
     if (checkResponseBody(request, 'navigator.login.setStatus\(')) {
       // [javascript] 'navigator.login.setStatus(status)'
-      result['federatedCredentialsManager']['setStatus'].push(requestDomain);
+      result['fedCM'].push({ "domain": requestDomain, "api": 'setStatus' });
+      apiCallerAdd(requestDomain);
     }
 
     /***************************************************************************
      * Fenced Frames
      * Documentation: https://developer.mozilla.org/en-US/docs/Web/API/Fenced_frame_API
      * Test site(s):
+     * - check on sharedStorage demo https://shared-storage-demo.web.app/
      **************************************************************************/
 
     if (checkResponseBody(request, 'document.createElement\("fencedframe"\)')) {
       // [javascript] 'document.createElement("fencedframe");'
-      result['fencedFrame']['fencedFrameJs'].push(requestDomain);
+      result['fencedFrame'].push({ "domain": requestDomain, "api": 'fencedFrameJs' });
+      apiCallerAdd(requestDomain);
     }
     if (checkResponseBody(request, 'setSharedStorageContext\(')) {
       // [javascript] 'FencedFrameConfig.setSharedStorageContext(context)'
-      result['fencedFrame']['setSharedStorageContext'].push(requestDomain);
+      result['fencedFrame'].push({ "domain": requestDomain, "api": 'setSharedStorageContext' });
+      apiCallerAdd(requestDomain);
     }
 
     if (reqHeaders.has('sec-fetch-dest') && reqHeaders.get('sec-fetch-dest') === "fencedframe") {
@@ -314,23 +281,27 @@ async function fetchAttestations() {
       if (respHeaders.has('supports-loading-mode') && respHeaders.get('supports-loading-mode') === "fenced-frame") {
         // [response header] 'Supports-Loading-Mode: fenced-frame' for document
         // to be loaded in fencedframe
-        result['fencedFrame']['fencedFrameHeader'].push(requestDomain);
+        result['fencedFrame'].push({ "domain": requestDomain, "api": 'fencedFrameHeader' });
+        apiCallerAdd(requestDomain);
       }
     }
 
     if (checkResponseBody(request, 'window.fence.getNestedConfigs\(\s*\)')) {
       // [javascript] 'window.fence.getNestedConfigs()'
-      result['fencedFrame']['getNestedConfigs'].push(requestDomain);
+      result['fencedFrame'].push({ "domain": requestDomain, "api": 'getNestedConfigs' });
+      apiCallerAdd(requestDomain);
     }
 
     if (checkResponseBody(request, 'window.fence.reportEvent\(')) {
       // [javascript] 'window.fence.reportEvent(event)'
-      result['fencedFrame']['reportEvent'].push(requestDomain);
+      result['fencedFrame'].push({ "domain": requestDomain, "api": 'reportEvent' });
+      apiCallerAdd(requestDomain);
     }
 
     if (checkResponseBody(request, 'window.fence.setReportEventDataForAutomaticBeacons\(')) {
       // [javascript] 'window.fence.setReportEventDataForAutomaticBeacons(event)'
-      result['fencedFrame']['setReportEventDataForAutomaticBeacons'].push(requestDomain);
+      result['fencedFrame'].push({ "domain": requestDomain, "api": 'setReportEventDataForAutomaticBeacons' });
+      apiCallerAdd(requestDomain);
     }
 
     /***************************************************************************
@@ -340,26 +311,30 @@ async function fetchAttestations() {
      **************************************************************************/
     if (checkResponseBody(request, 'document.interestCohort\(\s*\)')) {
       // [javascript] 'document.interestCohort()'
-      result['floc']['interestCohort'].push(requestDomain);
+      result['floc'].push({ "domain": requestDomain, "api": 'interestCohort' });
+      apiCallerAdd(requestDomain);
     }
 
     /***************************************************************************
      * Private Aggregation
      * Documentation: https://developers.google.com/privacy-sandbox/relevance/private-aggregation
-     * Test site(s): see https://shared-storage-demo.web.app/
+     * Test site(s): see several use cases at https://shared-storage-demo.web.app/
      **************************************************************************/
 
     if (checkResponseBody(request, 'privateAggregation.contributeToHistogram\(')) {
       // [javascript] 'privateAggregation.contributeToHistogram({ bucket: <bucket>, value: <value> })'
-      result['privateAggregation']['contributeToHistogram'].push(requestDomain);
+      result['privateAggregation'].push({ "domain": requestDomain, "api": 'contributeToHistogram' });
+      apiCallerAdd(requestDomain);
     }
     if (checkResponseBody(request, 'privateAggregation.contributeToHistogramOnEvent\(')) {
       // [javascript] 'privateAggregation.reportContributionForEvent(eventType, contribution)'
-      result['privateAggregation']['contributeToHistogramOnEvent'].push(requestDomain);
+      result['privateAggregation'].push({ "domain": requestDomain, "api": 'contributeToHistogramOnEvent' });
+      apiCallerAdd(requestDomain);
     }
     if (checkResponseBody(request, 'privateAggregation.enableDebugMode\(')) {
       // [javascript] 'privateAggregation.enableDebugMode({ <debugKey: debugKey> })'
-      result['privateAggregation']['enableDebugMode'].push(requestDomain);
+      result['privateAggregation'].push({ "domain": requestDomain, "api": 'enableDebugMode' });
+      apiCallerAdd(requestDomain);
     }
 
     /***************************************************************************
@@ -372,21 +347,28 @@ async function fetchAttestations() {
 
     if (checkResponseBody(request, 'document.hasPrivateToken\(')) {
       // [javascript] 'document.hasPrivateToken(<issuer>>)'
-      result['privateStateTokens']['hasPrivateToken'].push(requestDomain);
+      result['privateStateTokens'].push({ "domain": requestDomain, "api": 'hasPrivateToken' });
+      apiCallerAdd(requestDomain);
     }
 
     if (checkResponseBody(request, 'document.hasRedemptionRecord\(')) {
       // [javascript] 'document.hasRedemptionRecord(<issuer>>)'
-      result['privateStateTokens']['hasRedemptionRecord'].push(requestDomain);
+      result['privateStateTokens'].push({ "domain": requestDomain, "api": 'hasRedemptionRecord' });
+      apiCallerAdd(requestDomain);
     }
     if (reqHeaders.has('sec-private-state-token')) {
       // [header] 'Sec-Private-State-Token'
-      result['privateStateTokens']['Sec-Private-State-Token'].push(requestDomain);
+      result['privateStateTokens'].push({ "domain": requestDomain, "api": 'Sec-Private-State-Token' });
+      apiCallerAdd(requestDomain);
     }
     if (reqHeaders.has('sec-redemption-record')) {
       // [header] 'Sec-Redemption-Record'
-      result['privateStateTokens']['Sec-Redemption-Record'].push(requestDomain);
+      result['privateStateTokens'].push({ "domain": requestDomain, "api": 'Sec-Redemption-Record' });
+      apiCallerAdd(requestDomain);
     }
+
+    //other headers discarded as they only *may* be included (to pass more
+    //metadata)
 
     /***************************************************************************
      * Protected Audience API (previously FLEDGE)
@@ -437,35 +419,45 @@ async function fetchAttestations() {
     // SharedStorage
     if (checkResponseBody(request, 'window.sharedStorage.append\(')) {
       // [javascript] window.sharedStorage.append(key, value)
-      result['sharedStorage']['append'].push(requestDomain);
+      result['sharedStorage'].push({ "domain": requestDomain, "api": 'append' });
+      apiCallerAdd(requestDomain);
     }
     if (checkResponseBody(request, 'window.sharedStorage.clear\(\s*\)')) {
       // [javascript] window.sharedStorage.clear()
-      result['sharedStorage']['clear'].push(requestDomain);
+      result['sharedStorage'].push({ "domain": requestDomain, "api": 'clear' });
+      apiCallerAdd(requestDomain);
     }
     if (checkResponseBody(request, 'window.sharedStorage.delete\(')) {
       // [javascript] window.sharedStorage.delete(key)
-      result['sharedStorage']['delete'].push(requestDomain);
+      result['sharedStorage'].push({ "domain": requestDomain, "api": 'delete' });
+      apiCallerAdd(requestDomain);
     }
     if (checkResponseBody(request, 'window.sharedStorage.set\(')) {
       // [javascript] window.sharedStorage.set(key, value, options)
-      result['sharedStorage']['set'].push(requestDomain);
+      result['sharedStorage'].push({ "domain": requestDomain, "api": 'set' });
+      apiCallerAdd(requestDomain);
     }
 
     // WindowSharedStorage
     if (checkResponseBody(request, 'window.sharedStorage.run\(')) {
       // [javascript] window.sharedStorage.run(name, options)
-      result['sharedStorage']['run'].push(requestDomain);
+      result['sharedStorage'].push({ "domain": requestDomain, "api": 'run' });
+      apiCallerAdd(requestDomain);
     }
     if (checkResponseBody(request, 'window.sharedStorage.selectURL\(')) {
       // [javascript] window.sharedStorage.run(name, urls, options)
-      result['sharedStorage']['selectURL'].push(requestDomain);
+      result['sharedStorage'].push({ "domain": requestDomain, "api": 'selectURL' });
+      apiCallerAdd(requestDomain);
     }
 
     if (checkResponseBody(request, 'window.sharedStorage.worklet.addModule\(')) {
       // [javascript] window.sharedStorage.worklet.addModule()
-      result['sharedStorage']['addModule'].push(requestDomain);
+      result['sharedStorage'].push({ "domain": requestDomain, "api": 'addModule' });
+      apiCallerAdd(requestDomain);
     }
+
+    // worklet methods discarded as we will catch who create such worklet by
+    // detecting addMoudle, run, etc.
 
     /***************************************************************************
      * Storage Access
@@ -475,22 +467,26 @@ async function fetchAttestations() {
 
     if (checkResponseBody(request, 'document.hasStorageAccess\(\s*\)')) {
       // [javascript] document.hasStorageAccess()
-      result['relatedWebsiteSet']['hasStorageAccess'].push(requestDomain);
+      result['relatedWebsiteSet'].push({ "domain": requestDomain, "api": 'hasStorageAccess' });
+      apiCallerAdd(requestDomain);
     }
 
     if (checkResponseBody(request, 'document.hasUnpartitionedCookieAccess\(\s*\)')) {
       // [javascript] document.hasUnpartitionedCookieAccess()
-      result['relatedWebsiteSet']['hasUnpartitionedCookieAccess'].push(requestDomain);
+      result['relatedWebsiteSet'].push({ "domain": requestDomain, "api": 'hasUnpartitionedCookieAccess' });
+      apiCallerAdd(requestDomain);
     }
 
     if (checkResponseBody(request, 'document.requestStorageAccess\(')) {
       // [javascript] document.requestStorageAccess(types: optional)
-      result['relatedWebsiteSet']['requestStorageAccess'].push(requestDomain);
+      result['relatedWebsiteSet'].push({ "domain": requestDomain, "api": 'requestStorageAccess' });
+      apiCallerAdd(requestDomain);
     }
 
     if (checkResponseBody(request, 'document.requestStorageAccessFor\(')) {
       // [javascript] document.requestStorageAccessFor(requestedOrigin)
-      result['relatedWebsiteSet']['requestStorageAccessFor'].push(requestDomain);
+      result['relatedWebsiteSet'].push({ "domain": requestDomain, "api": 'requestStorageAccessFor' });
+      apiCallerAdd(requestDomain);
     }
 
     /***************************************************************************
@@ -505,20 +501,24 @@ async function fetchAttestations() {
 
     if (checkResponseBody(request, 'document.browsingTopics\(\s*\)')) {
       // [javascript] 'document.browsingTopics()'
-      result['topicsAPI']['browsingTopicsJs'].push({ "domain": requestDomain, "skipObservation": false });
+      result['topicsAPI'].push({ "domain": requestDomain, "api": 'browsingTopicsJs', "skipObservation": false });
+      apiCallerAdd(requestDomain);
     }
     if (checkResponseBody(request, 'document.browsingTopics\(\s*\{\s*skipObservation\s*:\s*true\s*\}\s*\)')) {
       // [javascript] 'document.browsingTopics({skipObservation:true})'
-      result['topicsAPI']['browsingTopicsJs'].push({ "domain": requestDomain, "skipObservation": true });
+      result['topicsAPI'].push({ "domain": requestDomain, "api": 'browsingTopicsJs', "skipObservation": true });
+      apiCallerAdd(requestDomain);
     }
     if (checkResponseBody(request, '\{\s*browsingTopics\s*:\s*true\s*\}') || checkResponseBody(request, '\{\s*deprecatedBrowsingTopics\s*:\s*true\s*\}')) {
       // [fetch] '{browsingTopics: true}'
       // [XHR] '{deprecatedBrowsingTopics: true}' (to be deprecated)
       if (respHeaders.has('observe-browsing-topics') && respHeaders.get('observe-browsing-topics') === "?1") {
         // [response header] 'Observe-Browsing-Topics: ?1' to include page in topics calculation
-        result['topicsAPI']['browsingTopicsJs'].push({ "domain": requestDomain, "skipObservation": false });
+        result['topicsAPI'].push({ "domain": requestDomain, "api": 'browsingTopicsJs', "skipObservation": false });
+        apiCallerAdd(requestDomain);
       } else {
-        result['topicsAPI']['browsingTopicsJs'].push({ "domain": requestDomain, "skipObservation": true });
+        result['topicsAPI'].push({ "domain": requestDomain, "api": 'browsingTopicsJs', "skipObservation": true });
+        apiCallerAdd(requestDomain);
       }
     }
 
@@ -526,21 +526,27 @@ async function fetchAttestations() {
       // [request header] 'Sec-Browsing-Topics: true'
       if (respHeaders.has('observe-browsing-topics') && respHeaders.get('observe-browsing-topics') === "?1") {
         // [response header] 'Observe-Browsing-Topics: ?1' to include page in topics calculation
-        result['topicsAPI']['browsingTopicsHeader'].push({ "domain": requestDomain, "skipObservation": false });
+        result['topicsAPI'].push({ "domain": requestDomain, "api": 'browsingTopicsHeader', "skipObservation": false });
+        apiCallerAdd(requestDomain);
       } else {
-        result['topicsAPI']['browsingTopicsHeader'].push({ "domain": requestDomain, "skipObservation": true });
+        result['topicsAPI'].push({ "domain": requestDomain, "api": 'browsingTopicsHeader', "skipObservation": true });
+        apiCallerAdd(requestDomain);
       }
     }
 
     /***************************************************************************
      * User Client Hints
-     * Documentation:
+     * Documentation: https://developer.chrome.com/docs/privacy-security/user-agent-client-hints
      * Test site(s):
+     * - https://user-agent-client-hints.glitch.me/
+     * - https://user-agent-client-hints.glitch.me/headers
      **************************************************************************/
 
-    // TODO
-    // Privacy chapter decided to implement in BQ
-
+    if (checkResponseBody(request, 'navigator.userAgentData.getHighEntropyValues\(')) {
+      // [javascript] 'navigator.userAgentData.getHighEntropyValues([])
+      result['userAgentClientHints'].push({ "domain": requestDomain, "api": 'getHighEntropyValues' });
+      apiCallerAdd(requestDomain);
+    }
   }
 
 
