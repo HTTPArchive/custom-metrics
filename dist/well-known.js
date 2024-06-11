@@ -3,7 +3,7 @@
 
 // README! Instructions for adding a new custom metric for the Web Almanac.
 //
-// 1. Refer for instructions for adding a custom metric in almanamc.js.
+// 1. Refer for instructions for adding a custom metric in almanac.js.
 // 2. This file has a special case where a custom metric uses 'fetch' and in that case we need to return a promise that resolves to JSON
 // 3. Test your change by following the instructions at https://github.com/HTTPArchive/almanac.httparchive.org/issues/33#issuecomment-502288773.
 // 4. Submit a PR to update this file.
@@ -83,6 +83,9 @@ return Promise.all([
   // ecommerce
   parseResponse('/.well-known/assetlinks.json'),
   parseResponse('/.well-known/apple-app-site-association'),
+  // privacy sandbox
+  parseResponse('/.well-known/related-website-set.json'), //Related Website Set
+  parseResponse('/.well-known/privacy-sandbox-attestations.json'), //Attestation File
   // privacy
   parseResponse('/.well-known/gpc.json', r => {
     return r.text().then(text => {
@@ -131,23 +134,72 @@ return Promise.all([
     let data = {
       status: r.status,
       redirected: r.redirected,
-      url: r.url
+      url: r.url,
+      content_type: r.headers.get("content-type")
     };
 
     return r.text().then(text => {
+      // Abort if final status is not okay (e.g., 404 or 500)
+      if (!r.ok) {
+        return data;
+      }
       data['signed'] = false;
       if (text.startsWith('-----BEGIN PGP SIGNED MESSAGE-----')) {
         data['signed'] = true;
       }
-      for(let line of text.split('\n')) {
-        if (line.startsWith('Canonical: ')) {
-          data['canonical'] = line.substring(11);
-        } else if (line.startsWith('Encryption: ')) {
-          data['encryption'] = line.substring(12);
+      data['contact'] = [];
+      data['expires'] = [];
+      data['encryption'] = [];
+      data['acknowledgments'] = [];
+      data['preferred_languages'] = [];
+      data['canonical'] = [];
+      data['policy'] = [];
+      data['hiring'] = [];
+      data['csaf'] = [];
+      data['other'] = []; // [(name, value)]
+      for (let line of text.split('\n')) {
+        if (line.startsWith('Contact: ')) {
+          data['contact'].push(line.substring(9).trim());
         } else if (line.startsWith('Expires: ')) {
-          data['expires'] = line.substring(9);
+          data['expires'].push(line.substring(9).trim());
+        } else if (line.startsWith('Encryption: ')) {
+          data['encryption'].push(line.substring(12).trim());
+        } else if (line.startsWith('Acknowledgments: ')) {
+          data['acknowledgments'].push(line.substring(17).trim());
+        } else if (line.startsWith('Preferred-Languages: ')) {
+          data['preferred_languages'].push(line.substring(21).trim());
+        } else if (line.startsWith('Canonical: ')) {
+          data['canonical'].push(line.substring(11).trim());
         } else if (line.startsWith('Policy: ')) {
-          data['policy'] = line.substring(8);
+          data['policy'].push(line.substring(8).trim());
+        } else if (line.startsWith('Hiring: ')) {
+          data['hiring'].push(line.substring(8).trim());
+        } else if (line.startsWith('CSAF: ')) {
+          data['csaf'].push(line.substring(6).trim());
+        } else {
+          if (!line.startsWith('#')) {
+            let [name, value] = line.split(': ');
+            if (name && value) {
+              data['other'].push([name.trim(), value.trim()]);
+            }
+          }
+        }
+      }
+      // Required fields exist
+      data['all_required_exist'] = (data['contact'].length && data['expires'].length) > 0;
+      // Fields that are only allowed once do not occur twice
+      data['only_one_requirement_broken'] = false;
+      for (let field of ['expires', 'preferred_languages']) {
+        if (data[field].length > 1) {
+          data['only_one_requirement_broken'] = true;
+        }
+      }
+      // Valid: Required fields exist and only one requirement is not broken. Does not check value content at the moment (e.g., if expires is a valid ISO 8601 date).
+      data['valid'] = data['all_required_exist'] && (!data['only_one_requirement_broken'])
+      // Delete empty fields for storage optimization
+      for (let key in data) {
+        if (Array.isArray(data[key]) && data[key].length === 0) {
+          delete data[key];
         }
       }
       return data;
