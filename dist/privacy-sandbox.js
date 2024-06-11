@@ -3,10 +3,10 @@
  * Attribution Reporting API
  * Federated Credentials Manager API
  * Fenced Frames API
- * FLoC API
- * Protected Audience API
+ * FLoC API (deprecated API: are some still calling it?)
+ * Protected Audience API (previously FLEDGE)
  * Private Aggregation API
- * Private State Tokens API
+ * Private State Tokens API (previously Trust Tokens)
  * Shared Storage API
  * Storage Access API
  * Topics API
@@ -19,30 +19,11 @@ let requests = $WPT_BODIES;
 
 let result = { // alphabetical order for organization
   // apiCallersAttestation: {}, // To be handled in analysis phase using PSL
-  permissionsPolicy: { // Documentation Permissions Policy: https://developers.google.com/privacy-sandbox/relevance/setup/web/permissions-policy
-    'attribution-reporting': document.featurePolicy.allowsFeature('attribution-reporting'),
-    'browsing-topics': document.featurePolicy.allowsFeature('browsing-topics'),
-    'identity-credentials-get': document.featurePolicy.allowsFeature('identity-credentials-get'),
-    'interest-cohort': document.featurePolicy.allowsFeature('interest-cohort'),
-    'join-ad-interest-group': document.featurePolicy.allowsFeature('join-ad-interest-group'),
-    'private-aggregation': document.featurePolicy.allowsFeature('private-aggregation'),
-    'run-ad-auction': document.featurePolicy.allowsFeature('run-ad-auction'),
-    'shared-storage': document.featurePolicy.allowsFeature('shared-storage'),
-    'shared-storage-select-url': document.featurePolicy.allowsFeature('shared-storage-select-url'),
-    'storage-access': document.featurePolicy.allowsFeature('storage-access'),
-    'top-level-storage-access': document.featurePolicy.allowsFeature('top-level-storage-access'),
-  },
-  'attributionReportingAPI': [],
-  'fedCM': [],
-  'fencedFrames': [],
-  'floc': [], // (deprecated API: are some still calling it?)
-  'privateAggregation': [],
-  'privateStateTokens': [], // (previously Trust Tokens)
-  'protectedAudienceAPI': [], // (previously FLEDGE)
-  'sharedStorage': [],
-  'storageAccess': [],
-  'topics': [],
-  'userAgentClientHints': []
+  // Documentation Permissions Policy: https://developers.google.com/privacy-sandbox/relevance/setup/web/permissions-policy
+  // Retaining Permissions Policy only for Top Level Storage Access as all others always return true
+  // Others: ["attribution-reporting", "browsing-topics", "identity-credentials-get", "interest-cohort", "join-ad-interest-group", "private-aggregation", "run-ad-auction", "shared-storage", "shared-storage-select-url", "storage-access"]
+  'top-level-storage-access': document.featurePolicy.allowsFeature('top-level-storage-access'),
+  'privacySandBoxAPIUsage': {}
 }
 
 
@@ -79,76 +60,13 @@ function checkResponseBody(request, pattern, isRegex = true) {
 
 
 
-/**
- * @function fetchAndCheckResponse
- * Fetch url and if response returns true
- *
- * @param {string} url - url to fetch.
- * @return {boolean} - True, if response.
- */
-const fetchAndCheckResponse = async (url) => {
-  const controller = new AbortController();
-  const { signal } = controller;
-  setTimeout(() => controller.abort(), 5000);
-
-  try {
-    const response = await fetch(url, { signal });
-    return response ? true : false;
-  } catch (error) {
-    return false;
-  }
-}
-
-
-
-/**
- * @function retainNonEmptyData
- * Retains only non-empty keys
- *
- * @return {object} - Object with unique non-empty values
- */
-function retainNonEmptyData() {
-  let newObj = {};
-  for (let key in result) {
-    let uniqueArray = [...new Set(result[key])];
-    if (uniqueArray.length > 0) {
-      newObj[key] = uniqueArray;
-    } else {
-      newObj[key] = result[key];
-    }
-  }
-  return newObj;
-}
-
-
-
-/**
- * @function retainUniqueValues
- * Retains only unique values corresponding to each API
- *
- * @param {array} apiArray - Array of APIs
- * @return {array} - Array of unique APIs
- */
-function retainUniqueValues(apiArray) {
-  let seenDomains = new Set();
-  return apiArray.filter(item => {
-    let uniqueKey = `${item.domain}-${item.api}`;
-    if (!seenDomains.has(uniqueKey)) {
-      seenDomains.add(uniqueKey);
-      return true;
-    }
-    return false;
-  });
-}
-
-
-
 (async () => {
   for (const request of requests) {
     const url = new URL(request.url);
     const requestDomain = url.hostname;
     let reqHeaders = new Map(Object.entries(request.request_headers).map(([key, value]) => [key.toLowerCase(), value]));
     let respHeaders = new Map(Object.entries(request.response_headers).map(([key, value]) => [key.toLowerCase(), value]));
+    let apiUsed = [];
 
     /***************************************************************************
      * For each API:
@@ -164,18 +82,17 @@ function retainUniqueValues(apiArray) {
 
     // Checking if the request header includes 'Attribution-Reporting-Eligible' to initiate the registration of source or trigger
     if (reqHeaders.has('attribution-reporting-eligible')) {
-      result['attributionReportingAPI'].push({ "domain": requestDomain, "api": 'attribution-reporting-eligible' });
+      apiUsed.push('attribution-reporting-eligible');
     }
-
     // Source registration happens on seller (e.g., publisher) website where impression is registered
     if (respHeaders.has('attribution-reporting-register-source')) {
       // Higher the epsilon, the more the privacy protection
       const { destination, event_level_epsilon } = JSON.parse(respHeaders.get('attribution-reporting-register-source'));
-      result['attributionReportingAPI'].push({ "domain": requestDomain, "api": 'attribution-reporting-register-source', "destination": destination, "eventEpsilon": event_level_epsilon });
+      apiUsed.push('attribution-reporting-register-source' + '|destination=' + destination + '|epsilon=' + event_level_epsilon);
     }
     // Trigger registration happens on buyer (e.g., advertiser) website where conversion completes
     if (respHeaders.has('attribution-reporting-register-trigger')) {
-      result['attributionReportingAPI'].push({ "domain": requestDomain, "api": 'attribution-reporting-register-trigger' });
+      apiUsed.push('attribution-reporting-register-trigger');
     }
 
     /***************************************************************************
@@ -188,19 +105,19 @@ function retainUniqueValues(apiArray) {
 
     if (checkResponseBody(request, 'navigator.credentials.get\\(')) {
       // [javascript] 'navigator.credentials.get(options)'
-      result['fedCM'].push({ "domain": requestDomain, "api": 'get' });
+      apiUsed.push('navigator.credentials.get');
     }
     if (checkResponseBody(request, 'IdentityProvider.getUserInfo\\(')) {
       // [javascript] 'IdentityProvider.getUserInfo(config)'
-      result['fedCM'].push({ "domain": requestDomain, "api": 'getUserInfo' });
+      apiUsed.push('IdentityProvider.getUserInfo');
     }
     if (checkResponseBody(request, 'IdentityProvider.close\\(\\s*\\)')) {
       // [javascript] 'IdentityProvider.close()'
-      result['fedCM'].push({ "domain": requestDomain, "api": 'close' });
+      apiUsed.push('IdentityProvider.close');
     }
     if (checkResponseBody(request, 'navigator.login.setStatus\\(')) {
       // [javascript] 'navigator.login.setStatus(status)'
-      result['fedCM'].push({ "domain": requestDomain, "api": 'setStatus' });
+      apiUsed.push('navigator.login.setStatus');
     }
 
     /***************************************************************************
@@ -212,35 +129,31 @@ function retainUniqueValues(apiArray) {
 
     if (checkResponseBody(request, 'document.createElement\\("fencedframe"\\)')) {
       // [javascript] 'document.createElement("fencedframe");'
-      result['fencedFrame'].push({ "domain": requestDomain, "api": 'fencedFrameJs' });
+      apiUsed.push('fencedFrameJs');
     }
     if (checkResponseBody(request, 'setSharedStorageContext\\(')) {
       // [javascript] 'FencedFrameConfig.setSharedStorageContext(context)'
-      result['fencedFrame'].push({ "domain": requestDomain, "api": 'setSharedStorageContext' });
+      apiUsed.push('FencedFrameConfig.setSharedStorageContext');
     }
-
+    if (checkResponseBody(request, 'window.fence.getNestedConfigs\\(\\s*\\)')) {
+      // [javascript] 'window.fence.getNestedConfigs()'
+      apiUsed.push('window.fence.getNestedConfigs');
+    }
+    if (checkResponseBody(request, 'window.fence.reportEvent\\(')) {
+      // [javascript] 'window.fence.reportEvent(event)'
+      apiUsed.push('window.fence.reportEvent');
+    }
+    if (checkResponseBody(request, 'window.fence.setReportEventDataForAutomaticBeacons\\(')) {
+      // [javascript] 'window.fence.setReportEventDataForAutomaticBeacons(event)'
+      apiUsed.push('window.fence.setReportEventDataForAutomaticBeacons');
+    }
     if (reqHeaders.has('sec-fetch-dest') && reqHeaders.get('sec-fetch-dest') === "fencedframe") {
       // [request header] 'Sec-Fetch-Dest: fencedframe'
       if (respHeaders.has('supports-loading-mode') && respHeaders.get('supports-loading-mode') === "fenced-frame") {
         // [response header] 'Supports-Loading-Mode: fenced-frame' for document
         // to be loaded in fencedframe
-        result['fencedFrame'].push({ "domain": requestDomain, "api": 'fencedFrameHeader' });
+        apiUsed.push('fenced-frame');
       }
-    }
-
-    if (checkResponseBody(request, 'window.fence.getNestedConfigs\\(\\s*\\)')) {
-      // [javascript] 'window.fence.getNestedConfigs()'
-      result['fencedFrame'].push({ "domain": requestDomain, "api": 'getNestedConfigs' });
-    }
-
-    if (checkResponseBody(request, 'window.fence.reportEvent\\(')) {
-      // [javascript] 'window.fence.reportEvent(event)'
-      result['fencedFrame'].push({ "domain": requestDomain, "api": 'reportEvent' });
-    }
-
-    if (checkResponseBody(request, 'window.fence.setReportEventDataForAutomaticBeacons\\(')) {
-      // [javascript] 'window.fence.setReportEventDataForAutomaticBeacons(event)'
-      result['fencedFrame'].push({ "domain": requestDomain, "api": 'setReportEventDataForAutomaticBeacons' });
     }
 
     /***************************************************************************
@@ -250,7 +163,7 @@ function retainUniqueValues(apiArray) {
      **************************************************************************/
     if (checkResponseBody(request, 'document.interestCohort\\(\\s*\\)')) {
       // [javascript] 'document.interestCohort()'
-      result['floc'].push({ "domain": requestDomain, "api": 'interestCohort' });
+      apiUsed.push('document.interestCohort');
     }
 
     /***************************************************************************
@@ -261,15 +174,15 @@ function retainUniqueValues(apiArray) {
 
     if (checkResponseBody(request, 'privateAggregation.contributeToHistogram\\(')) {
       // [javascript] 'privateAggregation.contributeToHistogram({ bucket: <bucket>, value: <value> })'
-      result['privateAggregation'].push({ "domain": requestDomain, "api": 'contributeToHistogram' });
+      apiUsed.push('privateAggregation.contributeToHistogram');
     }
     if (checkResponseBody(request, 'privateAggregation.contributeToHistogramOnEvent\\(')) {
       // [javascript] 'privateAggregation.reportContributionForEvent(eventType, contribution)'
-      result['privateAggregation'].push({ "domain": requestDomain, "api": 'contributeToHistogramOnEvent' });
+      apiUsed.push('privateAggregation.contributeToHistogramOnEvent');
     }
     if (checkResponseBody(request, 'privateAggregation.enableDebugMode\\(')) {
       // [javascript] 'privateAggregation.enableDebugMode({ <debugKey: debugKey> })'
-      result['privateAggregation'].push({ "domain": requestDomain, "api": 'enableDebugMode' });
+      apiUsed.push('privateAggregation.enableDebugMode');
     }
 
     /***************************************************************************
@@ -282,20 +195,19 @@ function retainUniqueValues(apiArray) {
 
     if (checkResponseBody(request, 'document.hasPrivateToken\\(')) {
       // [javascript] 'document.hasPrivateToken(<issuer>>)'
-      result['privateStateTokens'].push({ "domain": requestDomain, "api": 'hasPrivateToken' });
+      apiUsed.push('document.hasPrivateToken');
     }
-
     if (checkResponseBody(request, 'document.hasRedemptionRecord\\(')) {
       // [javascript] 'document.hasRedemptionRecord(<issuer>>)'
-      result['privateStateTokens'].push({ "domain": requestDomain, "api": 'hasRedemptionRecord' });
+      apiUsed.push('document.hasRedemptionRecord');
     }
     if (reqHeaders.has('sec-private-state-token')) {
       // [header] 'Sec-Private-State-Token'
-      result['privateStateTokens'].push({ "domain": requestDomain, "api": 'Sec-Private-State-Token' });
+      apiUsed.push('sec-private-state-token');
     }
     if (reqHeaders.has('sec-redemption-record')) {
       // [header] 'Sec-Redemption-Record'
-      result['privateStateTokens'].push({ "domain": requestDomain, "api": 'Sec-Redemption-Record' });
+      apiUsed.push('sec-redemption-record');
     }
 
     //other headers discarded as they only *may* be included (to pass more
@@ -313,31 +225,31 @@ function retainUniqueValues(apiArray) {
      **************************************************************************/
 
     if (checkResponseBody(request, 'joinAdInterestGroup', false)) {
-      result['protectedAudienceAPI'].push({ "domain": requestDomain, "api": 'joinAdInterestGroup' });
+      apiUsed.push('joinAdInterestGroup');
     }
     if (checkResponseBody(request, 'leaveAdInterestGroup', false)) {
-      result['protectedAudienceAPI'].push({ "domain": requestDomain, "api": 'leaveAdInterestGroup' });
+      apiUsed.push('leaveAdInterestGroup');
     }
     if (checkResponseBody(request, 'updateAdInterestGroups', false)) {
-      result['protectedAudienceAPI'].push({ "domain": requestDomain, "api": 'updateAdInterestGroups' });
+      apiUsed.push('updateAdInterestGroups');
     }
     if (checkResponseBody(request, 'clearOriginJoinedAdInterestGroups', false)) {
-      result['protectedAudienceAPI'].push({ "domain": requestDomain, "api": 'clearOriginJoinedAdInterestGroups' });
+      apiUsed.push('clearOriginJoinedAdInterestGroups');
     }
     if (checkResponseBody(request, 'runAdAuction', false)) {
-      result['protectedAudienceAPI'].push({ "domain": requestDomain, "api": 'runAdAuction' });
+      apiUsed.push('runAdAuction');
     }
     if (checkResponseBody(request, 'generateBid', false)) {
-      result['protectedAudienceAPI'].push({ "domain": requestDomain, "api": 'generateBid' });
+      apiUsed.push('generateBid');
     }
     if (checkResponseBody(request, 'scoreAd', false)) {
-      result['protectedAudienceAPI'].push({ "domain": requestDomain, "api": 'scoreAd' });
+      apiUsed.push('scoreAd');
     }
     if (checkResponseBody(request, 'reportWin', false)) {
-      result['protectedAudienceAPI'].push({ "domain": requestDomain, "api": 'reportWin' });
+      apiUsed.push('reportWin');
     }
     if (checkResponseBody(request, 'reportResult', false) || checkResponseBody(request, 'sendReportTo', false)) {
-      result['protectedAudienceAPI'].push({ "domain": requestDomain, "api": 'reportResult' });
+      apiUsed.push('reportResult');
     }
 
     /***************************************************************************
@@ -350,34 +262,32 @@ function retainUniqueValues(apiArray) {
     // SharedStorage
     if (checkResponseBody(request, 'window.sharedStorage.append\\(')) {
       // [javascript] window.sharedStorage.append(key, value)
-      result['sharedStorage'].push({ "domain": requestDomain, "api": 'append' });
+      apiUsed.push('window.sharedStorage.append');
     }
     if (checkResponseBody(request, 'window.sharedStorage.clear\\(\\s*\\)')) {
       // [javascript] window.sharedStorage.clear()
-      result['sharedStorage'].push({ "domain": requestDomain, "api": 'clear' });
+      apiUsed.push('window.sharedStorage.clear');
     }
     if (checkResponseBody(request, 'window.sharedStorage.delete\\(')) {
       // [javascript] window.sharedStorage.delete(key)
-      result['sharedStorage'].push({ "domain": requestDomain, "api": 'delete' });
+      apiUsed.push('window.sharedStorage.delete');
     }
     if (checkResponseBody(request, 'window.sharedStorage.set\\(')) {
       // [javascript] window.sharedStorage.set(key, value, options)
-      result['sharedStorage'].push({ "domain": requestDomain, "api": 'set' });
+      apiUsed.push('window.sharedStorage.set');
     }
-
     // WindowSharedStorage
     if (checkResponseBody(request, 'window.sharedStorage.run\\(')) {
       // [javascript] window.sharedStorage.run(name, options)
-      result['sharedStorage'].push({ "domain": requestDomain, "api": 'run' });
+      apiUsed.push('window.sharedStorage.run');
     }
     if (checkResponseBody(request, 'window.sharedStorage.selectURL\\(')) {
       // [javascript] window.sharedStorage.run(name, urls, options)
-      result['sharedStorage'].push({ "domain": requestDomain, "api": 'selectURL' });
+      apiUsed.push('window.sharedStorage.selectURL');
     }
-
     if (checkResponseBody(request, 'window.sharedStorage.worklet.addModule\\(')) {
       // [javascript] window.sharedStorage.worklet.addModule()
-      result['sharedStorage'].push({ "domain": requestDomain, "api": 'addModule' });
+      apiUsed.push('window.sharedStorage.worklet.addModule');
     }
 
     // worklet methods discarded as we will catch who create such worklet by
@@ -391,22 +301,19 @@ function retainUniqueValues(apiArray) {
 
     if (checkResponseBody(request, 'document.hasStorageAccess\\(\\s*\\)')) {
       // [javascript] document.hasStorageAccess()
-      result['relatedWebsiteSet'].push({ "domain": requestDomain, "api": 'hasStorageAccess' });
+      apiUsed.push('document.hasStorageAccess');
     }
-
     if (checkResponseBody(request, 'document.hasUnpartitionedCookieAccess\\(\\s*\\)')) {
       // [javascript] document.hasUnpartitionedCookieAccess()
-      result['relatedWebsiteSet'].push({ "domain": requestDomain, "api": 'hasUnpartitionedCookieAccess' });
+      apiUsed.push('document.hasUnpartitionedCookieAccess');
     }
-
     if (checkResponseBody(request, 'document.requestStorageAccess\\(')) {
       // [javascript] document.requestStorageAccess(types: optional)
-      result['relatedWebsiteSet'].push({ "domain": requestDomain, "api": 'requestStorageAccess' });
+      apiUsed.push('document.requestStorageAccess');
     }
-
     if (checkResponseBody(request, 'document.requestStorageAccessFor\\(')) {
       // [javascript] document.requestStorageAccessFor(requestedOrigin)
-      result['relatedWebsiteSet'].push({ "domain": requestDomain, "api": 'requestStorageAccessFor' });
+      apiUsed.push('document.requestStorageAccessFor');
     }
 
     /***************************************************************************
@@ -421,30 +328,29 @@ function retainUniqueValues(apiArray) {
 
     if (checkResponseBody(request, 'document.browsingTopics\\(\\s*\\)')) {
       // [javascript] 'document.browsingTopics()'
-      result['topics'].push({ "domain": requestDomain, "api": 'browsingTopicsJs', "skipObservation": false });
+      apiUsed.push('document.browsingTopics|false');
     }
     if (checkResponseBody(request, 'document.browsingTopics\\(\\s*\\{\\s*skipObservation\\s*:\\s*true\\s*\\}\\s*\\)')) {
       // [javascript] 'document.browsingTopics({skipObservation:true})'
-      result['topics'].push({ "domain": requestDomain, "api": 'browsingTopicsJs', "skipObservation": true });
+      apiUsed.push('document.browsingTopics|true');
     }
     if (checkResponseBody(request, '\\{\\s*browsingTopics\\s*:\\s*true\\s*\\}') || checkResponseBody(request, '\\{\\s*deprecatedBrowsingTopics\\s*:\\s*true\\s*\\}')) {
       // [fetch] '{browsingTopics: true}'
       // [XHR] '{deprecatedBrowsingTopics: true}' (to be deprecated)
       if (respHeaders.has('observe-browsing-topics') && respHeaders.get('observe-browsing-topics') === "?1") {
         // [response header] 'Observe-Browsing-Topics: ?1' to include page in topics calculation
-        result['topics'].push({ "domain": requestDomain, "api": 'browsingTopicsJs', "skipObservation": false });
+        apiUsed.push('document.browsingTopics|false');
       } else {
-        result['topics'].push({ "domain": requestDomain, "api": 'browsingTopicsJs', "skipObservation": true });
+        apiUsed.push('document.browsingTopics|true');
       }
     }
-
     if (reqHeaders.has('sec-browsing-topics')) {
       // [request header] 'Sec-Browsing-Topics: true'
       if (respHeaders.has('observe-browsing-topics') && respHeaders.get('observe-browsing-topics') === "?1") {
         // [response header] 'Observe-Browsing-Topics: ?1' to include page in topics calculation
-        result['topics'].push({ "domain": requestDomain, "api": 'browsingTopicsHeader', "skipObservation": false });
+        apiUsed.push('sec-browsing-topics|false');
       } else {
-        result['topics'].push({ "domain": requestDomain, "api": 'browsingTopicsHeader', "skipObservation": true });
+        apiUsed.push('sec-browsing-topics|true');
       }
     }
 
@@ -460,23 +366,20 @@ function retainUniqueValues(apiArray) {
 
     if (checkResponseBody(request, 'navigator.userAgentData.getHighEntropyValues\\(')) {
       // [javascript] 'navigator.userAgentData.getHighEntropyValues([])
-      result['userAgentClientHints'].push({ "domain": requestDomain, "api": 'getHighEntropyValues' });
+      apiUsed.push('navigator.userAgentData.getHighEntropyValues');
     }
     // https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Accept-CH
     if (respHeaders.has('accept-ch')) {
-      result['userAgentClientHints'].push({ "domain": requestDomain, "api": 'Accept-CH', "value": respHeaders.get('accept-ch') });
+      apiUsed.push(`accept-ch|${respHeaders.get('accept-ch')}`);
     }
 
-  }
-
-  // Retaining only unique non-empty values in the results
-  result = retainNonEmptyData();
-  for (let key in result) {
-    if (Array.isArray(result[key])) {
-      result[key] = re(result[key]);
+    if (apiUsed.length > 0) {
+      if (!result.privacySandBoxAPIUsage[requestDomain]) {
+        result.privacySandBoxAPIUsage[requestDomain] = [];
+      }
+      result.privacySandBoxAPIUsage[requestDomain] = [...new Set([...result.privacySandBoxAPIUsage[requestDomain], ...apiUsed])];
     }
   }
-
 })();
 
 return result;
