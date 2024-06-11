@@ -321,7 +321,7 @@ return JSON.stringify({
       'geolocation.+watchPosition'
     ),
   },
-  
+
   fingerprinting: (() => {
     //These are determined by looking at the tests in https://github.com/fingerprintjs/fingerprintjs
     const fingerprintingAPIs = [
@@ -400,7 +400,7 @@ return JSON.stringify({
 
   return {counts: fingerprintingUsageCounts, likelyFingerprintingScripts}
   })(),
-  
+
   /**
    * List of hostnames with CNAME record
    */
