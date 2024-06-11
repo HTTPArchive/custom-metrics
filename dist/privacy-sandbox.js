@@ -102,21 +102,43 @@ const fetchAndCheckResponse = async (url) => {
 
 
 /**
- * @function retainUniqueDomains
- * Retains only unique values in the result object and deletes empty keys
- * Deletes any key that is set to empty value
+ * @function retainNonEmptyData
+ * Retains only non-empty keys
+ *
+ * @return {object} - Object with unique non-empty values
  */
-function retainUniqueDomains() {
+function retainNonEmptyData() {
+  let newObj = {};
   for (let key in result) {
-    if (Array.isArray(result[key])) {
-      result[key] = [...new Set(result[key])];
-      if (result[key].length === 0) {
-        delete result[key];
-      }
-    } else if (typeof result[key] === 'object' && result[key] !== null) {
-      result[key] = retainUniqueDomains(result[key]);
+    let uniqueArray = [...new Set(result[key])];
+    if (uniqueArray.length > 0) {
+      newObj[key] = uniqueArray;
+    } else {
+      newObj[key] = result[key];
     }
   }
+  return newObj;
+}
+
+
+
+/** 
+ * @function retainUniqueValues
+ * Retains only unique values corresponding to each API
+ *
+ * @param {array} apiArray - Array of APIs
+ * @return {array} - Array of unique APIs
+ */
+function retainUniqueValues(apiArray) {
+  let seenDomains = new Set();
+  return apiArray.filter(item => {
+    let uniqueKey = `${item.domain}-${item.api}`;
+    if (!seenDomains.has(uniqueKey)) {
+      seenDomains.add(uniqueKey);
+      return true;
+    }
+    return false;
+  });
 }
 
 
@@ -447,8 +469,13 @@ function retainUniqueDomains() {
 
   }
 
-  // Retaining only unique values in the results and deleting empty keys
-  retainUniqueDomains();
+  // Retaining only unique non-empty values in the results
+  result = retainNonEmptyData();
+  for (let key in result) {
+    if (Array.isArray(result[key])) {
+      result[key] = re(result[key]);
+    }
+  }
 
 })();
 
