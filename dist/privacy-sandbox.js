@@ -235,19 +235,19 @@ function retainUniqueDomains(obj) {
      * - https://fedcm-idp-demo.glitch.me/
      **************************************************************************/
 
-    if (checkResponseBody(request, 'navigator.credentials.get\(')) {
+    if (checkResponseBody(request, 'navigator.credentials.get\\(')) {
       // [javascript] 'navigator.credentials.get(options)'
       result['fedCM'].push({ "domain": requestDomain, "api": 'get' });
     }
-    if (checkResponseBody(request, 'IdentityProvider.getUserInfo\(')) {
+    if (checkResponseBody(request, 'IdentityProvider.getUserInfo\\(')) {
       // [javascript] 'IdentityProvider.getUserInfo(config)'
       result['fedCM'].push({ "domain": requestDomain, "api": 'getUserInfo' });
     }
-    if (checkResponseBody(request, 'IdentityProvider.close\(\s*\)')) {
+    if (checkResponseBody(request, 'IdentityProvider.close\\(\\s*\\)')) {
       // [javascript] 'IdentityProvider.close()'
       result['fedCM'].push({ "domain": requestDomain, "api": 'close' });
     }
-    if (checkResponseBody(request, 'navigator.login.setStatus\(')) {
+    if (checkResponseBody(request, 'navigator.login.setStatus\\(')) {
       // [javascript] 'navigator.login.setStatus(status)'
       result['fedCM'].push({ "domain": requestDomain, "api": 'setStatus' });
     }
@@ -259,11 +259,11 @@ function retainUniqueDomains(obj) {
      * - check on sharedStorage demo https://shared-storage-demo.web.app/
      **************************************************************************/
 
-    if (checkResponseBody(request, 'document.createElement\("fencedframe"\)')) {
+    if (checkResponseBody(request, 'document.createElement\\("fencedframe"\\)')) {
       // [javascript] 'document.createElement("fencedframe");'
       result['fencedFrame'].push({ "domain": requestDomain, "api": 'fencedFrameJs' });
     }
-    if (checkResponseBody(request, 'setSharedStorageContext\(')) {
+    if (checkResponseBody(request, 'setSharedStorageContext\\(')) {
       // [javascript] 'FencedFrameConfig.setSharedStorageContext(context)'
       result['fencedFrame'].push({ "domain": requestDomain, "api": 'setSharedStorageContext' });
     }
@@ -277,17 +277,17 @@ function retainUniqueDomains(obj) {
       }
     }
 
-    if (checkResponseBody(request, 'window.fence.getNestedConfigs\(\s*\)')) {
+    if (checkResponseBody(request, 'window.fence.getNestedConfigs\\(\\s*\\)')) {
       // [javascript] 'window.fence.getNestedConfigs()'
       result['fencedFrame'].push({ "domain": requestDomain, "api": 'getNestedConfigs' });
     }
 
-    if (checkResponseBody(request, 'window.fence.reportEvent\(')) {
+    if (checkResponseBody(request, 'window.fence.reportEvent\\(')) {
       // [javascript] 'window.fence.reportEvent(event)'
       result['fencedFrame'].push({ "domain": requestDomain, "api": 'reportEvent' });
     }
 
-    if (checkResponseBody(request, 'window.fence.setReportEventDataForAutomaticBeacons\(')) {
+    if (checkResponseBody(request, 'window.fence.setReportEventDataForAutomaticBeacons\\(')) {
       // [javascript] 'window.fence.setReportEventDataForAutomaticBeacons(event)'
       result['fencedFrame'].push({ "domain": requestDomain, "api": 'setReportEventDataForAutomaticBeacons' });
     }
@@ -297,7 +297,7 @@ function retainUniqueDomains(obj) {
      * Documentation: https://web.dev/articles/floc
      * Test site: https://floc.glitch.me/
      **************************************************************************/
-    if (checkResponseBody(request, 'document.interestCohort\(\s*\)')) {
+    if (checkResponseBody(request, 'document.interestCohort\\(\\s*\\)')) {
       // [javascript] 'document.interestCohort()'
       result['floc'].push({ "domain": requestDomain, "api": 'interestCohort' });
     }
@@ -308,15 +308,15 @@ function retainUniqueDomains(obj) {
      * Test site(s): see several use cases at https://shared-storage-demo.web.app/
      **************************************************************************/
 
-    if (checkResponseBody(request, 'privateAggregation.contributeToHistogram\(')) {
+    if (checkResponseBody(request, 'privateAggregation.contributeToHistogram\\(')) {
       // [javascript] 'privateAggregation.contributeToHistogram({ bucket: <bucket>, value: <value> })'
       result['privateAggregation'].push({ "domain": requestDomain, "api": 'contributeToHistogram' });
     }
-    if (checkResponseBody(request, 'privateAggregation.contributeToHistogramOnEvent\(')) {
+    if (checkResponseBody(request, 'privateAggregation.contributeToHistogramOnEvent\\(')) {
       // [javascript] 'privateAggregation.reportContributionForEvent(eventType, contribution)'
       result['privateAggregation'].push({ "domain": requestDomain, "api": 'contributeToHistogramOnEvent' });
     }
-    if (checkResponseBody(request, 'privateAggregation.enableDebugMode\(')) {
+    if (checkResponseBody(request, 'privateAggregation.enableDebugMode\\(')) {
       // [javascript] 'privateAggregation.enableDebugMode({ <debugKey: debugKey> })'
       result['privateAggregation'].push({ "domain": requestDomain, "api": 'enableDebugMode' });
     }
@@ -329,12 +329,12 @@ function retainUniqueDomains(obj) {
      * - https://private-state-token-issuer.glitch.me/
      **************************************************************************/
 
-    if (checkResponseBody(request, 'document.hasPrivateToken\(')) {
+    if (checkResponseBody(request, 'document.hasPrivateToken\\(')) {
       // [javascript] 'document.hasPrivateToken(<issuer>>)'
       result['privateStateTokens'].push({ "domain": requestDomain, "api": 'hasPrivateToken' });
     }
 
-    if (checkResponseBody(request, 'document.hasRedemptionRecord\(')) {
+    if (checkResponseBody(request, 'document.hasRedemptionRecord\\(')) {
       // [javascript] 'document.hasRedemptionRecord(<issuer>>)'
       result['privateStateTokens'].push({ "domain": requestDomain, "api": 'hasRedemptionRecord' });
     }
@@ -385,7 +385,7 @@ function retainUniqueDomains(obj) {
     if (checkResponseBody(request, 'reportWin', false)) {
       result['protectedAudienceAPI'].push({ "domain": requestDomain, "api": 'reportWin' });
     }
-    if (checkResponseBody(request, 'reportResult', false) || request.response_body.includes('sendReportTo', false)) {
+    if (checkResponseBody(request, 'reportResult', false) || checkResponseBody(request, 'sendReportTo', false)) {
       result['protectedAudienceAPI'].push({ "domain": requestDomain, "api": 'reportResult' });
     }
 
@@ -397,34 +397,34 @@ function retainUniqueDomains(obj) {
      *
      **************************************************************************/
     // SharedStorage
-    if (checkResponseBody(request, 'window.sharedStorage.append\(')) {
+    if (checkResponseBody(request, 'window.sharedStorage.append\\(')) {
       // [javascript] window.sharedStorage.append(key, value)
       result['sharedStorage'].push({ "domain": requestDomain, "api": 'append' });
     }
-    if (checkResponseBody(request, 'window.sharedStorage.clear\(\s*\)')) {
+    if (checkResponseBody(request, 'window.sharedStorage.clear\\(\\s*\\)')) {
       // [javascript] window.sharedStorage.clear()
       result['sharedStorage'].push({ "domain": requestDomain, "api": 'clear' });
     }
-    if (checkResponseBody(request, 'window.sharedStorage.delete\(')) {
+    if (checkResponseBody(request, 'window.sharedStorage.delete\\(')) {
       // [javascript] window.sharedStorage.delete(key)
       result['sharedStorage'].push({ "domain": requestDomain, "api": 'delete' });
     }
-    if (checkResponseBody(request, 'window.sharedStorage.set\(')) {
+    if (checkResponseBody(request, 'window.sharedStorage.set\\(')) {
       // [javascript] window.sharedStorage.set(key, value, options)
       result['sharedStorage'].push({ "domain": requestDomain, "api": 'set' });
     }
 
     // WindowSharedStorage
-    if (checkResponseBody(request, 'window.sharedStorage.run\(')) {
+    if (checkResponseBody(request, 'window.sharedStorage.run\\(')) {
       // [javascript] window.sharedStorage.run(name, options)
       result['sharedStorage'].push({ "domain": requestDomain, "api": 'run' });
     }
-    if (checkResponseBody(request, 'window.sharedStorage.selectURL\(')) {
+    if (checkResponseBody(request, 'window.sharedStorage.selectURL\\(')) {
       // [javascript] window.sharedStorage.run(name, urls, options)
       result['sharedStorage'].push({ "domain": requestDomain, "api": 'selectURL' });
     }
 
-    if (checkResponseBody(request, 'window.sharedStorage.worklet.addModule\(')) {
+    if (checkResponseBody(request, 'window.sharedStorage.worklet.addModule\\(')) {
       // [javascript] window.sharedStorage.worklet.addModule()
       result['sharedStorage'].push({ "domain": requestDomain, "api": 'addModule' });
     }
@@ -438,22 +438,22 @@ function retainUniqueDomains(obj) {
      * Test site(s):
      **************************************************************************/
 
-    if (checkResponseBody(request, 'document.hasStorageAccess\(\s*\)')) {
+    if (checkResponseBody(request, 'document.hasStorageAccess\\(\\s*\\)')) {
       // [javascript] document.hasStorageAccess()
       result['relatedWebsiteSet'].push({ "domain": requestDomain, "api": 'hasStorageAccess' });
     }
 
-    if (checkResponseBody(request, 'document.hasUnpartitionedCookieAccess\(\s*\)')) {
+    if (checkResponseBody(request, 'document.hasUnpartitionedCookieAccess\\(\\s*\\)')) {
       // [javascript] document.hasUnpartitionedCookieAccess()
       result['relatedWebsiteSet'].push({ "domain": requestDomain, "api": 'hasUnpartitionedCookieAccess' });
     }
 
-    if (checkResponseBody(request, 'document.requestStorageAccess\(')) {
+    if (checkResponseBody(request, 'document.requestStorageAccess\\(')) {
       // [javascript] document.requestStorageAccess(types: optional)
       result['relatedWebsiteSet'].push({ "domain": requestDomain, "api": 'requestStorageAccess' });
     }
 
-    if (checkResponseBody(request, 'document.requestStorageAccessFor\(')) {
+    if (checkResponseBody(request, 'document.requestStorageAccessFor\\(')) {
       // [javascript] document.requestStorageAccessFor(requestedOrigin)
       result['relatedWebsiteSet'].push({ "domain": requestDomain, "api": 'requestStorageAccessFor' });
     }
@@ -468,15 +468,15 @@ function retainUniqueDomains(obj) {
      *  - https://www.operafootball.com/
      **************************************************************************/
 
-    if (checkResponseBody(request, 'document.browsingTopics\(\s*\)')) {
+    if (checkResponseBody(request, 'document.browsingTopics\\(\\s*\\)')) {
       // [javascript] 'document.browsingTopics()'
       result['topics'].push({ "domain": requestDomain, "api": 'browsingTopicsJs', "skipObservation": false });
     }
-    if (checkResponseBody(request, 'document.browsingTopics\(\s*\{\s*skipObservation\s*:\s*true\s*\}\s*\)')) {
+    if (checkResponseBody(request, 'document.browsingTopics\\(\\s*\\{\\s*skipObservation\\s*:\\s*true\\s*\\}\\s*\\)')) {
       // [javascript] 'document.browsingTopics({skipObservation:true})'
       result['topics'].push({ "domain": requestDomain, "api": 'browsingTopicsJs', "skipObservation": true });
     }
-    if (checkResponseBody(request, '\{\s*browsingTopics\s*:\s*true\s*\}') || checkResponseBody(request, '\{\s*deprecatedBrowsingTopics\s*:\s*true\s*\}')) {
+    if (checkResponseBody(request, '\\{\\s*browsingTopics\\s*:\\s*true\\s*\\}') || checkResponseBody(request, '\\{\\s*deprecatedBrowsingTopics\\s*:\\s*true\\s*\\}')) {
       // [fetch] '{browsingTopics: true}'
       // [XHR] '{deprecatedBrowsingTopics: true}' (to be deprecated)
       if (respHeaders.has('observe-browsing-topics') && respHeaders.get('observe-browsing-topics') === "?1") {
@@ -507,7 +507,7 @@ function retainUniqueDomains(obj) {
      * - https://user-agent-client-hints.glitch.me/headers
      **************************************************************************/
 
-    if (checkResponseBody(request, 'navigator.userAgentData.getHighEntropyValues\(')) {
+    if (checkResponseBody(request, 'navigator.userAgentData.getHighEntropyValues\\(')) {
       // [javascript] 'navigator.userAgentData.getHighEntropyValues([])
       result['userAgentClientHints'].push({ "domain": requestDomain, "api": 'getHighEntropyValues' });
     }
