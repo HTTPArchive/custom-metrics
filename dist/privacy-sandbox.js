@@ -86,7 +86,7 @@ function checkResponseBody(request, pattern, isRegex = true) {
  * @param {string} url - url to fetch.
  * @return {boolean} - True, if response.
  */
-async function fetchAndCheckResponse(url) {
+const fetchAndCheckResponse = async (url) => {
   const controller = new AbortController();
   const { signal } = controller;
   setTimeout(() => controller.abort(), 5000);
@@ -109,13 +109,9 @@ async function fetchAndCheckResponse(url) {
  *
  * @param {string} url - request URL to get domain from
  */
-function getDomain(url) {
-  const hostname = new URL(url).hostname;
+function getDomain(hostname) {
   const parts = hostname.split('.');
-
-  // Second level labels with >150K requests in all.requests
   const secondLevelLabels = ['com', 'co', 'edu', 'gov', 'org', 'ac', 'or', 'go', 'gob', 'net', 'ne', 'sch', 'in'];
-
   if (parts.length <= 2) {
     return hostname;
   } else if (secondLevelLabels.includes(parts.at(-2))) {
@@ -156,8 +152,13 @@ function apiCallerAdd(domain) {
  */
 async function fetchAttestations() {
   for (const [domain, _] of Object.entries(result.apiCallersAttestation)) {
-    const attestation = fetchAndCheckResponse(`${'https://' + domain}/.well-known/privacy-sandbox-attestations.json`);
-    result.apiCallersAttestation[domain] = attestation;
+    const attestation = fetchAndCheckResponse(`${'https://' + domain}/.well-known/privacy-sandbox-attestations.json`).catch(e => e);
+    if (attestation) {
+      result.apiCallersAttestation[domain] = true;
+    }
+    else {
+      delete result.apiCallersAttestation[domain];
+    }
   }
 }
 
@@ -165,26 +166,20 @@ async function fetchAttestations() {
 
 /**
  * @function retainUniqueDomains
- * Retains only unique domains in all lists in the result object
+ * Retains only unique values in the result object and deletes empty keys
  * Deletes any key that is set to empty value
- *
- * @param {obj} result - result object to check
  */
-function retainUniqueDomains(obj) {
-  for (let key in obj) {
-    if (Array.isArray(obj[key])) {
-      obj[key] = [...new Set(obj[key])];
-      if (obj[key].length === 0) {
-        delete obj[key];
+function retainUniqueDomains() {
+  for (let key in result) {
+    if (Array.isArray(result[key])) {
+      result[key] = [...new Set(result[key])];
+      if (result[key].length === 0) {
+        delete result[key];
       }
-    } else if (typeof obj[key] === 'object' && obj[key] !== null) {
-      obj[key] = retainUniqueDomains(obj[key]);
-      if (Object.keys(obj[key]).length === 0) {
-        delete obj[key];
-      }
+    } else if (typeof result[key] === 'object' && result[key] !== null) {
+      result[key] = retainUniqueDomains(result[key]);
     }
   }
-  return obj;
 }
 
 
@@ -193,7 +188,7 @@ function retainUniqueDomains(obj) {
   for (const request of requests) {
     const url = new URL(request.url);
     const requestDomain = url.hostname;
-    const canonicalRequestDomain = getDomain(url);
+    const canonicalRequestDomain = getDomain(requestDomain);
     apiCallerAdd(canonicalRequestDomain);
 
     let reqHeaders = new Map(Object.entries(request.request_headers).map(([key, value]) => [key.toLowerCase(), value]));
@@ -518,8 +513,8 @@ function retainUniqueDomains(obj) {
 
   }
 
-  // Retaining only unique domains in the results
-  result = retainUniqueDomains(result)
+  // Retaining only unique values in the results and deleting empty keys
+  retainUniqueDomains();
 
   // Fetch attestation files
   // TODO: check that it actually returns something (figure out promise/async/await, etc.)
