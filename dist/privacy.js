@@ -369,7 +369,7 @@ return JSON.stringify({
       'getShaderPrecisionFormat'
   ].map(api => api.toLowerCase())
 
-  const response_bodies = $WPT_BODIES.filter(body => body.type === 'Document' || body.type === 'Script')
+  const response_bodies = $WPT_BODIES.filter(body => (body.response_body && (body.type === 'Document' || body.type === 'Script')))
 
   let fingerprintingUsageCounts = {}
   let likelyFingerprintingScripts = []
