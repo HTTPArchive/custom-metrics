@@ -18,7 +18,7 @@
 let requests = $WPT_BODIES;
 
 let result = { // alphabetical order for organization
-  apiCallersAttestation: {}, // object {domain (string): true/false} Note: true does not especially mean that attestation file is valid (need to check if JSON, compliant with JSON schema, etc.)
+  // apiCallersAttestation: {}, // To be handled in analysis phase using PSL
   permissionsPolicy: { // Documentation Permissions Policy: https://developers.google.com/privacy-sandbox/relevance/setup/web/permissions-policy
     'attribution-reporting': document.featurePolicy.allowsFeature('attribution-reporting'),
     'browsing-topics': document.featurePolicy.allowsFeature('browsing-topics'),
@@ -102,69 +102,6 @@ const fetchAndCheckResponse = async (url) => {
 
 
 /**
- * @function getDomain
- * Get canonical domain from URL for attestation check
- * Note: it would be ideal for this to have access to the Public Suffix List
- * Meanwhile this is a best-effort approach
- *
- * @param {string} url - request URL to get domain from
- */
-function getDomain(hostname) {
-  const parts = hostname.split('.');
-  const secondLevelLabels = ['com', 'co', 'edu', 'gov', 'org', 'ac', 'or', 'go', 'gob', 'net', 'ne', 'sch', 'in'];
-  if (parts.length <= 2) {
-    return hostname;
-  } else if (secondLevelLabels.includes(parts.at(-2))) {
-    return parts.slice(-3).join('.');
-  } else {
-    return parts.slice(-2).join('.');
-  }
-}
-
-
-
-/**
- * @function apiCallerAdd
- * Add provided caller API domain to results if not already present
- *
- * @param {string} domain - API caller domain
- */
-function apiCallerAdd(domain) {
-  if (!(domain in result.apiCallersAttestation)) {
-    result.apiCallersAttestation[domain] = null;
-  }
-}
-
-
-
-/**
- * @function fetchAttestations
- * Check attestation file and set value to true if there is a request
- * response (note: does not especially mean that attestation file is valid)
- * Attestation is supposed to be under same https://domain than API caller, no redirect
- * https://github.com/privacysandbox/attestation
- * only required for attribution reporting, topics, protected audience, shared
- * storage, and private aggregation APIs so far
- * we check anyway if response returned for any caller of any API we detect (if
- * they call 1 API they are likely to call others too and so have that file published)
- *
- * @param {string} domain - API caller domain
- */
-async function fetchAttestations() {
-  for (const [domain, _] of Object.entries(result.apiCallersAttestation)) {
-    const attestation = fetchAndCheckResponse(`${'https://' + domain}/.well-known/privacy-sandbox-attestations.json`).catch(e => e);
-    if (attestation) {
-      result.apiCallersAttestation[domain] = true;
-    }
-    else {
-      delete result.apiCallersAttestation[domain];
-    }
-  }
-}
-
-
-
-/**
  * @function retainUniqueDomains
  * Retains only unique values in the result object and deletes empty keys
  * Deletes any key that is set to empty value
@@ -188,9 +125,6 @@ function retainUniqueDomains() {
   for (const request of requests) {
     const url = new URL(request.url);
     const requestDomain = url.hostname;
-    const canonicalRequestDomain = getDomain(requestDomain);
-    apiCallerAdd(canonicalRequestDomain);
-
     let reqHeaders = new Map(Object.entries(request.request_headers).map(([key, value]) => [key.toLowerCase(), value]));
     let respHeaders = new Map(Object.entries(request.response_headers).map(([key, value]) => [key.toLowerCase(), value]));
 
@@ -515,10 +449,6 @@ function retainUniqueDomains() {
 
   // Retaining only unique values in the results and deleting empty keys
   retainUniqueDomains();
-
-  // Fetch attestation files
-  // TODO: check that it actually returns something (figure out promise/async/await, etc.)
-  fetchAttestations();
 
 })();
 
