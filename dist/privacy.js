@@ -408,15 +408,17 @@ return JSON.stringify({
     let results = {};
 
     for (const request of $WPT_REQUESTS) {
-      request_hostname = (new URL(request.url)).hostname;
+      try {
+        request_hostname = (new URL(request.url)).hostname;
 
-      for (const [origin, dns_info] of Object.entries($WPT_DNS)) {
-        dns_hostname = (new URL(origin)).hostname;
+        for (const [origin, dns_info] of Object.entries($WPT_DNS)) {
+          dns_hostname = (new URL(origin)).hostname;
 
-        if (request_hostname == dns_hostname && request_hostname !== dns_info.results.canonical_names[0]) {
-          results[dns_hostname] = dns_info.results.canonical_names;
+          if (request_hostname == dns_hostname && request_hostname !== dns_info.results.canonical_names[0]) {
+            results[dns_hostname] = dns_info.results.canonical_names;
+          }
         }
-      }
+      } catch {}
     }
 
     return results;
