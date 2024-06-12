@@ -408,6 +408,7 @@ return JSON.stringify({
     let results = {};
 
     for (const request of $WPT_REQUESTS) {
+      // Add try/catch in case "new URL" throws an exception
       try {
         request_hostname = (new URL(request.url)).hostname;
 
