@@ -367,38 +367,38 @@ return JSON.stringify({
       'shadingLanguageVersion',
       'WEBGL_debug_renderer_info',
       'getShaderPrecisionFormat'
-  ].map(api => api.toLowerCase())
+    ].map(api => api.toLowerCase())
 
-  const response_bodies = $WPT_BODIES.filter(body => (body.response_body && (body.type === 'Document' || body.type === 'Script')))
+    const response_bodies = $WPT_BODIES.filter(body => (body.response_body && (body.type === 'Document' || body.type === 'Script')))
 
-  let fingerprintingUsageCounts = {}
-  let likelyFingerprintingScripts = []
+    let fingerprintingUsageCounts = {}
+    let likelyFingerprintingScripts = []
 
-  response_bodies.forEach(req => {
-    let total_occurrences = 0
+    response_bodies.forEach(req => {
+      let total_occurrences = 0
 
-    let body = req.response_body.toLowerCase()
+      let body = req.response_body.toLowerCase()
 
-    fingerprintingAPIs.forEach(api => {
-      let api_occurrences = 0
-      let index = body.indexOf(api)
-      while (index !== -1) {
-        api_occurrences++
-        index = body.indexOf(api, index + 1)
+      fingerprintingAPIs.forEach(api => {
+        let api_occurrences = 0
+        let index = body.indexOf(api)
+        while (index !== -1) {
+          api_occurrences++
+          index = body.indexOf(api, index + 1)
+        }
+
+        if (api_occurrences > 0) {
+          fingerprintingUsageCounts[api] = (fingerprintingUsageCounts[api] || 0) + api_occurrences
+        }
+        total_occurrences += api_occurrences
+      })
+
+      if (total_occurrences >= 5) { //TODO what should this threshold be?
+        likelyFingerprintingScripts.push(req.url)
       }
-
-      if (api_occurrences > 0) {
-        fingerprintingUsageCounts[api] = (fingerprintingUsageCounts[api] || 0) + api_occurrences
-      }
-      total_occurrences += api_occurrences
     })
 
-    if (total_occurrences >= 5) { //TODO what should this threshold be?
-      likelyFingerprintingScripts.push(req.url)
-    }
-  })
-
-  return {counts: fingerprintingUsageCounts, likelyFingerprintingScripts}
+    return { counts: fingerprintingUsageCounts, likelyFingerprintingScripts }
   })(),
 
   /**
@@ -419,7 +419,7 @@ return JSON.stringify({
             results[dns_hostname] = dns_info.results.canonical_names;
           }
         }
-      } catch {}
+      } catch { }
     }
 
     return results;
