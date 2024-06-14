@@ -8,6 +8,7 @@ beforeAll(async () => {
 }, 400000);
 
 test('_ads parsing', () => {
+  assert.ok(wpt_data["_ads"])
   assert.ok(wpt_data["_ads"].ads);
   assert.ok(wpt_data["_ads"].app_ads);
   assert.ok(wpt_data["_ads"].sellers);
