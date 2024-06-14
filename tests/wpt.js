@@ -2,6 +2,7 @@ const WebPageTest = require('webpagetest');
 const fs = require('fs');
 const path = require('path');
 const { argv } = require('node:process');
+const { exec } = require('child_process');
 
 const is_direct_run = require.main === module;
 
@@ -20,6 +21,31 @@ function getCustomMetrics() {
     .map((file) => path.basename(file.name, '.js'));
 }
 
+function getChangedCustomMetrics() {
+  let metricsList = [];
+
+  exec('git diff --name-only --diff-filter=ACMRT origin/main', (error, stdout, stderr) => {
+    if (error) {
+      console.error(`Error executing git command: ${error}`);
+      return;
+    }
+    if (stderr) {
+      console.error(`Git stderr: ${stderr}`);
+      return;
+    }
+
+    metricsList = stdout.split('\n')
+      .filter(file => /^dist\/.*\.js$/.test(file))
+      .map(file => file.split('/').pop().split('.').slice(0, -1).join('.'))
+      .sort()
+      .filter((value, index, self) => self.indexOf(value) === index);
+  });
+  console.log('METRICS:', metricsList.join(' '));
+
+  return metricsList;
+}
+
+
 /**
  * Runs a WebPageTest (WPT) test for a given URL.
  *
@@ -27,9 +53,9 @@ function getCustomMetrics() {
  * @returns {Promise<object>} A promise that resolves with an object containing the custom metrics.
  * @throws {Error} If the test run fails or the response status code is not 200.
  */
-function runWPTTest(url, metrics_to_log = []) {
+function runWPTTest(url) {
   const custom_metrics = getCustomMetrics();
-  metrics_to_log = metrics_to_log.length > 0 ? metrics_to_log : custom_metrics;
+  const metrics_to_log = getChangedCustomMetrics();
 
   let options = { key: wptApiKey, custom: '' };
   for (const metric_name of custom_metrics) {
@@ -71,7 +97,7 @@ function runWPTTest(url, metrics_to_log = []) {
 
 if (is_direct_run) {
   const url = argv[2];
-  const metrics_to_log = argv[3].split('\n');
+
   runWPTTest(url, metrics_to_log);
 }
 
