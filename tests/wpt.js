@@ -54,8 +54,10 @@ function getChangedCustomMetrics() {
  * @throws {Error} If the test run fails or the response status code is not 200.
  */
 function runWPTTest(url) {
-  const custom_metrics = getCustomMetrics();
-  const metrics_to_log = getChangedCustomMetrics();
+  const custom_metrics = getCustomMetrics()
+  console.log('CUSTOM METRICS:', custom_metrics.join(' '))
+  const metrics_to_log = getChangedCustomMetrics()
+  console.log('METRICS TO LOG:', metrics_to_log.join(' '))
 
   let options = { key: wptApiKey, custom: '' };
   for (const metric_name of custom_metrics) {
@@ -75,6 +77,7 @@ function runWPTTest(url) {
         let wpt_custom_metrics = {}
         let wpt_custom_metrics_to_log = {}
         for (const metric_name of custom_metrics) {
+          console.log(`Retrieving custom metric ${metric_name}`)
           wpt_custom_metric = response.data.runs['1'].firstView[`_${metric_name}`];
           try {
             wpt_custom_metrics[`_${metric_name}`] = JSON.parse(wpt_custom_metric);
