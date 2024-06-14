@@ -34,6 +34,8 @@ function getChangedCustomMetrics() {
       return;
     }
 
+    console.log(stdout)
+
     metricsList = stdout.split('\n')
       .filter(file => /^dist\/.*\.js$/.test(file))
       .map(file => file.split('/').pop().split('.').slice(0, -1).join('.'))
