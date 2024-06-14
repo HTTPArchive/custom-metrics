@@ -29,7 +29,7 @@ function getCustomMetrics() {
  * @returns {string[]} An array of the base names of the JavaScript files without the '.js' extension.
  */
 function getChangedCustomMetrics() {
-  let metricsList
+  let metricsList = []
 
   exec('git diff --name-only --diff-filter=ACMRT origin/main', (error, stdout, stderr) => {
     if (error) {

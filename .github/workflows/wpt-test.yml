@@ -71,7 +71,7 @@ jobs:
             # Run WebPageTest for each URL
             for TEST_WEBSITE in "${URLS[@]}"; do
               echo "::group::Custom metrics for $TEST_WEBSITE"
-              node tests/wpt.js "$TEST_WEBSITE" "$METRICS"
+              node tests/wpt.js "$TEST_WEBSITE"
               echo "::endgroup::"
             done
           else
