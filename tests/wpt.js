@@ -10,6 +10,7 @@ const wptServer = process.env.WPT_SERVER;
 const wptApiKey = process.env.WPT_API_KEY;
 const wpt = new WebPageTest(wptServer, wptApiKey);
 
+
 /**
  * Retrieves the names of all JavaScript files in the 'dist/' directory.
  *
@@ -17,12 +18,18 @@ const wpt = new WebPageTest(wptServer, wptApiKey);
  */
 function getCustomMetrics() {
   return fs.readdirSync('dist/', { withFileTypes: true })
-    .filter((file) => path.extname(file.name) === '.js')
-    .map((file) => path.basename(file.name, '.js'));
+    .filter(file => path.extname(file.name) === '.js')
+    .map(file => path.basename(file.name, '.js'));
 }
 
+
+/**
+ * Retrieves the names of all JavaScript files in the 'dist/' directory that have changed in the current branch.
+ *
+ * @returns {string[]} An array of the base names of the JavaScript files without the '.js' extension.
+ */
 function getChangedCustomMetrics() {
-  let metricsList = [];
+  let metricsList
 
   exec('git diff --name-only --diff-filter=ACMRT origin/main', (error, stdout, stderr) => {
     if (error) {
@@ -34,15 +41,15 @@ function getChangedCustomMetrics() {
       return;
     }
 
-    console.log(stdout)
-
     metricsList = stdout.split('\n')
-      .filter(file => /^dist\/.*\.js$/.test(file))
-      .map(file => file.split('/').pop().split('.').slice(0, -1).join('.'))
-      .sort()
-      .filter((value, index, self) => self.indexOf(value) === index);
+      .filter(file => RegExp('^dist\/.*\.js$', 'g').test(file))
+      .map(file => path.basename(file, '.js'))
+
+    console.log(metricsList)
+
+    metricsList = Array.from(new Set(metricsList)).sort()
+
   });
-  console.log('METRICS:', metricsList.join(' '));
 
   return metricsList;
 }
@@ -57,7 +64,6 @@ function getChangedCustomMetrics() {
  */
 function runWPTTest(url) {
   const custom_metrics = getCustomMetrics()
-  console.log('CUSTOM METRICS:', custom_metrics.join(' '))
   const metrics_to_log = getChangedCustomMetrics()
   console.log('METRICS TO LOG:', metrics_to_log.join(' '))
 
@@ -79,7 +85,6 @@ function runWPTTest(url) {
         let wpt_custom_metrics = {}
         let wpt_custom_metrics_to_log = {}
         for (const metric_name of custom_metrics) {
-          console.log(`Retrieving custom metric ${metric_name}`)
           wpt_custom_metric = response.data.runs['1'].firstView[`_${metric_name}`];
           try {
             wpt_custom_metrics[`_${metric_name}`] = JSON.parse(wpt_custom_metric);
@@ -103,6 +108,7 @@ function runWPTTest(url) {
     });
   });
 }
+
 
 if (is_direct_run) {
   const url = argv[2];
