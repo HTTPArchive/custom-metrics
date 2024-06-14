@@ -102,7 +102,7 @@ function runWPTTest(url) {
 if (is_direct_run) {
   const url = argv[2];
 
-  runWPTTest(url, metrics_to_log);
+  runWPTTest(url);
 }
 
 module.exports = { runWPTTest };
