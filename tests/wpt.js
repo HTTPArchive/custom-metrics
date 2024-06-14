@@ -73,10 +73,14 @@ function runWPTTest(url) {
       } else {
         console.log(`WPT test run for ${url} completed`);
         let wpt_custom_metrics = {}
-        for (const metric_name of metrics_to_log) {
+        let wpt_custom_metrics_to_log = {}
+        for (const metric_name of custom_metrics) {
           wpt_custom_metric = response.data.runs['1'].firstView[`_${metric_name}`];
           try {
             wpt_custom_metrics[`_${metric_name}`] = JSON.parse(wpt_custom_metric);
+            if(metric_name in metrics_to_log) {
+              wpt_custom_metrics_to_log[`_${metric_name}`] = JSON.parse(wpt_custom_metric);
+            }
           } catch (e) {
             wpt_custom_metrics[`_${metric_name}`] = wpt_custom_metric;
           }
@@ -86,7 +90,7 @@ function runWPTTest(url) {
           `<summary><strong>Custom metrics for ${url}</strong></summary>\n\n` +
           `WPT test run results: ${response.data.summary}\n` +
           (is_direct_run ? 'Changed custom metrics values:\n' +
-            `\`\`\`json\n${JSON.stringify(wpt_custom_metrics, null, 4)}\n\`\`\`\n` : '') +
+            `\`\`\`json\n${JSON.stringify(wpt_custom_metrics_to_log, null, 4)}\n\`\`\`\n` : '') +
           '</details>\n');
 
         resolve(wpt_custom_metrics);
