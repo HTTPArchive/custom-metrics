@@ -45,11 +45,9 @@ function getChangedCustomMetrics() {
       .filter(file => RegExp('^dist\/.*\.js$', 'g').test(file))
       .map(file => path.basename(file, '.js'))
 
-    console.log(metricsList)
-
     metricsList = Array.from(new Set(metricsList)).sort()
-
   });
+  console.log(metricsList)
 
   return metricsList;
 }
