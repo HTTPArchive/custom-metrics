@@ -89,17 +89,21 @@ function runWPTTest(url) {
             if (metric_name in metrics_to_log) {
               wpt_custom_metrics_to_log[`_${metric_name}`] = JSON.parse(wpt_custom_metric);
             }
+            console.log(`Custom metric ${metric_name}:`, JSON.stringify(wpt_custom_metrics[`_${metric_name}`]));
+            console.log(`Custom metrics to log:`, JSON.stringify(wpt_custom_metrics_to_log))
           } catch (e) {
             wpt_custom_metrics[`_${metric_name}`] = wpt_custom_metric;
           }
         }
 
-        fs.appendFileSync('test-results.md', '<details>\n' +
-          `<summary><strong>Custom metrics for ${url}</strong></summary>\n\n` +
-          `WPT test run results: ${response.data.summary}\n` +
-          (is_direct_run ? 'Changed custom metrics values:\n' +
-            `\`\`\`json\n${JSON.stringify(wpt_custom_metrics_to_log, null, 4)}\n\`\`\`\n` : '') +
-          '</details>\n');
+        fs.appendFileSync('test-results.md', `<details>
+          <summary><strong>Custom metrics for ${url}</strong></summary>
+          WPT test run results: ${response.data.summary}
+          Changed custom metrics values:
+            \`\`\`json
+            ${JSON.stringify(wpt_custom_metrics_to_log, null, 4)}
+            \`\`\`
+          </details>\n`);
 
         resolve(wpt_custom_metrics);
       }
