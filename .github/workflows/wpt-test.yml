@@ -25,10 +25,7 @@ jobs:
           npm install jest
 
       - name: Run WebPageTest with unit tests
-        run: |
-          echo "::group::Unit tests"
-          npm test
-          echo "::endgroup::"
+        run: npm test
         env:
           WPT_SERVER: "webpagetest.httparchive.org"
           WPT_API_KEY: ${{ secrets.HA_API_KEY }}
