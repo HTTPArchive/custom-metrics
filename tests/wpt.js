@@ -2,7 +2,7 @@ const WebPageTest = require('webpagetest');
 const fs = require('fs');
 const path = require('path');
 const { argv } = require('node:process');
-const { exec } = require('child_process');
+const { execSync } = require('child_process');
 
 const is_direct_run = require.main === module;
 
@@ -28,27 +28,14 @@ function getCustomMetrics() {
  *
  * @returns {string[]} An array of the base names of the JavaScript files without the '.js' extension.
  */
-async function getChangedCustomMetrics() {
-  const {error, stdout, stderr} = await exec('git diff --name-only --diff-filter=ACMRT origin/main')
-
-  if (error) {
-    console.error(`Error executing git command: ${error}`);
-    return;
-  }
-  if (stderr) {
-    console.error(`Git stderr: ${stderr}`);
-    return;
-  }
-
-  console.log(stdout);
+function getChangedCustomMetrics() {
+  const stdout = execSync('git diff --name-only --diff-filter=ACMRT origin/main', { encoding: 'utf-8' })
 
   metricsList = stdout.split('\n')
     .filter(file => RegExp('^dist\/.*\.js$', 'g').test(file))
     .map(file => path.basename(file, '.js'))
 
   metricsList = Array.from(new Set(metricsList)).sort()
-
-  console.log(metricsList)
 
   return metricsList;
 }
@@ -64,7 +51,6 @@ async function getChangedCustomMetrics() {
 function runWPTTest(url) {
   const custom_metrics = getCustomMetrics()
   const metrics_to_log = getChangedCustomMetrics()
-  console.log('METRICS TO LOG:', metrics_to_log.join(' '))
 
   let options = { key: wptApiKey, custom: '' };
   for (const metric_name of custom_metrics) {
@@ -98,13 +84,14 @@ function runWPTTest(url) {
         }
 
         fs.appendFileSync('test-results.md', `<details>
-          <summary><strong>Custom metrics for ${url}</strong></summary>
-          WPT test run results: ${response.data.summary}
-          Changed custom metrics values:
-            \`\`\`json
-            ${JSON.stringify(wpt_custom_metrics_to_log, null, 4)}
-            \`\`\`
-          </details>\n`);
+<summary><strong>Custom metrics for ${url}</strong></summary>
+
+WPT test run results: ${response.data.summary}
+Changed custom metrics values:
+\```json
+${JSON.stringify(wpt_custom_metrics_to_log, null, 4)}
+\```
+</details>\n\n`);
 
         resolve(wpt_custom_metrics);
       }
