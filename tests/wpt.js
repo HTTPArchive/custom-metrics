@@ -29,24 +29,24 @@ function getCustomMetrics() {
  * @returns {string[]} An array of the base names of the JavaScript files without the '.js' extension.
  */
 async function getChangedCustomMetrics() {
-  const metricsList = await exec('git diff --name-only --diff-filter=ACMRT origin/main', (error, stdout, stderr) => {
-    if (error) {
-      console.error(`Error executing git command: ${error}`);
-      return;
-    }
-    if (stderr) {
-      console.error(`Git stderr: ${stderr}`);
-      return;
-    }
+  const {error, stdout, stderr} = await exec('git diff --name-only --diff-filter=ACMRT origin/main')
 
-    metricsList = stdout.split('\n')
-      .filter(file => RegExp('^dist\/.*\.js$', 'g').test(file))
-      .map(file => path.basename(file, '.js'))
+  if (error) {
+    console.error(`Error executing git command: ${error}`);
+    return;
+  }
+  if (stderr) {
+    console.error(`Git stderr: ${stderr}`);
+    return;
+  }
 
-    metricsList = Array.from(new Set(metricsList)).sort()
+  console.log(stdout);
 
-    return metricsList;
-  });
+  metricsList = stdout.split('\n')
+    .filter(file => RegExp('^dist\/.*\.js$', 'g').test(file))
+    .map(file => path.basename(file, '.js'))
+
+  metricsList = Array.from(new Set(metricsList)).sort()
 
   console.log(metricsList)
 
