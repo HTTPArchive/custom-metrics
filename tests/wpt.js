@@ -79,7 +79,7 @@ function runWPTTest(url) {
             }
 
           } catch (e) {
-            console.log('JSON.parse failed', e);
+            console.log(`JSON.parse of metric ${metric_name} failed:`, e);
             wpt_custom_metrics[`_${metric_name}`] = wpt_custom_metric;
           }
         }
