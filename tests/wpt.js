@@ -71,15 +71,22 @@ function runWPTTest(url) {
         let wpt_custom_metrics_to_log = {}
 
         for (const metric_name of custom_metrics) {
-          wpt_custom_metric = response.data.runs['1'].firstView[`_${metric_name}`];
+          let wpt_custom_metric = response.data.runs['1'].firstView[`_${metric_name}`];
           try {
-            wpt_custom_metrics[`_${metric_name}`] = JSON.parse(wpt_custom_metric.toString());
+            // Some custom metrics are returned as objects, some as strings
+            if (typeof wpt_custom_metric === 'string') {
+              wpt_custom_metric = JSON.parse(wpt_custom_metric);
+            }
+            wpt_custom_metrics[`_${metric_name}`] = wpt_custom_metric;
+
             if (metrics_to_log.includes(metric_name)) {
-              wpt_custom_metrics_to_log[`_${metric_name}`] = JSON.parse(wpt_custom_metric.toString());
+              wpt_custom_metrics_to_log[`_${metric_name}`] = wpt_custom_metric;
             }
 
           } catch (e) {
-            console.log(`JSON.parse of metric ${metric_name} failed:`, e, wpt_custom_metric);
+            console.log(`JSON.parse of metric ${metric_name} failed:`);
+            console.log(e);
+            console.log(wpt_custom_metric);
             wpt_custom_metrics[`_${metric_name}`] = wpt_custom_metric;
           }
         }
