@@ -73,9 +73,9 @@ function runWPTTest(url) {
         for (const metric_name of custom_metrics) {
           wpt_custom_metric = response.data.runs['1'].firstView[`_${metric_name}`];
           try {
-            wpt_custom_metrics[`_${metric_name}`] = JSON.parse(wpt_custom_metric);
+            wpt_custom_metrics[`_${metric_name}`] = JSON.parse(wpt_custom_metric.toString());
             if (metrics_to_log.includes(metric_name)) {
-              wpt_custom_metrics_to_log[`_${metric_name}`] = JSON.parse(wpt_custom_metric);
+              wpt_custom_metrics_to_log[`_${metric_name}`] = JSON.parse(wpt_custom_metric.toString());
             }
 
           } catch (e) {
