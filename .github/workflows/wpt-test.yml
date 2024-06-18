@@ -25,20 +25,13 @@ jobs:
           npm install jest
 
       - name: Run WebPageTest with unit tests
-        run: |
-          echo "::group::Unit tests"
-            npm test
-          echo "::endgroup::"
+        run: npm test
         env:
           WPT_SERVER: "webpagetest.httparchive.org"
           WPT_API_KEY: ${{ secrets.HA_API_KEY }}
 
       - name: Run WebPageTest for more websites
         run: |
-          # Get the list of files that changed in the PR
-          METRICS=$(git diff --name-only --diff-filter=ACMRT origin/main | \
-            grep -E "^dist/.*\.js$" | xargs -I {} basename {} | cut -d. -f1 | sort | uniq)
-
           # Get the PR body
           PR_BODY="$(cat <<'EOF'
           ${{ github.event.pull_request.body }}
@@ -75,7 +68,7 @@ jobs:
             # Run WebPageTest for each URL
             for TEST_WEBSITE in "${URLS[@]}"; do
               echo "::group::Custom metrics for $TEST_WEBSITE"
-              node tests/wpt.js "$TEST_WEBSITE" "$METRICS"
+              node tests/wpt.js "$TEST_WEBSITE"
               echo "::endgroup::"
             done
           else
