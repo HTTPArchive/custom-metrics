@@ -371,4 +371,3 @@ return Promise.all([getLcpElement()]).then(([lcp_elem_stats]) => {
 }).catch(error => {
     return {error};
 });
-
