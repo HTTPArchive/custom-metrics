@@ -264,7 +264,7 @@ function getLcpPreloadInfo(rawDoc, lcpUrl) {
 
         let src = link.href;
         if (link.hasAttribute('imagesrcset')) {
-            src = splitSrcSet(link.imagesrcset).find(src => src == lcpUrl);
+            src = splitSrcSet(link.imagesrcset || link.getAttribute('imagesrcset')).find(src => src == lcpUrl);
         }
 
         return src == lcpUrl;
