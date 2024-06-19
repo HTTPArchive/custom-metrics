@@ -73,16 +73,23 @@ function runWPTTest(url) {
         for (const metric_name of custom_metrics) {
           let wpt_custom_metric = response.data.runs['1'].firstView[`_${metric_name}`];
           try {
-            // Try to parse strings into JSON to allow them to be pretty printed
-            // Not all custom metrics are JSON strings so this might fail
+            // Some, but not all, custom metrics wrap their return values in JSON.stringify()
+            // Some just return the objects. And some have strings which are not JSON!
+            // Gotta love the consistency!!!
+            //
+            // IMHO wrapping the return in JSON.stringify() is best practice, since WebPageTest
+            // will do that to save to database and you can run into weird edge cases where it
+            // doesn't return data when doing that, so explicitly doing that avoids that when
+            // testing in the console* , but we live in an inconsistent world!
+            // (* see https://github.com/HTTPArchive/custom-metrics/pull/113#issuecomment-2043937823)
+            //
+            // Anyway, if it's a string, see if we can parse it back to a JS object to pretty
+            // print it, but be prepared for that to fail for non-JSON strings so wrap in try/catch
             if (typeof wpt_custom_metric === 'string') {
-              console.log(`JSON.parse worked for ${metric_name}`);
-              console.log(`${wpt_custom_metric}`);
               wpt_custom_metric = JSON.parse(wpt_custom_metric);
-              console.log(`${wpt_custom_metric}`);
             }
           } catch (e) {
-            // If it fails, that's OK as we'll just stick with the exact output
+            // If it fails, that's OK as we'll just stick with the exact string output anyway
           }
           wpt_custom_metrics[`_${metric_name}`] = wpt_custom_metric;
           if (metrics_to_log.includes(metric_name)) {
