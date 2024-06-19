@@ -71,15 +71,29 @@ function runWPTTest(url) {
         let wpt_custom_metrics_to_log = {}
 
         for (const metric_name of custom_metrics) {
-          wpt_custom_metric = response.data.runs['1'].firstView[`_${metric_name}`];
+          let wpt_custom_metric = response.data.runs['1'].firstView[`_${metric_name}`];
           try {
-            wpt_custom_metrics[`_${metric_name}`] = JSON.parse(wpt_custom_metric);
-            if (metrics_to_log.includes(metric_name)) {
-              wpt_custom_metrics_to_log[`_${metric_name}`] = JSON.parse(wpt_custom_metric);
+            // Some, but not all, custom metrics wrap their return values in JSON.stringify()
+            // Some just return the objects. And some have strings which are not JSON!
+            // Gotta love the consistency!!!
+            //
+            // IMHO wrapping the return in JSON.stringify() is best practice, since WebPageTest
+            // will do that to save to database and you can run into weird edge cases where it
+            // doesn't return data when doing that, so explicitly doing that avoids that when
+            // testing in the console* , but we live in an inconsistent world!
+            // (* see https://github.com/HTTPArchive/custom-metrics/pull/113#issuecomment-2043937823)
+            //
+            // Anyway, if it's a string, see if we can parse it back to a JS object to pretty
+            // print it, but be prepared for that to fail for non-JSON strings so wrap in try/catch
+            if (typeof wpt_custom_metric === 'string') {
+              wpt_custom_metric = JSON.parse(wpt_custom_metric);
             }
-
           } catch (e) {
-            wpt_custom_metrics[`_${metric_name}`] = wpt_custom_metric;
+            // If it fails, that's OK as we'll just stick with the exact string output anyway
+          }
+          wpt_custom_metrics[`_${metric_name}`] = wpt_custom_metric;
+          if (metrics_to_log.includes(metric_name)) {
+            wpt_custom_metrics_to_log[`_${metric_name}`] = wpt_custom_metric;
           }
         }
 
