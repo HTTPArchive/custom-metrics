@@ -76,7 +76,10 @@ function runWPTTest(url) {
             // Try to parse strings into JSON to allow them to be pretty printed
             // Not all custom metrics are JSON strings so this might fail
             if (typeof wpt_custom_metric === 'string') {
+              console.log(`JSON.parse worked for ${metric_name}`);
+              console.log(`${wpt_custom_metric}`);
               wpt_custom_metric = JSON.parse(wpt_custom_metric);
+              console.log(`${wpt_custom_metric}`);
             }
           } catch (e) {
             // If it fails, that's OK as we'll just stick with the exact output
