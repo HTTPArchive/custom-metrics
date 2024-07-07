@@ -3,13 +3,6 @@ const fs = require('fs');
 const path = require('path');
 const { execSync } = require('child_process');
 
-function setGithubActionOutput(name, value) {
-  const githubOutputFile = process.env.GITHUB_OUTPUT;
-  if (githubOutputFile) {
-    const outputString = `${name}=${value}\n`;
-    fs.appendFile(githubOutputFile, outputString);
-  }
-}
 
 class WPTTestRunner {
   constructor(prBody, wptServer, wptApiKey) {
@@ -19,12 +12,20 @@ class WPTTestRunner {
     this.uploadArtifact = false;
   }
 
+  /**
+   * Get custom metrics from the dist folder
+   * @returns {string[]} Custom metrics filenames
+   */
   getCustomMetrics() {
     return fs.readdirSync('dist/', { withFileTypes: true })
       .filter(file => path.extname(file.name) === '.js')
       .map(file => path.basename(file.name, '.js'));
   }
 
+  /**
+   * Get changed custom metrics from the git diff
+   * @returns {string[]} Changed custom metrics filenames
+   */
   getChangedCustomMetrics() {
     const stdout = execSync('git diff --name-only --diff-filter=ACMRT origin/main', { encoding: 'utf-8' });
     return Array.from(new Set(stdout.split('\n')
@@ -33,6 +34,10 @@ class WPTTestRunner {
       .sort();
   }
 
+  /**
+   * Check if the test results are too big for a comment
+   * @param {number} stringLength Length of the test results string
+   */
   checkCommentSize(stringLength) {
     let commentSize = 0;
     try {
@@ -50,6 +55,10 @@ class WPTTestRunner {
     }
   }
 
+  /**
+   * Run a WebPageTest test for a given URL
+   * @param {string} url URL to test
+   */
   async runWPTTest(url) {
     console.log(`::group::WPT test run for ${url} started`);
     const customMetrics = this.getCustomMetrics();
@@ -91,6 +100,12 @@ ${metricsToLogString}
     }
   }
 
+  /**
+   * Run a WebPageTest test and wait for the results
+   * @param {string} url URL to test
+   * @param {object} options WebPageTest options
+   * @returns {Promise<object>} Test results
+   */
   runTestAndWait(url, options) {
     return new Promise((resolve, reject) => {
       this.wpt.runTestAndWait(url, options, (error, response) => {
@@ -103,6 +118,13 @@ ${metricsToLogString}
     });
   }
 
+  /**
+   * Extract custom metrics from the test results
+   * @param {object} firstViewData First view data
+   * @param {string[]} customMetrics Custom metrics filenames
+   * @param {string[]} metricsToLog Changed custom metrics filenames
+   * @returns {object} Custom metrics to log
+   */
   extractMetrics(firstViewData, customMetrics, metricsToLog) {
     const wptCustomMetrics = {};
     const wptCustomMetricsToLog = {};
@@ -124,12 +146,12 @@ ${metricsToLogString}
     return wptCustomMetricsToLog;
   }
 
+  /**
+   * Get test websites from the PR description body
+   * @returns {string[]} Test websites
+   */
   getTestWebsites() {
     const urlPattern = /((http|https):\/\/[a-zA-Z0-9.-]+(\.[a-zA-Z]{2,4})(\/[a-zA-Z0-9_.-]+)*(\/?)(\?[a-zA-Z0-9_.-]+=[a-zA-Z0-9%_.-]+)*(\#?)([a-zA-Z0-9%_.-=]+)*)/;
-    if (!this.prBody) {
-      console.log('No PR description body found.');
-      return [];
-    }
     return this.prBody.split(/\r?\n/).reduce((urls, line, index, lines) => {
       if (line.includes('**Test websites**:')) {
         for (let i = index + 1; i < lines.length; i++) {
@@ -146,7 +168,14 @@ ${metricsToLogString}
     }, []);
   }
 
+  /**
+   * Run all test websites from the PR description body
+   */
   async runTests() {
+    if (!this.prBody) {
+      console.log('No PR description body found.');
+    }
+
     const urls = this.getTestWebsites();
     if (urls.length > 0) {
       for (const url of urls) {
@@ -156,7 +185,7 @@ ${metricsToLogString}
   }
 }
 
-function main() {
+function main(url = process.argv[2]) {
   const prBody = process.env.PR_BODY || '';
   const wptServer = process.env.WPT_SERVER;
   const wptApiKey = process.env.WPT_API_KEY;
@@ -164,7 +193,6 @@ function main() {
   const runner = new WPTTestRunner(prBody, wptServer, wptApiKey);
   runner.runTests();
 
-  const url = process.argv[2];
   if (url) {
     runner.runWPTTest(url);
   }
@@ -174,4 +202,4 @@ if (require.main === module) {
   main();
 }
 
-module.exports = { WPTTestRunner };
+module.exports = { main };

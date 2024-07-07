@@ -29,7 +29,6 @@ jobs:
           WPT_API_KEY: ${{ secrets.HA_API_KEY }}
 
       - name: Run WebPageTest for more websites
-        id: websites-tests
         run: node tests/wpt.js
         env:
           WPT_SERVER: "webpagetest.httparchive.org"
