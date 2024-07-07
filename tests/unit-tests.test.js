@@ -1,10 +1,11 @@
-const { main } = require('./wpt.js');
+const { WPTTestRunner } = require('./wpt.js');
 const assert = require('assert');
 const test_website = "https://almanac.httparchive.org/en/2022/";
 
 let wpt_data;
 beforeAll(async () => {
-  wpt_data = await main(test_website);
+  const runner = new WPTTestRunner();
+  wpt_data = await runner.runWPTTest(test_website);
 }, 400000);
 
 test('_ads parsing', () => {

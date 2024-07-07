@@ -5,9 +5,11 @@ const { execSync } = require('child_process');
 
 
 class WPTTestRunner {
-  constructor(prBody, wptServer, wptApiKey) {
-    this.prBody = prBody || '';
-    this.wpt = new WebPageTest(wptServer, wptApiKey);
+  constructor() {
+    this.prBody = process.env.PR_BODY || '';
+    this.wptServer = process.env.WPT_SERVER || 'webpagetest.httparchive.org';
+    const wptApiKey = process.env.WPT_API_KEY;
+    this.wpt = new WebPageTest(this.wptServer, wptApiKey);
     this.testResultsFile = 'comment.md';
     this.uploadArtifact = false;
   }
@@ -55,50 +57,6 @@ class WPTTestRunner {
     }
   }
 
-  /**
-   * Run a WebPageTest test for a given URL
-   * @param {string} url URL to test
-   */
-  async runWPTTest(url) {
-    console.log(`::group::WPT test run for ${url} started`);
-    const customMetrics = this.getCustomMetrics();
-    const metricsToLog = this.getChangedCustomMetrics();
-    const options = { key: this.wpt.apiKey, http_method: 'POST', custom: '' };
-
-    customMetrics.forEach(metricName => {
-      options.custom += `[_${metricName}]\n${fs.readFileSync(`./dist/${metricName}.js`, 'utf-8')}\n`;
-    });
-
-    try {
-      const response = await this.runTestAndWait(url, options);
-
-      if (response.statusCode !== 200) {
-        throw new Error(`WPT test run for ${url} failed: ${response.statusText}`);
-      }
-
-      const metricsToLogString = JSON.stringify(
-        this.extractMetrics(response.data.runs['1'].firstView, customMetrics, metricsToLog), null, 2
-      );
-
-      if (!this.uploadArtifact) {
-        this.checkCommentSize(metricsToLogString.length);
-      }
-
-      fs.appendFileSync(this.testResultsFile, `<details>
-<summary><strong>Custom metrics for ${url}</strong></summary>
-
-WPT test run results: ${response.data.summary}
-Changed custom metrics values:
-\`\`\`json
-${metricsToLogString}
-\`\`\`
-</details>\n\n`);
-
-      console.log('::endgroup::');
-    } catch (error) {
-      console.error(`WPT test run for ${url} failed:`, error);
-    }
-  }
 
   /**
    * Run a WebPageTest test and wait for the results
@@ -116,6 +74,53 @@ ${metricsToLogString}
         }
       });
     });
+  }
+
+
+  /**
+   * Run a WebPageTest test for a given URL
+   * @param {string} url URL to test
+   */
+  async runWPTTest(url) {
+    console.log(`::group::WPT test run for ${url} started`);
+    const customMetrics = this.getCustomMetrics();
+    const metricsToLog = this.getChangedCustomMetrics();
+    const options = { http_method: 'POST', custom: '' };
+
+    customMetrics.forEach(metricName => {
+      options.custom += `[_${metricName}]\n${fs.readFileSync(`./dist/${metricName}.js`, 'utf-8')}\n`;
+    });
+
+    try {
+      const response = await this.runTestAndWait(url, options);
+
+      if (response.statusCode !== 200) {
+        throw new Error(`WPT test run for ${url} failed: ${response.statusText}`);
+      }
+
+      const [metricsObject, metricsToLogObject] = this.extractMetrics(response.data.runs['1'].firstView, customMetrics, metricsToLog);
+      const metricsToLogString = JSON.stringify(metricsToLogObject, null, 2);
+
+      if (!this.uploadArtifact) {
+        this.checkCommentSize(metricsToLogString.length);
+      }
+
+      fs.appendFileSync(this.testResultsFile, `<details>
+<summary><strong>Custom metrics for ${url}</strong></summary>
+
+WPT test run results: ${response.data.summary}
+Changed custom metrics values:
+\`\`\`json
+${metricsToLogString}
+\`\`\`
+</details>\n\n`);
+
+      console.log('::endgroup::');
+
+      return metricsObject;
+    } catch (error) {
+      console.error(`WPT test run for ${url} failed:`, error);
+    }
   }
 
   /**
@@ -143,7 +148,7 @@ ${metricsToLogString}
       }
     });
 
-    return wptCustomMetricsToLog;
+    return [wptCustomMetrics, wptCustomMetricsToLog];
   }
 
   /**
@@ -186,11 +191,7 @@ ${metricsToLogString}
 }
 
 function main(url = process.argv[2]) {
-  const prBody = process.env.PR_BODY || '';
-  const wptServer = process.env.WPT_SERVER;
-  const wptApiKey = process.env.WPT_API_KEY;
-
-  const runner = new WPTTestRunner(prBody, wptServer, wptApiKey);
+  const runner = new WPTTestRunner();
   runner.runTests();
 
   if (url) {
@@ -202,4 +203,4 @@ if (require.main === module) {
   main();
 }
 
-module.exports = { main };
+module.exports = { WPTTestRunner };
