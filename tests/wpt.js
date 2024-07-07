@@ -166,9 +166,6 @@ ${metricsToLogString}
           }
         }
       }
-      if (urls.length = 0) {
-        console.log('No test websites found in PR description body.');
-      }
       return urls;
     }, []);
   }
@@ -186,6 +183,8 @@ ${metricsToLogString}
       for (const url of urls) {
         await this.runWPTTest(url);
       }
+    } else {
+      console.log('No test websites found.');
     }
   }
 }
