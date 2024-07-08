@@ -47,8 +47,9 @@ jobs:
             artifact_url="${{ steps.artifact-upload-step.outputs.artifact-url }}"
             sed -i "s|{artifact-url}|$artifact_url|g" comment.md
             echo "Placeholder {artifact-url} replaced with a value: $artifact_url."
+          else
+            echo "No placeholder {artifact-url} found in comment.md."
           fi
-
 
       - name: Add comment to PR
         uses: mshick/add-pr-comment@v2
