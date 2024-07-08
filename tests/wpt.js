@@ -202,6 +202,7 @@ ${metricsToLogString}
 }
 
 
+// Run the tests from the command line
 if (require.main === module) {
   const runner = new WPTTestRunner();
   runner.runTests();
