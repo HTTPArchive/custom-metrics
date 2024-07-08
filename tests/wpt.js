@@ -57,7 +57,6 @@ class WPTTestRunner {
     }
   }
 
-
   /**
    * Run a WebPageTest test and wait for the results
    * @param {string} url URL to test
