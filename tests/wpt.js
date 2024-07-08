@@ -79,6 +79,7 @@ class WPTTestRunner {
   /**
    * Run a WebPageTest test for a given URL
    * @param {string} url URL to test
+   * @returns {Promise<object>} Custom metrics
    */
   async runWPTTest(url) {
     console.log(`::group::WPT test run for ${url} started`);
@@ -200,17 +201,16 @@ ${metricsToLogString}
   }
 }
 
-function main(url = process.argv[2]) {
+
+if (require.main === module) {
   const runner = new WPTTestRunner();
   runner.runTests();
 
+  // Run a single test from the command line
+  const url = process.argv[2]
   if (url) {
     runner.runWPTTest(url);
   }
-}
-
-if (require.main === module) {
-  main();
 }
 
 module.exports = { WPTTestRunner };
