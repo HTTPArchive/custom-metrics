@@ -98,7 +98,8 @@ class WPTTestRunner {
         throw new Error(`WPT test run for ${url} failed: ${response.statusText}`);
       }
 
-      const [metricsObject, metricsToLogObject] = this.extractMetrics(response.data.runs['1'].firstView, customMetrics, metricsToLog);
+      const metricsObject = this.extractMetrics(response.data.runs['1'].firstView, customMetrics);
+      const metricsToLogObject = this.extractLogMetrics(metricsObject, metricsToLog);
       const metricsToLogString = JSON.stringify(metricsToLogObject, null, 2);
 
       if (!this.uploadArtifact) {
@@ -116,10 +117,11 @@ ${metricsToLogString}
 </details>\n\n`);
 
       console.log('::endgroup::');
-
       return metricsObject;
     } catch (error) {
       console.error(`WPT test run for ${url} failed:`, error);
+      console.log('::endgroup::');
+      return null;
     }
   }
 
@@ -127,12 +129,10 @@ ${metricsToLogString}
    * Extract custom metrics from the test results
    * @param {object} firstViewData First view data
    * @param {string[]} customMetrics Custom metrics filenames
-   * @param {string[]} metricsToLog Changed custom metrics filenames
-   * @returns {object} Custom metrics to log
+   * @returns {object} Custom metrics
    */
-  extractMetrics(firstViewData, customMetrics, metricsToLog) {
+  extractMetrics(firstViewData, customMetrics) {
     const wptCustomMetrics = {};
-    const wptCustomMetricsToLog = {};
 
     customMetrics.forEach(metricName => {
       let wptCustomMetric = firstViewData[`_${metricName}`];
@@ -141,14 +141,26 @@ ${metricsToLogString}
           wptCustomMetric = JSON.parse(wptCustomMetric);
         }
       } catch (e) { }
-
       wptCustomMetrics[`_${metricName}`] = wptCustomMetric;
-      if (metricsToLog.includes(metricName)) {
-        wptCustomMetricsToLog[`_${metricName}`] = wptCustomMetric;
-      }
     });
 
-    return [wptCustomMetrics, wptCustomMetricsToLog];
+    return wptCustomMetrics;
+  }
+
+  /**
+   * Extract custom metrics to log from the test results
+   * @param {object} wptCustomMetrics Custom metrics
+   * @param {string[]} metricsToLog Changed custom metrics filenames
+   * @returns {object} Custom metrics to log
+   */
+  extractLogMetrics(wptCustomMetrics, metricsToLog) {
+    const wptCustomMetricsToLog = {};
+
+    metricsToLog.forEach(metricName => {
+      wptCustomMetricsToLog[`_${metricName}`] = wptCustomMetrics[`_${metricName}`];
+    });
+
+    return wptCustomMetricsToLog;
   }
 
   /**
