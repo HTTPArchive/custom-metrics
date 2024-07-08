@@ -52,7 +52,7 @@ class WPTTestRunner {
       if (commentSize > 0) {
         fs.renameSync(this.testResultsFile, artifactFile);
       }
-      fs.appendFileSync(this.testResultsFile, `Webpage test results are too big for a comment, and are available as [the action's artifact]({artifact-url}).`);
+      fs.appendFileSync(this.testResultsFile, `Webpage test results that are too big for a comment are available as [the action's artifact]({artifact-url}).`);
       this.testResultsFile = artifactFile;
     }
   }
