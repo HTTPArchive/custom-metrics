@@ -36,12 +36,21 @@ jobs:
           PR_BODY: ${{ github.event.pull_request.body }}
 
       - name: Upload artifact if needed
-        uses: actions/upload-artifact@v3
+        id: artifact-upload-step
+        uses: actions/upload-artifact@v4
         with:
-          name: test-results
           path: artifact.md
 
-      - name: Add comment with results
+      - name: Update comment.md
+        run: |
+          if grep -q "{artifact-url}" comment.md; then
+            artifact_url="${{ steps.artifact-upload-step.outputs.artifact-url }}"
+            sed -i "s|{artifact-url}|$artifact_url|g" comment.md
+            echo "Placeholder {artifact-url} replaced with a value: $artifact_url."
+          fi
+
+
+      - name: Add comment to PR
         uses: mshick/add-pr-comment@v2
         if: always()
         with:
