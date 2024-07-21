@@ -123,6 +123,12 @@ return JSON.stringify({
     'video_display_style' : Array.from(document.querySelectorAll('video')).map(video => {
       return getComputedStyle(video, null).getPropertyValue('display');
     }),
+    //Returns the number of video elements that contain a source element that uses a media attribute
+    'video_using_source_media_count': document.querySelectorAll('video:has(source[media])').length,
+    //Returns the media attribute values in use on video source elements
+    'video_source_media_values': Array.from(document.querySelectorAll('video source[media]')).map(source => {
+        return source.getAttribute('media')
+    }),
     //returns an array of the number of source files per video tag.
     'video_source_format_count': Array.from(document.querySelectorAll('video')).map(video => video.querySelectorAll('source').length),
     //Returns all of the video types for each source file
