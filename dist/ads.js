@@ -42,6 +42,7 @@ const parseAdsTxt = async (response) => {
     result = {
       ...result,
       ...{
+        redirected_to: response.redirected ? response.url : null,
         account_count: 0,
         account_types: {
           direct: {
@@ -118,6 +119,7 @@ const parseSellersJSON = async (response) => {
     result = {
       ...result,
       ...{
+        redirected_to: response.redirected ? response.url : null,
         seller_count: 0,
         seller_types: {
           publisher: {
