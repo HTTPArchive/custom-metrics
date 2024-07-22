@@ -20,9 +20,7 @@ jobs:
           fetch-depth: 0
 
       - name: Install dependencies
-        run: |
-          npm install webpagetest
-          npm install jest
+        run: npm install jest webpagetest
 
       - name: Run WebPageTest with unit tests
         run: npm test
@@ -31,57 +29,31 @@ jobs:
           WPT_API_KEY: ${{ secrets.HA_API_KEY }}
 
       - name: Run WebPageTest for more websites
-        run: |
-          # Get the PR body
-          PR_BODY="$(cat <<'EOF'
-          ${{ github.event.pull_request.body }}
-          EOF
-          )"
-
-          # Read PR body into an array, removing line breaks and carriage returns
-          declare -a lines
-          while IFS= read -r line; do
-            lines+=("${line//[$'\r\n']}")
-          done <<< "$PR_BODY"
-
-          # Find the index of the line after "**Test websites**:"
-          start_index=-1
-          for ((i=0; i<${#lines[@]}; i++)); do
-            if [[ "${lines[$i]}" == *"**Test websites**:"* ]]; then
-              start_index=$((i + 1))
-              break
-            fi
-          done
-
-          # If the index is valid, then parse the URLs
-          if [ $start_index -gt -1 ]; then
-            # Initialize an array for URLs
-            declare -a URLS
-            url_pattern="((http|https|ftp):\/\/[a-zA-Z0-9.-]+(\.[a-zA-Z]{2,4})(\/[a-zA-Z0-9_.-]+)*(\/?)(\?[a-zA-Z0-9_.-]+=[a-zA-Z0-9%_.-]+)*(\#?)([a-zA-Z0-9%_.-=]+)*)"
-
-            for ((i=start_index; i<${#lines[@]}; i++)); do
-              if [[ ${lines[$i]} =~ $url_pattern ]]; then
-                URLS+=("${BASH_REMATCH[1]}")
-              fi
-            done
-
-            # Run WebPageTest for each URL
-            for TEST_WEBSITE in "${URLS[@]}"; do
-              echo "::group::Custom metrics for $TEST_WEBSITE"
-              node tests/wpt.js "$TEST_WEBSITE"
-              echo "::endgroup::"
-            done
-          else
-            echo "No websites found."
-          fi
-
+        run: node tests/wpt.js
         env:
           WPT_SERVER: "webpagetest.httparchive.org"
           WPT_API_KEY: ${{ secrets.HA_API_KEY }}
+          PR_BODY: ${{ github.event.pull_request.body }}
 
-      - name: Add comment with results
+      - name: Upload artifact if needed
+        id: artifact-upload-step
+        uses: actions/upload-artifact@v4
+        with:
+          path: artifact.md
+
+      - name: Update comment.md
+        run: |
+          if grep -q "{artifact-url}" comment.md; then
+            artifact_url="${{ steps.artifact-upload-step.outputs.artifact-url }}"
+            sed -i "s|{artifact-url}|$artifact_url|g" comment.md
+            echo "Placeholder {artifact-url} replaced with a value: $artifact_url."
+          else
+            echo "No placeholder {artifact-url} found in comment.md."
+          fi
+
+      - name: Add comment to PR
         uses: mshick/add-pr-comment@v2
         if: always()
         with:
           refresh-message-position: true
-          message-path: test-results.md
+          message-path: comment.md
