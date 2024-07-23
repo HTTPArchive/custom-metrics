@@ -127,7 +127,7 @@ return JSON.stringify({
     'video_using_source_media_count': document.querySelectorAll('video:has(source[media])').length,
     //Returns the media attribute values in use on video source elements
     'video_source_media_values': Array.from(document.querySelectorAll('video source[media]')).map(source => {
-        return source.getAttribute('media')
+        return source.getAttribute('media');
     }),
     //returns an array of the number of source files per video tag.
     'video_source_format_count': Array.from(document.querySelectorAll('video')).map(video => video.querySelectorAll('source').length),
