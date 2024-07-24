@@ -194,7 +194,6 @@ return JSON.stringify({
   iab_gpp: (() => {
     let gppData = {
       present: typeof window.__gpp == 'function',
-      data: null,
     };
     try {
       if (gppData.present) {
