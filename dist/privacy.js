@@ -187,6 +187,29 @@ return JSON.stringify({
   })(),
 
   /**
+   * Global Privacy Platfrom (GPP)
+   * https://iabtechlab.com/gpp/
+   * https://github.com/InteractiveAdvertisingBureau/Global-Privacy-Platform
+   */
+  iab_gpp: (() => {
+    let gppData = {
+      present: typeof window.__gpp == 'function',
+      data: null,
+    };
+    try {
+      if (gppData.present) {
+        window.__gpp('ping', (result, success) => {
+          if (success) {
+            gppData.data = result;
+          }
+        });
+      }
+    } finally {
+      return gppData;
+    }
+  })(),
+
+  /**
    * IAB US Privacy User Signal Mechanism “USP API”
    * https://github.com/InteractiveAdvertisingBureau/USPrivacy
    */
