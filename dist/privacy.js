@@ -151,7 +151,7 @@ return JSON.stringify({
 
   /**
    * IAB Transparency and Consent Framework v2
-   * docs v2: https://github.com/InteractiveAdvertisingBureau/GDPR-Transparency-and-Consent-Framework/blob/master/TCFv2
+   * https://github.com/InteractiveAdvertisingBureau/GDPR-Transparency-and-Consent-Framework/blob/master/TCFv2
    */
   iab_tcf_v2: (() => {
     let tcData = {
@@ -188,7 +188,6 @@ return JSON.stringify({
 
   /**
    * Global Privacy Platfrom (GPP)
-   * https://iabtechlab.com/gpp/
    * https://github.com/InteractiveAdvertisingBureau/Global-Privacy-Platform
    */
   iab_gpp: (() => {
