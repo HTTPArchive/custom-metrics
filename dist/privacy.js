@@ -118,8 +118,6 @@ return JSON.stringify({
   iab_tcf_v1: (() => {
     let consentData = {
       present: typeof window.__cmp == 'function',
-      data: null,
-      compliant_setup: null,
     };
     // description of `__cmp`: https://github.com/InteractiveAdvertisingBureau/GDPR-Transparency-and-Consent-Framework/blob/master/CMP%20JS%20API%20v1.1%20Final.md#what-api-will-need-to-be-provided-by-the-cmp-
     try {
@@ -151,13 +149,11 @@ return JSON.stringify({
 
   /**
    * IAB Transparency and Consent Framework v2
-   * docs v2: https://github.com/InteractiveAdvertisingBureau/GDPR-Transparency-and-Consent-Framework/blob/master/TCFv2
+   * https://github.com/InteractiveAdvertisingBureau/GDPR-Transparency-and-Consent-Framework/blob/master/TCFv2
    */
   iab_tcf_v2: (() => {
     let tcData = {
       present: typeof window.__tcfapi == 'function',
-      data: null,
-      compliant_setup: null,
     };
     // description of `__tcfapi`: https://github.com/InteractiveAdvertisingBureau/GDPR-Transparency-and-Consent-Framework/blob/master/TCFv2/IAB%20Tech%20Lab%20-%20CMP%20API%20v2.md#how-does-the-cmp-provide-the-api
     try {
@@ -187,13 +183,33 @@ return JSON.stringify({
   })(),
 
   /**
+   * Global Privacy Platfrom (GPP)
+   * https://github.com/InteractiveAdvertisingBureau/Global-Privacy-Platform
+   */
+  iab_gpp: (() => {
+    let gppData = {
+      present: typeof window.__gpp == 'function',
+    };
+    try {
+      if (gppData.present) {
+        window.__gpp('ping', (result, success) => {
+          if (success) {
+            gppData.data = result;
+          }
+        });
+      }
+    } finally {
+      return gppData;
+    }
+  })(),
+
+  /**
    * IAB US Privacy User Signal Mechanism “USP API”
    * https://github.com/InteractiveAdvertisingBureau/USPrivacy
    */
   iab_usp: (() => {
     let uspData = {
       present: typeof window.__uspapi == 'function',
-      privacy_string: null,
     };
     try {
       if (uspData.present) {
@@ -485,10 +501,14 @@ return JSON.stringify({
       return allowedCCPALinkPhrases.some(phrase => text.includes(phrase)) && !CCPAExclusionPhrases.some(phrase => text.includes(phrase))
     })
 
-    return {
+    let CCPAdata = {
       hasCCPALink: CCPALinks.length > 0,
-      CCPALinkPhrases: CCPALinks.map(link => link.textContent.trim().toLowerCase())
     }
+    if (CCPAdata.hasCCPALink) {
+      CCPAdata.CCPALinkPhrases = CCPALinks.map(link => link.textContent.trim().toLowerCase())
+    }
+
+    return CCPAdata
   })()
 
 });
