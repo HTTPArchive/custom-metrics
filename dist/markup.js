@@ -773,6 +773,7 @@ try { // whole process is placed in a try/catch so we can log uncaught errors
           let modeBranchFactor = mode(branchFactors);
           let skewBranchFactor = skew(meanBranchFactor, modeBranchFactor, stdDevBranchFactor);
           stats.branchFactorByDepth[depth] = {
+              depth: depth,
               count: parentNodesAtThisLevel.length,
               mean: meanBranchFactor,
               stddev : stdDevBranchFactor,
