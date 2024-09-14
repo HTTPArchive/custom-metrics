@@ -305,10 +305,10 @@ function intrinsicOrExtrinsicSizing( computedStyles ) {
 function getImgData( img ) {
 
   const imgData = imgFeatures( img );
-  // Limit URLs to 200 chars so data URLs don't take up huge amounts of space.
+  // Limit data URLs so they don't take up huge amounts of space.
   imgData.url =
-    (img.currentSrc || img.src).length > 200 ?
-    (img.currentSrc || img.src).slice(0, 199) + '…' :
+    (img.currentSrc || img.src)?.startsWith('data:') && (img.currentSrc || img.src)?.length > 50 ?
+    (img.currentSrc || img.src)?.slice(0, 50) + '…' :
     (img.currentSrc || img.src);
   imgData.totalCandidates = totalNumberOfCandidates( img );
 
@@ -362,8 +362,10 @@ function getImgData( img ) {
           !isFromSource &&
           !( imgData.srcsetHasWDescriptors ) ) {
       srcsetCandidates.push( {
-        // Limit URLs to 200 chars so data URLs don't take up huge amounts of space.
-        url: img.getAttribute( 'src' ).length > 200 ? img.getAttribute( 'src' ).slice(0, 199) + '…' : img.getAttribute( 'src' )
+        // Limit data URLs so they don't take up huge amounts of space.
+        url: img.getAttribute( 'src' )?.startsWith('data:') && img.getAttribute( 'src' )?.length > 50 ?
+          img.getAttribute( 'src' )?.slice(0, 50) + '…' :
+          img.getAttribute( 'src' )
       } )
     }
 
