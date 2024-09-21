@@ -32,11 +32,6 @@ function testPropertyStringInResponseBodies(pattern) {
    */
 const fetchAndParse = async (url, parser) => {
   const timeout = 5000;
-  /*
-  Google's sellers.json size is 120Mb as of May 2024 - too big for custom metrics.
-  It's available at realtimebidding.google.com/sellers.json, so not part of crawled pages list.
-  More details: https://support.google.com/authorizedbuyers/answer/9895942
-  */
   const controller = new AbortController();
   const { signal } = controller;
   setTimeout(() => controller.abort(), timeout);
