@@ -25,6 +25,11 @@ function testPropertyStringInResponseBodies(pattern) {
   }
 }
 
+/**
+   * @param {string} url - The URL to fetch.
+   * @param {function} parser - The function to parse the response.
+   * @returns {Promise<Object>} The parsed response or an error object.
+   */
 const fetchAndParse = async (url, parser) => {
   const timeout = 5000;
   /*
@@ -48,13 +53,25 @@ const fetchAndParse = async (url, parser) => {
   }
 };
 
+/**
+ * Checks if the response URL ends with any of the specified endings and if the response is OK.
+ * @param {Response} response - The fetch response object.
+ * @param {string[]} endings - An array of URL endings to check against.
+ * @returns {boolean} - Returns true if the response is OK and the URL ends with one of the specified endings.
+ */
 const isPresent = (response, endings) => response.ok && endings.some(ending => response.url.endsWith(ending));
 
-const parseDSR = async (response) => {
+/**
+ * Parses the response from a DSR delete request.
+ * @param {Response} response - The response object from the fetch request.
+ * @returns {Promise<Object>} A promise that resolves to an object containing the parsed response data.
+ */
+const parseDSRdelete = async (response) => {
   let content;
   try {
     content = JSON.parse(await response.text());
-  } catch {
+  } catch (error) {
+    console.error('Failed to parse JSON:', error);
     content = null;
   }
 
@@ -65,14 +82,11 @@ const parseDSR = async (response) => {
   };
 
   if (result.present && content) {
-    result = {
-      ...result,
-      ...{
-        content: content
-      }
-    };
-
-  };
+    Object.assign(result, content.vendorScript ? {vendorScriptPresent: true} : {});
+    Object.assign(result, response.redirected ? {endpointOrigin: new URL(content.endpoint).origin} : {});
+    Object.assign(result, content.identifiers ? {identifiers: content.identifiers} : {});
+    Object.assign(result, content.vendorScriptRequirement ? {vendorScriptRequirement: true} : {});
+  }
 
   return result;
 }
@@ -280,19 +294,7 @@ return JSON.stringify({
     * IAB: Data Deletion Request Framework
     * https://github.com/InteractiveAdvertisingBureau/Data-Subject-Rights/blob/main/Data%20Deletion%20Request%20Framework.md
     */
-  iab_ddr: (() => {
-    try {
-      return Promise.resolve(
-        fetchAndParse("/dsrdelete.json", parseDSR)
-      ).then((data) => {
-        return JSON.stringify(data[0]);
-      }).catch(error => {
-        return JSON.stringify({ error: error.message });
-      });
-    } catch (error) {
-      return JSON.stringify({ error: error.message });
-    }
-  })(),
+  iab_ddr: JSON.stringify(await fetchAndParse("/dsrdelete.json", parseDSRdelete)),
 
   /**
    * Do Not Track (DNT)
