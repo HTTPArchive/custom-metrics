@@ -91,7 +91,7 @@ const parseDSRdelete = async (response) => {
   return result;
 }
 
-return JSON.stringify({
+let sync_metrics = {
   /**
    * Privacy policies
    * Wording sourced from: https://github.com/RUB-SysSec/we-value-your-privacy/blob/master/privacy_wording.json
@@ -289,12 +289,6 @@ return JSON.stringify({
       return uspData;
     }
   })(),
-
-  /**
-    * IAB: Data Deletion Request Framework
-    * https://github.com/InteractiveAdvertisingBureau/Data-Subject-Rights/blob/main/Data%20Deletion%20Request%20Framework.md
-    */
-  iab_ddr: await fetchAndParse("/dsrdelete.json", parseDSRdelete),
 
   /**
    * Do Not Track (DNT)
@@ -583,4 +577,18 @@ return JSON.stringify({
     return CCPAdata
   })()
 
+};
+
+
+  /**
+    * IAB: Data Deletion Request Framework
+    * https://github.com/InteractiveAdvertisingBureau/Data-Subject-Rights/blob/main/Data%20Deletion%20Request%20Framework.md
+    */
+  let iab_ddr = Promise.resolve(fetchAndParse("/dsrdelete.json", parseDSRdelete));
+
+return Promise.all([iab_ddr]).then(([iab_ddr]) => {
+  return {
+    ...sync_metrics,
+    ...{iab_ddr: iab_ddr}
+  };
 });
