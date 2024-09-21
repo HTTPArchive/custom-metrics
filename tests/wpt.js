@@ -50,7 +50,7 @@ class WPTTestRunner {
     if (commentSize + stringLength > 65536) {
       this.uploadArtifact = true;
       fs.appendFileSync(this.testResultsFile, `
-Next Webpage test results are too big for a comment - [download them as an artifact]({artifact-url}).
+Next WebPageTest results are too big for a comment - [download them as an artifact]({artifact-url}).
       `);
       return true;
     } else {
