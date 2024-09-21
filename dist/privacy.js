@@ -64,9 +64,9 @@ const isPresent = (response, endings) => response.ok && endings.some(ending => r
 const parseDSRdelete = async (response) => {
   let result = {
     present: isPresent(response, ['/dsrdelete.json']),
-    redirected: response.redirected,
     status: response.status,
   };
+  Object.assign(result, result.present ? { redirected: response.redirected } : {});
 
   try {
     let content = JSON.parse(await response.text());
@@ -80,10 +80,10 @@ const parseDSRdelete = async (response) => {
       Object.assign(result, content.vendorScriptRequirement ? { vendorScriptRequirement: true } : {});
     }
   } catch (error) {
-    Object.assign(result, { error: error.message });
+    Object.assign(result, result.present ? { error: error.message } : {});
+  } finally {
+    return Promise.resolve(result);
   }
-
-  return result;
 }
 
 let sync_metrics = {
@@ -579,7 +579,7 @@ let sync_metrics = {
   * IAB: Data Deletion Request Framework
   * https://github.com/InteractiveAdvertisingBureau/Data-Subject-Rights/blob/main/Data%20Deletion%20Request%20Framework.md
   */
-let iab_ddr = Promise.resolve(fetchAndParse("/dsrdelete.json", parseDSRdelete));
+let iab_ddr = fetchAndParse("/dsrdelete.json", parseDSRdelete);
 
 return Promise.all([iab_ddr]).then(([iab_ddr]) => {
   return {
