@@ -582,8 +582,8 @@ let sync_metrics = {
 let iab_ddr = fetchAndParse("/dsrdelete.json", parseDSRdelete);
 
 return Promise.all([iab_ddr]).then(([iab_ddr]) => {
-  return {
+  return JSON.stringify({
     ...sync_metrics,
     ...{ iab_ddr: iab_ddr }
-  };
+  });
 });
