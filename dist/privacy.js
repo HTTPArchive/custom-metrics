@@ -25,6 +25,58 @@ function testPropertyStringInResponseBodies(pattern) {
   }
 }
 
+const fetchAndParse = async (url, parser) => {
+  const timeout = 5000;
+  /*
+  Google's sellers.json size is 120Mb as of May 2024 - too big for custom metrics.
+  It's available at realtimebidding.google.com/sellers.json, so not part of crawled pages list.
+  More details: https://support.google.com/authorizedbuyers/answer/9895942
+  */
+  const controller = new AbortController();
+  const { signal } = controller;
+  setTimeout(() => controller.abort(), timeout);
+
+  try {
+    const response = await fetch(url, { signal });
+    return parser(response);
+  } catch (error) {
+    return {
+      status: -1,
+      present: false,
+      error: error.message
+    };
+  }
+};
+
+const isPresent = (response, endings) => response.ok && endings.some(ending => response.url.endsWith(ending));
+
+const parseDSR = async (response) => {
+  let content;
+  try {
+    content = JSON.parse(await response.text());
+  } catch {
+    content = null;
+  }
+
+  let result = {
+    present: isPresent(response, ['/dsrdelete.json']),
+    redirected: response.redirected,
+    status: response.status,
+  };
+
+  if (result.present && content) {
+    result = {
+      ...result,
+      ...{
+        content: content
+      }
+    };
+
+  };
+
+  return result;
+}
+
 return JSON.stringify({
   /**
    * Privacy policies
@@ -221,6 +273,24 @@ return JSON.stringify({
       }
     } finally {
       return uspData;
+    }
+  })(),
+
+  /**
+    * IAB: Data Deletion Request Framework
+    * https://github.com/InteractiveAdvertisingBureau/Data-Subject-Rights/blob/main/Data%20Deletion%20Request%20Framework.md
+    */
+  iab_ddr: (() => {
+    try {
+      return Promise.resolve(
+        fetchAndParse("/dsrdelete.json", parseDSR)
+      ).then((data) => {
+        return JSON.stringify(data[0]);
+      }).catch(error => {
+        return JSON.stringify({ error: error.message });
+      });
+    } catch (error) {
+      return JSON.stringify({ error: error.message });
     }
   })(),
 
