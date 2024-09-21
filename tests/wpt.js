@@ -41,7 +41,7 @@ class WPTTestRunner {
    * Check if the test results are too big for a comment
    * @param {number} stringLength Length of the test results string
    */
-  checkCommentSizeLimitHit(stringLength) {
+  commentSizeLimitHit(stringLength) {
     let commentSize = 0;
     try {
       commentSize = fs.statSync(this.testResultsFile).size;
@@ -49,10 +49,9 @@ class WPTTestRunner {
 
     if (commentSize + stringLength > 65536) {
       this.uploadArtifact = true;
-      if (commentSize > 0) {
-        fs.renameSync(this.testResultsFile, this.artifactFile);
-      }
-      fs.appendFileSync(this.testResultsFile, `Webpage test results are too big for a comment - [download them as an artifact]({artifact-url}).`);
+      fs.appendFileSync(this.testResultsFile, `
+Next Webpage test results are too big for a comment - [download them as an artifact]({artifact-url}).
+      `);
       return true;
     } else {
       return false;
@@ -115,10 +114,14 @@ ${metricsToLogString}
 \`\`\`
 </details>\n\n`;
 
-      if (!this.uploadArtifact && !this.checkCommentSizeLimitHit(metricsToLogString.length)) {
+      if (!this.uploadArtifact && !this.commentSizeLimitHit(metricsToLogString.length)) {
         fs.appendFileSync(this.testResultsFile, WPTResults + metricsObjectResult);
       } else {
-        fs.appendFileSync(this.testResultsFile, WPTResults);
+        fs.appendFileSync(this.testResultsFile, `
+<summary><strong>Custom metrics for ${url}</strong></summary>
+
+WPT test run results: ${response.data.summary}
+`);
         fs.appendFileSync(this.artifactFile, WPTResults + metricsObjectResult);
       }
 
