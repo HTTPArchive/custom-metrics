@@ -294,7 +294,7 @@ return JSON.stringify({
     * IAB: Data Deletion Request Framework
     * https://github.com/InteractiveAdvertisingBureau/Data-Subject-Rights/blob/main/Data%20Deletion%20Request%20Framework.md
     */
-  iab_ddr: JSON.stringify(await fetchAndParse("/dsrdelete.json", parseDSRdelete)),
+  iab_ddr: await fetchAndParse("/dsrdelete.json", parseDSRdelete),
 
   /**
    * Do Not Track (DNT)
