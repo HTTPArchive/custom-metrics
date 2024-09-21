@@ -67,25 +67,25 @@ const isPresent = (response, endings) => response.ok && endings.some(ending => r
  * @returns {Promise<Object>} A promise that resolves to an object containing the parsed response data.
  */
 const parseDSRdelete = async (response) => {
-  let content;
-  try {
-    content = JSON.parse(await response.text());
-  } catch (error) {
-    console.error('Failed to parse JSON:', error);
-    content = null;
-  }
-
   let result = {
     present: isPresent(response, ['/dsrdelete.json']),
     redirected: response.redirected,
     status: response.status,
   };
 
-  if (result.present && content) {
-    Object.assign(result, content.vendorScript ? { vendorScriptPresent: true } : {});
-    Object.assign(result, response.redirected ? { endpointOrigin: new URL(content.endpoint).origin } : {});
-    Object.assign(result, content.identifiers ? { identifiers: content.identifiers } : {});
-    Object.assign(result, content.vendorScriptRequirement ? { vendorScriptRequirement: true } : {});
+  try {
+    let content = JSON.parse(await response.text());
+    if (result.present && content) {
+      for (const element of content.identifiers) {
+        delete element.id;
+      }
+      Object.assign(result, content.identifiers ? { identifiers: content.identifiers } : {});
+      Object.assign(result, response.redirected ? { endpointOrigin: new URL(content.endpoint).origin } : {});
+      Object.assign(result, content.vendorScript ? { vendorScriptPresent: true } : {});
+      Object.assign(result, content.vendorScriptRequirement ? { vendorScriptRequirement: true } : {});
+    }
+  } catch (error) {
+    Object.assign(result, { error: error.message });
   }
 
   return result;
