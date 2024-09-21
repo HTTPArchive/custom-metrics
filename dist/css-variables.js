@@ -1,6 +1,7 @@
 //[css-variables]
 function analyzeVariables() {
 
+
 const PREFIX = "almanac-var2020-";
 
 // Selector to find elements that are relevant to the graph
