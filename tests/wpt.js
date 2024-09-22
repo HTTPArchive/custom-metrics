@@ -41,8 +41,8 @@ class WPTTestRunner {
    * @param {number} stringLength Length of the test results string
    */
   checkCommentSizeLimit(stringLength) {
-    let commentSize = fs.statSync(this.testResultsFile, throwIfNoEntry=false) ?
-      fs.statSync(this.testResultsFile, throwIfNoEntry=false)?.size : 0;
+    let commentSize = fs.statSync('comment.md', { throwIfNoEntry: false }) ?
+      fs.statSync('comment.md', {throwIfNoEntry: false})?.size : 0;
 
     if (commentSize + stringLength > 64500) {
       this.commentSizeLimitHit = true;
