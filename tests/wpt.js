@@ -11,8 +11,7 @@ class WPTTestRunner {
     const wptApiKey = process.env.WPT_API_KEY;
     this.wpt = new WebPageTest(this.wptServer, wptApiKey);
     this.testResultsFile = 'comment.md';
-    this.artifactFile = 'artifact.md';
-    this.uploadArtifact = false;
+    this.commentSizeLimitHit = false;
   }
 
   /**
@@ -41,21 +40,15 @@ class WPTTestRunner {
    * Check if the test results are too big for a comment
    * @param {number} stringLength Length of the test results string
    */
-  commentSizeLimitHit(stringLength) {
-    let commentSize = 0;
-    try {
-      commentSize = fs.statSync(this.testResultsFile).size;
-    } catch (err) { }
+  checkCommentSizeLimit(stringLength) {
+    let commentSize = fs.statSync(this.testResultsFile, throwIfNoEntry=false) ?
+      fs.statSync(this.testResultsFile, throwIfNoEntry=false)?.size : 0;
 
-    if (commentSize + stringLength > 65536) {
-      this.uploadArtifact = true;
-      fs.appendFileSync(this.testResultsFile, `
-Next WebPageTest results are too big for a comment - [download them as an artifact]({artifact-url}).
-      `);
-      return true;
-    } else {
-      return false;
+    if (commentSize + stringLength > 64500) {
+      this.commentSizeLimitHit = true;
     }
+
+    return this.commentSizeLimitHit;
   }
 
   /**
@@ -102,27 +95,24 @@ Next WebPageTest results are too big for a comment - [download them as an artifa
       const metricsToLogObject = this.extractLogMetrics(metricsObject, metricsToLog);
       const metricsToLogString = JSON.stringify(metricsToLogObject, null, 2);
 
-      let WPTResults = `<details>
-<summary><strong>Custom metrics for ${url}</strong></summary>
+      let WPTResults = `<details><summary>${url}</summary>
 
-WPT test run results: ${response.data.summary}
-`,
+[WPT test results](${response.data.summary})\n`,
         metricsObjectResult = `
 Changed custom metrics values:
 \`\`\`json
 ${metricsToLogString}
 \`\`\`
+</details>\n\n`,
+        metricsObjectJSON = `
+Cannot display changed custom metrics due to comment size limits, \
+use [test JSON](https://webpagetest.httparchive.org/jsonResult.php?test=${response.data.id}&pretty=1) instead.
 </details>\n\n`;
 
-      if (!this.uploadArtifact && !this.commentSizeLimitHit(metricsToLogString.length)) {
+      if (!this.commentSizeLimitHit && !this.checkCommentSizeLimit(metricsToLogString.length)) {
         fs.appendFileSync(this.testResultsFile, WPTResults + metricsObjectResult);
       } else {
-        fs.appendFileSync(this.testResultsFile, `
-<summary><strong>Custom metrics for ${url}</strong></summary>
-
-WPT test run results: ${response.data.summary}
-`);
-        fs.appendFileSync(this.artifactFile, WPTResults + metricsObjectResult);
+        fs.appendFileSync(this.testResultsFile, WPTResults + metricsObjectJSON);
       }
 
       console.log('::endgroup::');
