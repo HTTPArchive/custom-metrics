@@ -46,6 +46,9 @@ function walkRule(rule, ret) {
 
     for (let property of style) {
       let value = style.getPropertyValue(property);
+      if (value.startsWith("url(\"data:image/svg+xml") && value.length > 54) {
+        value = value.slice(0, 50) + '…' + "\");";
+      }
 
       let containsRef = value.indexOf("var(--") > -1;
       let setsVar = property.indexOf("--") === 0 && property.indexOf("--" + PREFIX) === -1;
