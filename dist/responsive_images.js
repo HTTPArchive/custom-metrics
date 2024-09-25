@@ -305,7 +305,11 @@ function intrinsicOrExtrinsicSizing( computedStyles ) {
 function getImgData( img ) {
 
   const imgData = imgFeatures( img );
-  imgData.url = img.currentSrc || img.src;
+  // Limit data URLs so they don't take up huge amounts of space.
+  imgData.url =
+    (img.currentSrc || img.src)?.startsWith('data:') && (img.currentSrc || img.src)?.length > 50 ?
+    (img.currentSrc || img.src)?.slice(0, 50) + '…' :
+    (img.currentSrc || img.src);
   imgData.totalCandidates = totalNumberOfCandidates( img );
 
   if (imgData.hasHeight) {
@@ -358,7 +362,10 @@ function getImgData( img ) {
           !isFromSource &&
           !( imgData.srcsetHasWDescriptors ) ) {
       srcsetCandidates.push( {
-        url: img.getAttribute( 'src' )
+        // Limit data URLs so they don't take up huge amounts of space.
+        url: img.getAttribute( 'src' )?.startsWith('data:') && img.getAttribute( 'src' )?.length > 50 ?
+          img.getAttribute( 'src' )?.slice(0, 50) + '…' :
+          img.getAttribute( 'src' )
       } )
     }
 
