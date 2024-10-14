@@ -97,7 +97,7 @@ class WPTTestRunner {
 
       let WPTResults = `<details><summary>${url}</summary>
 
-[WPT test results](${response.data.summary})\n`,
+[WPT result details](https://webpagetest.httparchive.org/result/${response.data.id}/1/details/#result)\n`,
         metricsObjectResult = `
 Changed custom metrics values:
 \`\`\`json
@@ -106,7 +106,7 @@ ${metricsToLogString}
 </details>\n\n`,
         metricsObjectJSON = `
 Cannot display changed custom metrics due to comment size limits, \
-use [test JSON](https://webpagetest.httparchive.org/jsonResult.php?test=${response.data.id}&pretty=1) instead.
+[view test JSON](https://webpagetest.httparchive.org/jsonResult.php?test=${response.data.id}&pretty=1) instead.
 </details>\n\n`;
 
       if (!this.commentSizeLimitHit && !this.checkCommentSizeLimit(metricsToLogString.length)) {
