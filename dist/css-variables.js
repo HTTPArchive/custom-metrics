@@ -30,6 +30,7 @@ function analyzeVariables() {
 
     let style, selector;
 
+
     if (rule instanceof CSSStyleRule && rule.style) {
       style = rule.style;
       selector = rule.selectorText;
