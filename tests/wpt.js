@@ -11,7 +11,7 @@ class WPTTestRunner {
     const wptApiKey = process.env.WPT_API_KEY;
     this.wpt = new WebPageTest(this.wptServer, wptApiKey);
     this.testResultsFile = 'comment.md';
-    this.uploadArtifact = false;
+    this.commentSizeLimitHit = false;
   }
 
   /**
@@ -40,21 +40,15 @@ class WPTTestRunner {
    * Check if the test results are too big for a comment
    * @param {number} stringLength Length of the test results string
    */
-  checkCommentSize(stringLength) {
-    let commentSize = 0;
-    try {
-      commentSize = fs.statSync(testResultsFile).size;
-    } catch (err) { }
+  checkCommentSizeLimit(stringLength) {
+    let commentSize = fs.statSync('comment.md', { throwIfNoEntry: false }) ?
+      fs.statSync('comment.md', {throwIfNoEntry: false})?.size : 0;
 
-    if (commentSize + stringLength > 65536) {
-      const artifactFile = 'artifact.md';
-      this.uploadArtifact = true;
-      if (commentSize > 0) {
-        fs.renameSync(this.testResultsFile, artifactFile);
-      }
-      fs.appendFileSync(this.testResultsFile, `Webpage test results that are too big for a comment are available as [the action's artifact]({artifact-url}).`);
-      this.testResultsFile = artifactFile;
+    if (commentSize + stringLength > 64500) {
+      this.commentSizeLimitHit = true;
     }
+
+    return this.commentSizeLimitHit;
   }
 
   /**
@@ -74,7 +68,6 @@ class WPTTestRunner {
       });
     });
   }
-
 
   /**
    * Run a WebPageTest test for a given URL
@@ -102,19 +95,25 @@ class WPTTestRunner {
       const metricsToLogObject = this.extractLogMetrics(metricsObject, metricsToLog);
       const metricsToLogString = JSON.stringify(metricsToLogObject, null, 2);
 
-      if (!this.uploadArtifact) {
-        this.checkCommentSize(metricsToLogString.length);
-      }
+      let WPTResults = `<details><summary>${url}</summary>
 
-      fs.appendFileSync(this.testResultsFile, `<details>
-<summary><strong>Custom metrics for ${url}</strong></summary>
-
-WPT test run results: ${response.data.summary}
+[WPT result details](https://webpagetest.httparchive.org/result/${response.data.id}/1/details/#result)\n`,
+        metricsObjectResult = `
 Changed custom metrics values:
 \`\`\`json
 ${metricsToLogString}
 \`\`\`
-</details>\n\n`);
+</details>\n\n`,
+        metricsObjectJSON = `
+Cannot display changed custom metrics due to comment size limits, \
+[view test JSON](https://webpagetest.httparchive.org/jsonResult.php?test=${response.data.id}&pretty=1) instead.
+</details>\n\n`;
+
+      if (!this.commentSizeLimitHit && !this.checkCommentSizeLimit(metricsToLogString.length)) {
+        fs.appendFileSync(this.testResultsFile, WPTResults + metricsObjectResult);
+      } else {
+        fs.appendFileSync(this.testResultsFile, WPTResults + metricsObjectJSON);
+      }
 
       console.log('::endgroup::');
       return metricsObject;
