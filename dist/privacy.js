@@ -25,7 +25,68 @@ function testPropertyStringInResponseBodies(pattern) {
   }
 }
 
-return JSON.stringify({
+/**
+   * @param {string} url - The URL to fetch.
+   * @param {function} parser - The function to parse the response.
+   * @returns {Promise<Object>} The parsed response or an error object.
+   */
+const fetchAndParse = async (url, parser) => {
+  const timeout = 5000;
+  const controller = new AbortController();
+  const { signal } = controller;
+  setTimeout(() => controller.abort(), timeout);
+
+  try {
+    const response = await fetch(url, { signal });
+    return parser(response);
+  } catch (error) {
+    return {
+      status: -1,
+      present: false,
+      error: error.message
+    };
+  }
+};
+
+/**
+ * Checks if the response URL ends with any of the specified endings and if the response is OK.
+ * @param {Response} response - The fetch response object.
+ * @param {string[]} endings - An array of URL endings to check against.
+ * @returns {boolean} - Returns true if the response is OK and the URL ends with one of the specified endings.
+ */
+const isPresent = (response, endings) => response.ok && endings.some(ending => response.url.endsWith(ending));
+
+/**
+ * Parses the response from a DSR delete request.
+ * @param {Response} response - The response object from the fetch request.
+ * @returns {Promise<Object>} A promise that resolves to an object containing the parsed response data.
+ */
+const parseDSRdelete = async (response) => {
+  let result = {
+    present: isPresent(response, ['/dsrdelete.json']),
+    status: response.status,
+  };
+  Object.assign(result, result.present ? { redirected: response.redirected } : {});
+
+  try {
+    let content = JSON.parse(await response.text());
+    if (result.present && content) {
+      for (const element of content.identifiers) {
+        delete element.id;
+      }
+      Object.assign(result, content.identifiers ? { identifiers: content.identifiers } : {});
+      Object.assign(result, response.redirected ? { endpointOrigin: new URL(content.endpoint).origin } : {});
+      Object.assign(result, content.vendorScript ? { vendorScriptPresent: true } : {});
+      Object.assign(result, content.vendorScriptRequirement ? { vendorScriptRequirement: true } : {});
+    }
+  } catch (error) {
+    Object.assign(result, result.present ? { error: error.message } : {});
+  } finally {
+    return Promise.resolve(result);
+  }
+}
+
+let sync_metrics = {
   /**
    * Privacy policies
    * Wording sourced from: https://github.com/RUB-SysSec/we-value-your-privacy/blob/master/privacy_wording.json
@@ -511,4 +572,18 @@ return JSON.stringify({
     return CCPAdata
   })()
 
+};
+
+
+/**
+  * IAB: Data Deletion Request Framework
+  * https://github.com/InteractiveAdvertisingBureau/Data-Subject-Rights/blob/main/Data%20Deletion%20Request%20Framework.md
+  */
+let iab_ddr = fetchAndParse("/dsrdelete.json", parseDSRdelete);
+
+return Promise.all([iab_ddr]).then(([iab_ddr]) => {
+  return JSON.stringify({
+    ...sync_metrics,
+    ...{ iab_ddr: iab_ddr }
+  });
 });
