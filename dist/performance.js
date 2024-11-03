@@ -306,7 +306,7 @@ function getRawLcpElement(rawDoc, lcpUrl) {
             src = i.getAttribute('href');
         }
 
-        return src == lcpUrl;
+        return new URL(src, location.href).href == lcpUrl;
     });
 
     // lcp_elem_stats will match the img, not the source.
