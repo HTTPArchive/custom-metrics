@@ -81,7 +81,23 @@ function parseResponseWithRedirects(url, parser) {
 
 return Promise.all([
   // ecommerce
-  parseResponse('/.well-known/assetlinks.json'),
+  parseResponse('/.well-known/assetlinks.json', r => {
+    return r.json().then(data => {
+      let hasDeepLinking = false;
+      let hasCredentialSharing = false;
+      data.forEach(statement => {
+        if (statement.relation === 'delegate_permission/common.handle_all_urls') {
+          hasDeepLinking = true;
+        } else if (statement.relation === 'delegate_permission/common.get_login_creds') {
+          hasCredentialSharing = true;
+        }
+      });
+      return {
+        deep_linking: hasDeepLinking,
+        credential_sharing: hasCredentialSharing
+      };
+    });
+  }),
   parseResponse('/.well-known/apple-app-site-association'),
   // privacy sandbox
   parseResponse('/.well-known/related-website-set.json'), //Related Website Set
