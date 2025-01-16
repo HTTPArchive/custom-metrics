@@ -17,6 +17,7 @@
 
 ignores:
   - ".github/**/*.md"
+  - ".github/*.md"
 
 ###############
 # Rules by id #
