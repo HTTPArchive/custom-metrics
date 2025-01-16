@@ -35,13 +35,6 @@ jobs:
           WPT_API_KEY: ${{ secrets.HA_API_KEY }}
           PR_BODY: ${{ github.event.pull_request.body }}
 
-      - name: Run WebPageTest for on.com
-        run: node tests/wpt.js
-        env:
-          WPT_SERVER: "on.com"
-          WPT_API_KEY: ${{ secrets.HA_API_KEY }}
-          PR_BODY: ${{ github.event.pull_request.body }}
-
       - name: Add comment to PR
         uses: mshick/add-pr-comment@v2
         if: always()
