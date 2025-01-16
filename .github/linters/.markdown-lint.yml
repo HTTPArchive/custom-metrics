@@ -15,9 +15,6 @@
 #   <!-- markdownlint-restore -->
 #
 
-ignores:
-  - "**/.github/**/*.md"
-
 ###############
 # Rules by id #
 ###############
