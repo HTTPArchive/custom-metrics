@@ -7,7 +7,4 @@ Description of the changes...
 <!-- List the pages that should be automatically tested as part of your custom metric changes. -->
 **Test websites**:
 
-- https://www.on.com/
-- https://www.amazon.co.jp/
-- https://www.libero.it/
-
+- https://www.example.com/
