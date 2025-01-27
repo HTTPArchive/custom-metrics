@@ -13,26 +13,24 @@ function usesBlockTheme() {
  */
 function getWordPressTheme() {
   const theme = {
-    theme: 'unknown',
-    parent_theme: '',
+    theme: '',
+    child_theme: '',
   };
   try {
     const bodyClass = document.body.classList;
 
     const parentTheme = Array.from( bodyClass ).find( c => c.startsWith( 'wp-theme-' ) );
+
+    if ( parentTheme ) {
+      theme.theme = parentTheme.replace( 'wp-theme-', '' );
+    }
+
     const childTheme = Array.from( bodyClass ).find( c => c.startsWith( 'wp-child-theme-' ) );
 
     if ( childTheme ) {
-      theme.theme = childTheme;
-
-      // If there is a child theme, there should always be a parent theme.
-      if ( parentTheme ) {
-        theme.parent_theme = parentTheme;
-      }
-    } else if ( parentTheme ) {
-      // There is no child theme, only a parent theme.
-      theme.theme = parentTheme;
+      theme.child_theme = childTheme.replace( 'wp-child-theme-', '' );
     }
+
   } catch ( e ) {}
   return theme;
 }
