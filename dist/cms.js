@@ -13,8 +13,8 @@ function usesBlockTheme() {
  */
 function getWordPressTheme() {
   const theme = {
-    theme: '',
-    child_theme: '',
+    theme: null,
+    child_theme: null,
   };
   try {
     const bodyClass = document.body.classList;
@@ -23,6 +23,7 @@ function getWordPressTheme() {
 
     if ( parentTheme ) {
       theme.theme = parentTheme.replace( 'wp-theme-', '' );
+      theme.child_theme = '';
     }
 
     const childTheme = Array.from( bodyClass ).find( c => c.startsWith( 'wp-child-theme-' ) );
