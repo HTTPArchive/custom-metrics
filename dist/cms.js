@@ -4,6 +4,39 @@ function usesBlockTheme() {
   return !!document.querySelector('div.wp-site-blocks');
 }
 
+/**
+ * Detects the WordPress parent and child theme slugs.
+ *
+ * See https://core.trac.wordpress.org/changeset/59698.
+ *
+ * @returns {object} Object with fields `theme` and `parent_theme`.
+ */
+function getWordPressTheme() {
+  const theme = {
+    theme: 'unknown',
+    parent_theme: '',
+  };
+  try {
+    const bodyClass = document.body.classList;
+
+    const parentTheme = Array.from( bodyClass ).find( c => c.startsWith( 'wp-theme-' ) );
+    const childTheme = Array.from( bodyClass ).find( c => c.startsWith( 'wp-child-theme-' ) );
+
+    if ( childTheme ) {
+      theme.theme = childTheme;
+
+      // If there is a child theme, there should always be a parent theme.
+      if ( parentTheme ) {
+        theme.parent_theme = parentTheme;
+      }
+    } else if ( parentTheme ) {
+      // There is no child theme, only a parent theme.
+      theme.theme = parentTheme;
+    }
+  } catch ( e ) {}
+  return theme;
+}
+
 // Detects if a WordPress embed block is on the page
 function hasWordPressEmbedBlock() {
   return !!document.querySelector('figure.wp-block-embed');
@@ -195,6 +228,7 @@ function usesInteractivityAPI() {
 }
 
 const wordpress = {
+  theme: getWordPressTheme(),
   block_theme: usesBlockTheme(),
   has_embed_block: hasWordPressEmbedBlock(),
   embed_block_count: getWordPressEmbedBlockCounts(),
