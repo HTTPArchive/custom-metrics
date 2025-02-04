@@ -115,6 +115,34 @@ return Promise.all([
       return data;
     });
   }),
+  // FedCM
+  parseResponse('/.well-known/web-identity', r => { 
+    return r.json().then(data => {
+      let result = {
+        provider_urls: data.provider_urls || [],
+        accounts_endpoint: data.accounts_endpoint || null,
+        login_url: data.login_url || null
+      };
+      return result;
+    });
+  }),
+  // Passkey
+  parseResponse('/.well-known/passkey-endpoints', r => {
+    return r.json().then(data => {
+      let result = {
+        enroll: data.enroll || null,
+        manage: data.manage || null
+      };
+      return result;
+    });
+  }),
+  // Related Origin Requests
+  parseResponse('/.well-known/webauthn', r => {
+    return r.json().then(data => {
+      let origins = data.origins ||[];
+      return { origins };
+    });
+  }),
   // security
   parseResponse('/robots.txt', r => {
     return r.text().then(text => {
