@@ -116,7 +116,7 @@ return Promise.all([
     });
   }),
   // FedCM
-  parseResponse('/.well-known/web-identity', r => { 
+  parseResponse('/.well-known/web-identity', r => {
     return r.json().then(data => {
       let result = {
         provider_urls: data.provider_urls || [],
