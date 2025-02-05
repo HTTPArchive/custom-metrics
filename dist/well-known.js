@@ -86,9 +86,10 @@ return Promise.all([
       let hasDeepLinking = false;
       let hasCredentialSharing = false;
       data.forEach(statement => {
-        if (statement.relation === 'delegate_permission/common.handle_all_urls') {
+        if (statement.relation.includes('delegate_permission/common.handle_all_urls')) {
           hasDeepLinking = true;
-        } else if (statement.relation === 'delegate_permission/common.get_login_creds') {
+        }
+        if (statement.relation.includes('delegate_permission/common.get_login_creds')) {
           hasCredentialSharing = true;
         }
       });
