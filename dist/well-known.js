@@ -119,12 +119,18 @@ return Promise.all([
   // FedCM
   parseResponse('/.well-known/web-identity', r => {
     return r.json().then(data => {
-      let result = {
-        provider_urls: data.provider_urls || [],
-        accounts_endpoint: data.accounts_endpoint || null,
-        login_url: data.login_url || null
-      };
-      return result;
+        let result = {
+            provider_urls: Array.isArray(data.provider_urls) && data.provider_urls.length > 0 ? data.provider_urls : [],
+            accounts_endpoint: data.accounts_endpoint || null,
+            login_url: data.login_url || null,
+            valid: Array.isArray(data.provider_urls) && data.provider_urls.length > 0
+        };
+        return result;
+    }).catch(error => {
+        return {
+            error: `Failed to parse JSON: ${error.message}`,
+            valid: false
+        };
     });
   }),
   // Passkey
