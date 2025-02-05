@@ -152,8 +152,16 @@ return Promise.all([
   // Related Origin Requests
   parseResponse('/.well-known/webauthn', r => {
     return r.json().then(data => {
-      let origins = data.origins ||[];
-      return { origins };
+        let result = {
+            origins: Array.isArray(data.origins) && data.origins.length > 0 ? data.origins : [],
+            valid: Array.isArray(data.origins) && data.origins.length > 0
+        };
+        return result;
+    }).catch(error => {
+        return {
+            error: `Failed to parse JSON: ${error.message}`,
+            valid: false
+        };
     });
   }),
   // security
