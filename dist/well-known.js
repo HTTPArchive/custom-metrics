@@ -136,11 +136,17 @@ return Promise.all([
   // Passkey
   parseResponse('/.well-known/passkey-endpoints', r => {
     return r.json().then(data => {
-      let result = {
-        enroll: data.enroll || null,
-        manage: data.manage || null
-      };
-      return result;
+        let result = {
+            enroll: data.enroll || null,
+            manage: data.manage || null,
+            valid: typeof data.enroll === 'string' && typeof data.manage === 'string'
+        };
+        return result;
+    }).catch(error => {
+        return {
+            error: `Failed to parse JSON: ${error.message}`,
+            valid: false
+        };
     });
   }),
   // Related Origin Requests
