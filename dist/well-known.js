@@ -122,14 +122,12 @@ return Promise.all([
         let result = {
             provider_urls: Array.isArray(data.provider_urls) && data.provider_urls.length > 0 ? data.provider_urls : [],
             accounts_endpoint: data.accounts_endpoint || null,
-            login_url: data.login_url || null,
-            valid: Array.isArray(data.provider_urls) && data.provider_urls.length > 0
+            login_url: data.login_url || null
         };
         return result;
     }).catch(error => {
         return {
-            error: `Failed to parse JSON: ${error.message}`,
-            valid: false
+            error: `Failed to parse JSON: ${error.message}`
         };
     });
   }),
@@ -138,14 +136,12 @@ return Promise.all([
     return r.json().then(data => {
         let result = {
             enroll: data.enroll || null,
-            manage: data.manage || null,
-            valid: typeof data.enroll === 'string' && typeof data.manage === 'string'
+            manage: data.manage || null
         };
         return result;
     }).catch(error => {
         return {
-            error: `Failed to parse JSON: ${error.message}`,
-            valid: false
+            error: `Failed to parse JSON: ${error.message}`
         };
     });
   }),
@@ -153,14 +149,12 @@ return Promise.all([
   parseResponse('/.well-known/webauthn', r => {
     return r.json().then(data => {
         let result = {
-            origins: Array.isArray(data.origins) && data.origins.length > 0 ? data.origins : [],
-            valid: Array.isArray(data.origins) && data.origins.length > 0
+            origins: Array.isArray(data.origins) && data.origins.length > 0 ? data.origins : []
         };
         return result;
     }).catch(error => {
         return {
-            error: `Failed to parse JSON: ${error.message}`,
-            valid: false
+            error: `Failed to parse JSON: ${error.message}`
         };
     });
   }),
