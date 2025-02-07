@@ -118,44 +118,53 @@ return Promise.all([
   }),
   // FedCM
   parseResponse('/.well-known/web-identity', r => {
-    return r.json().then(data => {
+    return r.text().then(text => {
         let result = {
-            provider_urls: Array.isArray(data.provider_urls) && data.provider_urls.length > 0 ? data.provider_urls : [],
-            accounts_endpoint: data.accounts_endpoint || null,
-            login_url: data.login_url || null
+            provider_urls: [],
+            accounts_endpoint: null,
+            login_url: null
         };
+        try {
+            let data = JSON.parse(text);
+            result.provider_urls = Array.isArray(data.provider_urls) && data.provider_urls.length > 0 ? data.provider_urls : [];
+            result.accounts_endpoint = data.accounts_endpoint || null;
+            result.login_url = data.login_url || null;
+        } catch (e) {
+            // Failed to parse JSON
+        }
         return result;
-    }).catch(error => {
-        return {
-            error: `Failed to parse JSON: ${error.message}`
-        };
     });
   }),
   // Passkey
   parseResponse('/.well-known/passkey-endpoints', r => {
-    return r.json().then(data => {
+    return r.text().then(text => {
         let result = {
-            enroll: data.enroll || null,
-            manage: data.manage || null
+            enroll: null,
+            manage: null
         };
+        try {
+            let data = JSON.parse(text);
+            result.enroll = data.enroll || null;
+            result.manage = data.manage || null;
+        } catch (e) {
+            // Failed to parse JSON
+        }
         return result;
-    }).catch(error => {
-        return {
-            error: `Failed to parse JSON: ${error.message}`
-        };
     });
   }),
   // Related Origin Requests
   parseResponse('/.well-known/webauthn', r => {
-    return r.json().then(data => {
+    return r.text().then(text => {
         let result = {
-            origins: Array.isArray(data.origins) && data.origins.length > 0 ? data.origins : []
+            origins: []
         };
+        try {
+            let data = JSON.parse(text);
+            result.origins = Array.isArray(data.origins) && data.origins.length > 0 ? data.origins : [];
+        } catch (e) {
+            // Failed to parse JSON
+        }
         return result;
-    }).catch(error => {
-        return {
-            error: `Failed to parse JSON: ${error.message}`
-        };
     });
   }),
   // security
