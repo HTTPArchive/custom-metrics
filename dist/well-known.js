@@ -86,9 +86,10 @@ return Promise.all([
       let hasDeepLinking = false;
       let hasCredentialSharing = false;
       data.forEach(statement => {
-        if (statement.relation === 'delegate_permission/common.handle_all_urls') {
+        if (statement.relation.includes('delegate_permission/common.handle_all_urls')) {
           hasDeepLinking = true;
-        } else if (statement.relation === 'delegate_permission/common.get_login_creds') {
+        }
+        if (statement.relation.includes('delegate_permission/common.get_login_creds')) {
           hasCredentialSharing = true;
         }
       });
@@ -113,6 +114,57 @@ return Promise.all([
         data.gpc = gpc_data.gpc;
       }
       return data;
+    });
+  }),
+  // FedCM
+  parseResponse('/.well-known/web-identity', r => {
+    return r.text().then(text => {
+        let result = {
+            provider_urls: [],
+            accounts_endpoint: null,
+            login_url: null
+        };
+        try {
+            let data = JSON.parse(text);
+            result.provider_urls = Array.isArray(data.provider_urls) && data.provider_urls.length > 0 ? data.provider_urls : [];
+            result.accounts_endpoint = data.accounts_endpoint || null;
+            result.login_url = data.login_url || null;
+        } catch (e) {
+            // Failed to parse JSON
+        }
+        return result;
+    });
+  }),
+  // Passkey
+  parseResponse('/.well-known/passkey-endpoints', r => {
+    return r.text().then(text => {
+        let result = {
+            enroll: null,
+            manage: null
+        };
+        try {
+            let data = JSON.parse(text);
+            result.enroll = data.enroll || null;
+            result.manage = data.manage || null;
+        } catch (e) {
+            // Failed to parse JSON
+        }
+        return result;
+    });
+  }),
+  // Related Origin Requests
+  parseResponse('/.well-known/webauthn', r => {
+    return r.text().then(text => {
+        let result = {
+            origins: []
+        };
+        try {
+            let data = JSON.parse(text);
+            result.origins = Array.isArray(data.origins) && data.origins.length > 0 ? data.origins : [];
+        } catch (e) {
+            // Failed to parse JSON
+        }
+        return result;
     });
   }),
   // security
