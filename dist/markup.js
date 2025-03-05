@@ -189,7 +189,7 @@ try { // whole process is placed in a try/catch so we can log uncaught errors
 
           });
           return target;
-        };
+        }
 
         let dir = document.querySelector('html[dir]')?.getAttribute("dir");
 
@@ -373,7 +373,7 @@ try { // whole process is placed in a try/catch so we can log uncaught errors
 
         var pictureNodes = document.querySelectorAll('picture');
 
-        pictureNodes.forEach(node => {
+        pictureNodes.forEach(() => {
           result.picture.total++;
         });
 

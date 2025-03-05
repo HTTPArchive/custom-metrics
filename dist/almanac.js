@@ -268,12 +268,13 @@ return JSON.stringify({
           // json+ld
           try {
             var content = JSON.parse(node.textContent);
-            var contentLoop = [];
             if (content instanceof Object || content instanceof Array) {
               // nested lookup
               nestedLookup(content, 0);
             }
-          } catch (e) {}
+          } catch (e) {
+            // continue regardless of error
+          }
         }
       }
     }
@@ -313,7 +314,9 @@ return JSON.stringify({
                 } else {
                   navigateHash++;
                 }
-              } catch (e) {}
+              } catch (e) {
+                // continue regardless of error
+              }
             }
           } else if (document.location.hostname !== link.hostname) {
             external++;
@@ -373,7 +376,6 @@ return JSON.stringify({
       wordsCount = 0;
       wordElements = 0;
       var n,
-        nodes = [],
         walk = document.createTreeWalker(
           body,
           NodeFilter.SHOW_ALL,
@@ -471,7 +473,7 @@ return JSON.stringify({
     };
   })(),
   '09.27': (() => {
-    // Returns a JSON array of nodes with a tabindex and their key/value attributes.
+    // Returns a JSON array of nodes with a tabindex and their key/value attributes.
     // We acknowledge that attribute selectors are expensive to query.
     var nodes = document.querySelectorAll('body [tabindex]');
     return parseNodes(nodes, {
@@ -568,10 +570,6 @@ return JSON.stringify({
       // Most img sources should be within this many characters. Help guard us from huge base64 values
       max_prop_length: 255,
     };
-
-    const parsed_pictures = parseNodes(pictures, filter_options);
-    const parsed_imgs = parseNodes(imgs, filter_options);
-    const parsed_sources = parseNodes(sources, filter_options);
 
     return {
       pictures: parseNodes(pictures, filter_options),

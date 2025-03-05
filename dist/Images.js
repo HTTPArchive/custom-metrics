@@ -33,7 +33,9 @@ var wptImages = function (win) {
           if (im && im.length) {
             images = images.concat(im);
           }
-        } catch (e) {}
+        } catch (e) {
+          // continue regardless of error
+        }
       }
       if (images.length > 10000) break;
     }

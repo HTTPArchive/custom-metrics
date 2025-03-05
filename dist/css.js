@@ -2,7 +2,7 @@
 // Uncomment the previous line for testing on webpagetest.org
 
 const PREFERS_COLOR_SCHEME_REGEXP =
-  /(?:@media\s*\(\s*prefers-color-scheme\s*:\s*(?:dark|light)\s*\)\s*\{[^\}]*\}|matchMedia\s*\(\s*['"]\s*\(\s*prefers-color-scheme\s*:\s*(?:dark|light)\s*\)\s*['"]\s*\))/gms;
+  /(?:@media\s*\(\s*prefers-color-scheme\s*:\s*(?:dark|light)\s*\)\s*\{[^}]*\}|matchMedia\s*\(\s*['"]\s*\(\s*prefers-color-scheme\s*:\s*(?:dark|light)\s*\)\s*['"]\s*\))/gms;
 
 const bodies = $WPT_BODIES;
 
@@ -46,7 +46,7 @@ return JSON.stringify({
     };
 
     const usedLibraries = [];
-    for (l in CssInJsMap) {
+    for (let l in CssInJsMap) {
       if (CssInJsMap[l]) {
         usedLibraries.push(l);
       }

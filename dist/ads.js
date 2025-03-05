@@ -1,6 +1,5 @@
 //[ads]
 
-const ACCOUNT_TYPES = ['direct', 'reseller'];
 const SELLER_TYPES = ['publisher', 'intermediary', 'both'];
 
 const isPresent = (response, endings) => response.ok && endings.some(ending => response.url.endsWith(ending));
@@ -86,7 +85,7 @@ const parseAdsTxt = async (response) => {
         }
         result.account_count += 1;
       }
-    };
+    }
 
     // Count unique and remove domain Sets for now
     for (let accountType of Object.values(result.account_types)) {
@@ -173,7 +172,7 @@ const parseSellersJSON = async (response) => {
       seller_type.domain_count = seller_type.domains.size;
       seller_type.domains = Array.from(seller_type.domains); // delete seller_type.domains;
     }
-  };
+  }
 
   return result;
 }

@@ -12,4 +12,5 @@ if ( dt ) {
     sDoctype += " " + dt.internalSubset;
   }
 }
+/* eslint-disable-next-line no-control-regex */
 return sDoctype.replace(/[\x00-\x1F\x80-\xFF]/g, "").toString();
