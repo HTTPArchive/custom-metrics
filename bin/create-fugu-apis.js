@@ -16,7 +16,7 @@ const checkURLConditions = (where, url, mimeType, responseBody) => {
   // (https://developer.mozilla.org/en-US/docs/Web/HTTP/Basics_of_HTTP/MIME_types#textjavascript).
   if (
     where === "JavaScript" &&
-    /\.m?js/.test(url) &&
+    /\\.m?js/.test(url) &&
     mimeType.toLowerCase().endsWith("script")
   ) {
     return true;
