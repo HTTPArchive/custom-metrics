@@ -588,7 +588,7 @@ function getImgData( img ) {
 
     // how does this resource differ from the actual selected resource? determine and log.
     if ( idealSizesSelectedResource &&
-        idealSizesSelectedResourcObject.prototype.hasOwnProperty.call(e, 'w') &&
+        Object.prototype.hasOwnProperty.call(idealSizesSelectedResource, 'w') &&
         imgData.approximateResourceWidth > 0 &&
         imgData.approximateResourceHeight > 0 &&
         imgData.currentSrcWDescriptor &&
