@@ -15,6 +15,9 @@
 #   <!-- markdownlint-restore -->
 #
 
+ignore:
+  - ".github/pull_request_template.md"
+
 ###############
 # Rules by id #
 ###############
