@@ -94,7 +94,7 @@ try {
       let robots_bodies = processRobotsHTML(doc);
 
       for (let bot in robots_bodies) {
-        if (!result_bodies.prototype.hasOwnProperty(bot)) {
+        if (!result_bodieObject.prototype.hasOwnProperty.call(s, bot)) {
           result_bodies[bot] = Object.assign({}, base);
         }
         [...Object.entries(robots_bodies[bot])].forEach(item=>{
@@ -105,7 +105,7 @@ try {
     }
       let robots_headers = processRobotsHeaders(headers);
       for (let bot in robots_headers) {
-        if (!result_headers.prototype.hasOwnProperty(bot)) {
+        if (!result_headerObject.prototype.hasOwnProperty.call(s, bot)) {
           result_headers[bot] = Object.assign({}, base);
         }
         [...Object.entries(robots_headers[bot])].forEach(item=>{

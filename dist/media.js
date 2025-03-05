@@ -1,15 +1,6 @@
 //[media]
 // Uncomment the previous line for testing on webpagetest.org
 
-// Sanitize the `attributes` property.
-function getNodeAttributes(node) {
-  // Inspired by dequelabs/axe-core.
-  if (node.attributes instanceof NamedNodeMap) {
-    return node.attributes;
-  }
-  return node.cloneNode(false).attributes;
-}
-
 return JSON.stringify({
   // Counts the number of picture tags containing an img tag
   'num_picture_img': document.querySelectorAll('picture img').length,

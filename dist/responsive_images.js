@@ -208,10 +208,10 @@ function pictureFeatures( img ) {
 function srcsetFeatures( parsedSrcset ) {
 
   const resourcesWithWDescriptors = parsedSrcset.filter(
-    o => o.prototype.hasOwnProperty( 'w' )
+    o => Object.prototype.hasOwnProperty.call(o, 'w' )
   );
   const resourcesWithXDescriptors = parsedSrcset.filter(
-    o => o.prototype.hasOwnProperty( 'd' )
+    o => Object.prototype.hasOwnProperty.call(o, 'd' )
   );
 
   return {
@@ -399,9 +399,9 @@ function getImgData( img ) {
   // note: modifies srcsetCandidates in place
   if ( srcsetCandidates ) {
     srcsetCandidates.forEach( i => {
-      if ( i.prototype.hasOwnProperty( 'd' ) ) {
+      if ( Object.prototype.hasOwnProperty.call(i, 'd') ) {
         i.density = i.d;
-      } else if ( i.prototype.hasOwnProperty( 'w' ) && imgData.sizesWidth && imgData.sizesWidth > 0 ) {
+      } else if ( Object.prototype.hasOwnProperty.call(i, 'w') && imgData.sizesWidth && imgData.sizesWidth > 0 ) {
         i.density = i.w / imgData.sizesWidth;
       } else {
         i.density = 1;
@@ -571,9 +571,9 @@ function getImgData( img ) {
     // modify in place (just like before) TODO: turn this into a function, use in both places...
     // overwriting densities that we copied
     idealSizesSrcsetCandidates.forEach( i => {
-      if ( i.prototype.hasOwnProperty( 'd' ) ) {
+      if ( Object.prototype.hasOwnProperty.call(i, 'd') ) {
         i.density = i.d;
-      } else if ( i.prototype.hasOwnProperty( 'w' ) && imgData.clientWidth > 0 ) {
+      } else if ( Object.prototype.hasOwnProperty.call(i, 'w') && imgData.clientWidth > 0 ) {
         i.density = i.w / imgData.clientWidth;
       } else {
         i.density = 1;
@@ -588,7 +588,7 @@ function getImgData( img ) {
 
     // how does this resource differ from the actual selected resource? determine and log.
     if ( idealSizesSelectedResource &&
-        idealSizesSelectedResource.prototype.hasOwnProperty( 'w' ) &&
+        idealSizesSelectedResourcObject.prototype.hasOwnProperty.call(e, 'w') &&
         imgData.approximateResourceWidth > 0 &&
         imgData.approximateResourceHeight > 0 &&
         imgData.currentSrcWDescriptor &&
