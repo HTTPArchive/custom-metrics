@@ -100,8 +100,7 @@ function winningSrcsetAndSizes( img ) {
 
   if ( img.parentNode.tagName === "PICTURE" ) {
 
-    const picture = img.parentNode,
-          sources = pictureSources( img );
+    const sources = pictureSources( img );
 
     for ( const source of sources ) {
 
@@ -155,8 +154,7 @@ function totalNumberOfCandidates( img ) {
   }
 
   if ( img.parentNode.tagName === "PICTURE" ) {
-    const picture = img.parentNode,
-          sources = pictureSources( img );
+    const sources = pictureSources( img );
     sources.forEach( source => {
       if ( source.hasAttribute( 'srcset' ) ) {
         const parsedSrcset = parseSrcset( source.getAttribute( 'srcset' ) ).candidates;
@@ -210,10 +208,10 @@ function pictureFeatures( img ) {
 function srcsetFeatures( parsedSrcset ) {
 
   const resourcesWithWDescriptors = parsedSrcset.filter(
-    o => o.hasOwnProperty( 'w' )
+    o => o.prototype.hasOwnProperty( 'w' )
   );
   const resourcesWithXDescriptors = parsedSrcset.filter(
-    o => o.hasOwnProperty( 'd' )
+    o => o.prototype.hasOwnProperty( 'd' )
   );
 
   return {
@@ -349,7 +347,7 @@ function getImgData( img ) {
     parsedSrcset = parseSrcset( srcset );
     srcsetCandidates = parsedSrcset.candidates;
     imgData.srcsetParseError = parsedSrcset.parseError;
-    srcsetFeatures_ = srcsetFeatures( parsedSrcset.candidates );
+    let srcsetFeatures_ = srcsetFeatures( parsedSrcset.candidates );
     imgData.srcsetHasXDescriptors = srcsetFeatures_.xDescriptors;
     imgData.srcsetHasWDescriptors = srcsetFeatures_.wDescriptors;
 
@@ -401,9 +399,9 @@ function getImgData( img ) {
   // note: modifies srcsetCandidates in place
   if ( srcsetCandidates ) {
     srcsetCandidates.forEach( i => {
-      if ( i.hasOwnProperty( 'd' ) ) {
+      if ( i.prototype.hasOwnProperty( 'd' ) ) {
         i.density = i.d;
-      } else if ( i.hasOwnProperty( 'w' ) && imgData.sizesWidth && imgData.sizesWidth > 0 ) {
+      } else if ( i.prototype.hasOwnProperty( 'w' ) && imgData.sizesWidth && imgData.sizesWidth > 0 ) {
         i.density = i.w / imgData.sizesWidth;
       } else {
         i.density = 1;
@@ -569,13 +567,13 @@ function getImgData( img ) {
     // using ideal (rather than actual) sizes value
 
     // deep copy
-    idealSizesSrcsetCandidates = JSON.parse( JSON.stringify( srcsetCandidates ) );
+    let idealSizesSrcsetCandidates = JSON.parse( JSON.stringify( srcsetCandidates ) );
     // modify in place (just like before) TODO: turn this into a function, use in both places...
     // overwriting densities that we copied
     idealSizesSrcsetCandidates.forEach( i => {
-      if ( i.hasOwnProperty( 'd' ) ) {
+      if ( i.prototype.hasOwnProperty( 'd' ) ) {
         i.density = i.d;
-      } else if ( i.hasOwnProperty( 'w' ) && imgData.clientWidth > 0 ) {
+      } else if ( i.prototype.hasOwnProperty( 'w' ) && imgData.clientWidth > 0 ) {
         i.density = i.w / imgData.clientWidth;
       } else {
         i.density = 1;
@@ -590,7 +588,7 @@ function getImgData( img ) {
 
     // how does this resource differ from the actual selected resource? determine and log.
     if ( idealSizesSelectedResource &&
-        idealSizesSelectedResource.hasOwnProperty( 'w' ) &&
+        idealSizesSelectedResource.prototype.hasOwnProperty( 'w' ) &&
         imgData.approximateResourceWidth > 0 &&
         imgData.approximateResourceHeight > 0 &&
         imgData.currentSrcWDescriptor &&
@@ -655,7 +653,7 @@ function parseSizes(strValue) {
 
   // (This is a quick and lenient test. Because of optional unlimited-depth internal
   // grouping parens and strict spacing rules, this could get very complicated.)
-      regexCssCalc = /^calc\((?:[0-9a-z \.\+\-\*\/\(\)]+)\)$/i,
+      regexCssCalc = /^calc\((?:[0-9a-z .+\-*/()]+)\)$/i,
       i, unparsedSizesList, unparsedSizesListLength, unparsedSize, lastComponentValue, size;
 
   // UTILITY FUNCTIONS
@@ -699,55 +697,56 @@ function parseSizes(strValue) {
     }
 
     // (Loop forwards from the beginning of the string.)
+    /* eslint-disable-next-line no-constant-condition */
     while (true) {
       chrctr = str.charAt(pos);
 
-    if (chrctr === "") { // ( End of string reached.)
-      pushComponent();
-      pushComponentArray();
-      return listArray;
-    } else if (inComment) {
-      if ( (chrctr === "*") && (str.charAt(pos + 1) === "/") ) { // (At end of a comment.)
-        inComment = false;
+      if (chrctr === "") { // ( End of string reached.)
+        pushComponent();
+        pushComponentArray();
+        return listArray;
+      } else if (inComment) {
+        if ( (chrctr === "*") && (str.charAt(pos + 1) === "/") ) { // (At end of a comment.)
+          inComment = false;
+          pos += 2;
+          pushComponent();
+          continue;
+        } else {
+          pos += 1; // (Skip all characters inside comments.)
+          continue;
+        }
+      } else if (isSpace(chrctr)) {
+        // (If previous character in loop was also a space, or if
+        // at the beginning of the string, do not add space char to
+        // component.)
+        if ((str.charAt(pos - 1) && isSpace(str.charAt(pos - 1) ) ) || (!component)) {
+          pos += 1;
+          continue;
+        } else if (parenDepth === 0) {
+          pushComponent();
+          pos += 1;
+          continue;
+        } else {
+          // (Replace any space character with a plain space for legibility.)
+          chrctr = " ";
+        }
+      } else if (chrctr === "(") {
+        parenDepth += 1;
+      } else if (chrctr === ")") {
+        parenDepth -= 1;
+      } else if (chrctr === ",") {
+        pushComponent()
+        pushComponentArray();
+        pos += 1;
+        continue;
+      } else if ( (chrctr === "/") && (str.charAt( pos + 1 ) === "*") ) {
+        inComment = true;
         pos += 2;
-        pushComponent();
-        continue;
-      } else {
-        pos += 1; // (Skip all characters inside comments.)
         continue;
       }
-    } else if (isSpace(chrctr)) {
-      // (If previous character in loop was also a space, or if
-      // at the beginning of the string, do not add space char to
-      // component.)
-      if ((str.charAt(pos - 1) && isSpace(str.charAt(pos - 1) ) ) || (!component)) {
-        pos += 1;
-        continue;
-      } else if (parenDepth === 0) {
-        pushComponent();
-        pos += 1;
-        continue;
-      } else {
-        // (Replace any space character with a plain space for legibility.)
-        chrctr = " ";
-      }
-    } else if (chrctr === "(") {
-      parenDepth += 1;
-    } else if (chrctr === ")") {
-      parenDepth -= 1;
-    } else if (chrctr === ",") {
-      pushComponent()
-      pushComponentArray();
-      pos += 1;
-      continue;
-    } else if ( (chrctr === "/") && (str.charAt( pos + 1 ) === "*") ) {
-      inComment = true;
-      pos += 2;
-      continue;
-    }
 
-    component = component + chrctr;
-    pos += 1;
+      component = component + chrctr;
+      pos += 1;
     }
   }
 
@@ -880,8 +879,11 @@ function parseSrcset(input) {
   var inputLength = input.length,
 
     // (Don't use \s, to avoid matching non-breaking space)
+    /* eslint-disable-next-line no-control-regex */
     regexLeadingSpaces = /^[ \t\n\r\u000c]+/,
+    /* eslint-disable-next-line no-control-regex */
     regexLeadingCommasOrSpaces = /^[, \t\n\r\u000c]+/,
+    /* eslint-disable-next-line no-control-regex */
     regexLeadingNotSpaces = /^[^ \t\n\r\u000c]+/,
     regexTrailingCommas = /[,]+$/,
     regexNonNegativeInteger = /^\d+$/,
@@ -911,6 +913,7 @@ function parseSrcset(input) {
   // 4. Splitting loop: Collect a sequence of characters that are space
   //    characters or U+002C COMMA characters. If any U+002C COMMA characters
   //    were collected, that is a parse error.
+  /* eslint-disable-next-line no-constant-condition */
   while (true) {
     collectCharacters(regexLeadingCommasOrSpaces);
 
@@ -957,6 +960,7 @@ function parseSrcset(input) {
     // 8.3. Let state be in descriptor.
     state = "in descriptor";
 
+    /* eslint-disable-next-line no-constant-condition */
     while (true) {
 
       // 8.4. Let c be the character at position.

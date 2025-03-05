@@ -216,7 +216,7 @@ function analyzeVariables() {
     }
     catch (e) {
       // continue regardless of error
-    }}
+    }
 
     if (rules) {
       for (let rule of rules) {

@@ -93,8 +93,8 @@ try {
       let headers = body[2];
       let robots_bodies = processRobotsHTML(doc);
 
-      for (var bot in robots_bodies) {
-        if (!result_bodies.hasOwnProperty(bot)) {
+      for (let bot in robots_bodies) {
+        if (!result_bodies.prototype.hasOwnProperty(bot)) {
           result_bodies[bot] = Object.assign({}, base);
         }
         [...Object.entries(robots_bodies[bot])].forEach(item=>{
@@ -104,8 +104,8 @@ try {
 
     }
       let robots_headers = processRobotsHeaders(headers);
-      for (var bot in robots_headers) {
-        if (!result_headers.hasOwnProperty(bot)) {
+      for (let bot in robots_headers) {
+        if (!result_headers.prototype.hasOwnProperty(bot)) {
           result_headers[bot] = Object.assign({}, base);
         }
         [...Object.entries(robots_headers[bot])].forEach(item=>{

@@ -6,4 +6,5 @@ for (var i = 0; i < metaTags.length; i++) {
         break;
     }
 }
+/* eslint-disable-next-line no-control-regex */
 return viewport.replace(/[\x00-\x1F\x80-\xFF]/g, "");

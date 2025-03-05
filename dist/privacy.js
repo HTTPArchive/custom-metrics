@@ -81,9 +81,9 @@ const parseDSRdelete = async (response) => {
     }
   } catch (error) {
     Object.assign(result, result.present ? { error: error.message } : {});
-  } finally {
-    return Promise.resolve(result);
   }
+
+  return Promise.resolve(result);
 }
 
 let sync_metrics = {
@@ -150,6 +150,7 @@ let sync_metrics = {
       zh: "数据使用政策|隐私政策|数据保护政策|隐私保护政策|數據使用政策|隱私政策|數據保護政策|隱私保護政策"
     }
     const websiteLanguage = document.documentElement.lang.slice(0, 2).toLowerCase();
+    let keywords;
     if (websiteLanguage == 'en') {
       keywords = languageKeywords[websiteLanguage]
     } else if (!(websiteLanguage in languageKeywords)) {
@@ -203,9 +204,11 @@ let sync_metrics = {
           }
         });
       }
-    } finally {
-      return consentData;
+    } catch {
+      // continue regardless of error
     }
+
+    return consentData;
   })(),
 
   /**
@@ -238,9 +241,12 @@ let sync_metrics = {
           }
         });
       }
-    } finally {
-      return tcData;
+    } catch {
+      // continue regardless of error
     }
+
+    return tcData;
+
   })(),
 
   /**
@@ -259,9 +265,11 @@ let sync_metrics = {
           }
         });
       }
-    } finally {
-      return gppData;
+    } catch {
+      // continue regardless of error
     }
+
+    return gppData;
   })(),
 
   /**
@@ -280,9 +288,11 @@ let sync_metrics = {
           }
         });
       }
-    } finally {
-      return uspData;
+    } catch {
+      // continue regardless of error
     }
+
+    return uspData;
   })(),
 
   /**
@@ -487,16 +497,18 @@ let sync_metrics = {
     for (const request of $WPT_REQUESTS) {
       // Add try/catch in case "new URL" throws an exception
       try {
-        request_hostname = (new URL(request.url)).hostname;
+        let request_hostname = (new URL(request.url)).hostname;
 
         for (const [origin, dns_info] of Object.entries($WPT_DNS)) {
-          dns_hostname = (new URL(origin)).hostname;
+          let dns_hostname = (new URL(origin)).hostname;
 
           if (request_hostname == dns_hostname && request_hostname !== dns_info.results.canonical_names[0]) {
             results[dns_hostname] = dns_info.results.canonical_names;
           }
         }
-      } catch { }
+      } catch {
+        // continue regardless of error
+      }
     }
 
     return results;

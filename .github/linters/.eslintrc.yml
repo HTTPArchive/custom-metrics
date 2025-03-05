@@ -12,15 +12,18 @@ globals:
   $WPT_ACCESSIBILITY_TREE: readonly
   $WPT_BODIES: readonly
   $WPT_COOKIES: readonly
+  $WPT_DNS: readonly
   $WPT_REQUESTS: readonly
   $WPT_TEST_URL: readonly
   httparchive_enable_observations: writable
+  __REACT_DEVTOOLS_GLOBAL_HOOK__: writable
   CSSUnparsedValue: readonly
   LaunchParams: readonly
 
 ignorePatterns:
   - "!.*"
   - "**/node_modules/.*"
+  - "/dist/third-parties.js"
 
 plugins:
   - n
