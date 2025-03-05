@@ -9,13 +9,13 @@ extends:
   - "eslint:recommended"
 
 globals:
-  - WPT_ACCESSIBILITY_TREE: readonly
-  - WPT_BODIES: readonly
-  - WPT_COOKIES: readonly
-  - WPT_REQUESTS: readonly
-  - WPT_TEST_URL: readonly
-  - httparchive_enable_observations: readonly
-  - LaunchParams: readonly
+  WPT_ACCESSIBILITY_TREE: readonly
+  WPT_BODIES: readonly
+  WPT_COOKIES: readonly
+  WPT_REQUESTS: readonly
+  WPT_TEST_URL: readonly
+  httparchive_enable_observations: readonly
+  LaunchParams: readonly
 
 ignorePatterns:
   - "!.*"
