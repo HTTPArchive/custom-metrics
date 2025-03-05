@@ -14,7 +14,7 @@ globals:
   $WPT_COOKIES: readonly
   $WPT_REQUESTS: readonly
   $WPT_TEST_URL: readonly
-  httparchive_enable_observations: readwrite
+  httparchive_enable_observations: writable
   LaunchParams: readonly
 
 ignorePatterns:
