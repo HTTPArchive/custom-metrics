@@ -99,9 +99,52 @@ return Promise.all([
       };
     });
   }),
-  parseResponse('/.well-known/apple-app-site-association'),
+  // Apple App Site Association
+  parseResponse('/.well-known/apple-app-site-association', r => {
+    return r.text().then(text => {
+      let result = {
+        applinks: null,
+        webcredentials: null,
+        appclips: null
+      };
+
+      try {
+        let data = JSON.parse(text);
+        result.applinks = data.applinks || null;
+        result.webcredentials = data.webcredentials || null;
+        result.appclips = data.appclips || null;
+      } catch (e) {
+        // Failed to parse JSON, result will contain default values.
+      }
+
+      return result;
+    });
+  }),
   // privacy sandbox
-  parseResponse('/.well-known/related-website-set.json'), //Related Website Set
+  parseResponse('/.well-known/related-website-set.json', r => { //Related Website Set
+    return r.text().then(text => {
+      let result = {
+        primary: null,
+        associatedSites: null,
+        serviceSites: null,
+        ccTLDs: null,
+        rationaleBySite: null
+      };
+
+      try {
+        let data = JSON.parse(text);
+        result.primary = data.primary || null;
+        result.associatedSites = data.associatedSites || null;
+        result.serviceSites = data.serviceSites || null;
+        result.ccTLDs = data.ccTLDs || null;
+        result.rationaleBySite = data.rationaleBySite || null;
+      } catch (e) {
+        // Failed to parse JSON, result will contain default values.
+      }
+
+      return result;
+    });
+  }),
   parseResponse('/.well-known/privacy-sandbox-attestations.json'), //Attestation File
   // privacy
   parseResponse('/.well-known/gpc.json', r => {
