@@ -85,13 +85,13 @@ function getInfoForPattern(regexPattern, extractMatchingGroupOnly) {
 const serviceWorkerLaxRegistrationPattern = /navigator\.serviceWorker\.register\(([^)]*)\)/g;
 const serviceWorkerRegistrationInfo = getInfoForPattern(serviceWorkerLaxRegistrationPattern, true);
 
-const workboxPattern = /(?:workbox:[a-z\-]+:[\d.]+|workbox\.[a-zA-Z]+\.?[a-zA-Z]*)/g;
+const workboxPattern = /(?:workbox:[a-z-]+:[\d.]+|workbox\.[a-zA-Z]+\.?[a-zA-Z]*)/g;
 const workboxInfo = getInfoForPattern(workboxPattern);
 
 const importScriptsPattern = /importScripts\(([^)]*)\)/g;
 const importScriptsInfo = getInfoForPattern(importScriptsPattern, true);
 
-const swEventListenersPattern = /addEventListener\(\s*[\'"](install|activate|push|fetch|notificationclick|notificationclose|sync|canmakepayment|paymentrequest|periodicsync|backgroundfetchsuccess|backgroundfetchfailure|backgroundfetchabort|backgroundfetchclick)[\'"]/g;
+const swEventListenersPattern = /addEventListener\(\s*['"](install|activate|push|fetch|notificationclick|notificationclose|sync|canmakepayment|paymentrequest|periodicsync|backgroundfetchsuccess|backgroundfetchfailure|backgroundfetchabort|backgroundfetchclick)['"]/g;
 const swEventListenersInfo = getInfoForPattern(swEventListenersPattern, true);
 
 const swPropertiesPattern = /\.on(install|activate|push|notificationclick|notificationclose|sync|canmakepayment|paymentrequest|periodicsync|backgroundfetchsuccess|backgroundfetchfailure|backgroundfetchabort|backgroundfetchclick)\s*=/g;
@@ -106,7 +106,7 @@ const swObjectsInfo = getInfoForPattern(swObjectsPattern);
 const swRegistrationPropertiesPattern = /navigationPreload\.(enable|disable|setHeaderValue|getState)|pushManager\.(getSubscription|permissionState|subscribe)|sync\.(register|getTags)/g;
 const swRegistrationPropertiesInfo = getInfoForPattern(swRegistrationPropertiesPattern);
 
-const windowEventListenersPattern = /addEventListener\(\s*[\'"](appinstalled|beforeinstallprompt)[\'"]/g;
+const windowEventListenersPattern = /addEventListener\(\s*['"](appinstalled|beforeinstallprompt)['"]/g;
 const windowEventListenersInfo = getInfoForPattern(windowEventListenersPattern, true);
 
 const windowPropertiesPattern = /\.on(appinstalled|beforeinstallprompt)\s*=/g;

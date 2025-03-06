@@ -15,8 +15,7 @@
  * @returns {object} origin_trial_metadata
  */
 function validate(tokenElem) {
-  let validityElem,
-    versionElem,
+  let versionElem,
     originElem,
     subdomainElem,
     thirdpartyElem,

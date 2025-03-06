@@ -214,7 +214,9 @@ function analyzeVariables() {
     try {
       var rules = stylesheet.cssRules;
     }
-    catch (e) { }
+    catch (e) {
+      // continue regardless of error
+    }
 
     if (rules) {
       for (let rule of rules) {
@@ -286,7 +288,7 @@ function analyzeVariables() {
 
   return { summary, computed };
 
-};
+}
 
 function serialize(data, separator) {
   return JSON.stringify(data, (key, value) => {

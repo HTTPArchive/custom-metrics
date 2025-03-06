@@ -1,5 +1,6 @@
 //[parsed_css]
 
+/* eslint-disable no-cond-assign */
 try {
   const MAX_STYLESHEET_BYTES = 500 * 1024; // 500 KB
   const MAX_AST_BYTES = 4 * 1024 * 1024; // 4 MB
@@ -8,7 +9,7 @@ try {
   const block = Array.from(document.querySelectorAll('style')).map(i => ({url: 'block', body: i.innerHTML}));
   const inline = Array.from(document.querySelectorAll('[style]')).map(i => ({url: 'inline', body: i.getAttribute('style')}));
 
-  const parsed_css = stylesheets.concat(block, inline).filter(({url, body}) => {
+  const parsed_css = stylesheets.concat(block, inline).filter(({body}) => {
     return body.length <= MAX_STYLESHEET_BYTES;
   }).map(({url, body}) => {
     return {
@@ -18,7 +19,7 @@ try {
         inline: url == 'inline'
       })
     };
-  }).filter(({url, ast}) => {
+  }).filter(({ast}) => {
     return JSON.stringify(ast).length <= MAX_AST_BYTES;
   });
 
@@ -35,6 +36,7 @@ try {
 
 // http://www.w3.org/TR/CSS21/grammar.html
 // https://github.com/visionmedia/css-parse/pull/49#issuecomment-30088027
+/* eslint-disable-next-line no-unreachable */
 var commentre = /\/\*[^*]*\*+([^/*][^*]*\*+)*\//g
 
 function parse(css, options){
@@ -64,7 +66,7 @@ function parse(css, options){
    */
 
   function position() {
-    var start = { line: lineno, column: column };
+    //var start = { line: lineno, column: column };
     return function(node){
       //node.position = new Position(start);
       whitespace();
@@ -252,7 +254,7 @@ function parse(css, options){
     var pos = position();
 
     // prop
-    var prop = match(/^(\*?[-#\/\*\\\w]+(\[[0-9a-z_-]+\])?)\s*/);
+    var prop = match(/^(\*?[-#/*\\\w]+(\[[0-9a-z_-]+\])?)\s*/);
     if (!prop) return;
     prop = trim(prop[0]);
 
@@ -260,7 +262,7 @@ function parse(css, options){
     if (!match(/^:\s*/)) return error("property missing ':'");
 
     // val
-    var val = match(/^((?:'(?:\\'|.)*?'|"(?:\\"|.)*?"|\([^\)]*?\)|[^};])+)/);
+    var val = match(/^((?:'(?:\\'|.)*?'|"(?:\\"|.)*?"|\([^)]*?\)|[^};])+)/);
 
     var ret = pos({
       type: 'declaration',
@@ -332,7 +334,7 @@ function parse(css, options){
     var vendor = m[1];
 
     // identifier
-    var m = match(/^([-\w]+)\s*/);
+    m = match(/^([-\w]+)\s*/);
     if (!m) return error("@keyframes missing name");
     var name = m[1];
 

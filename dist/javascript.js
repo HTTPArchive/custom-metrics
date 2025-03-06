@@ -11,8 +11,6 @@ function fetchWithTimeout(url) {
   return fetch(url, { signal: controller.signal });
 }
 
-const requests = $WPT_REQUESTS;
-
 let getSourceMaps = (async () => {
   const $$ = (s) => [...document.querySelectorAll(s)];
   const sourcemapRegex = /\/\/[#@] sourceMappingURL=(.+?)$/;

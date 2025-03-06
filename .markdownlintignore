@@ -1,2 +1,4 @@
 # ignore github markdown files (like pull request templates)
-**/.github/**/*.md"
+.github/*.md
+.github/**/*.md
+

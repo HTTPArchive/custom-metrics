@@ -25,7 +25,7 @@ try {
         if (!valid_elements.includes(tagname)) {
             data.invalidElements.push(tagname);
             data.invalidHead = true;
-        };
+        }
     }
     return data;
 } catch (err) {
