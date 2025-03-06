@@ -109,7 +109,7 @@ return Promise.all([
       }
       if (data.webcredentials) {
         hasWebCredentials = true;
-      }  
+      }
       return {
         app_links: hasAppLinks,
         web_credentials: hasWebCredentials
