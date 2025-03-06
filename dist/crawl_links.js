@@ -15,6 +15,7 @@ const sameOrigin = function(uri1, uri2){
         uri2 = new URL(uri2);
         return uri1.origin == uri2.origin;
     } catch(e) {
+      // continue regardless of error
     }
     return false;
 }
@@ -56,6 +57,7 @@ const getLinks = function(visibleOnly){
                     }
                 }
             } catch (e) {
+              // continue regardless of error
             }
         }
     }

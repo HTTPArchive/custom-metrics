@@ -182,7 +182,7 @@ Cannot display changed custom metrics due to comment size limits, \
    * @returns {string[]} Test websites
    */
   getTestWebsites() {
-    const urlPattern = /\b((http|https):\/\/[a-zA-Z0-9.-]+\.[a-zA-Z]{2,6}(\/[a-zA-Z0-9_.-]*)*(\?[a-zA-Z0-9_.-]+=[a-zA-Z0-9%_.-]*)?(\#?[a-zA-Z0-9%_.=-]*)?)\b/;
+    const urlPattern = /\b((http|https):\/\/[a-zA-Z0-9.-]+\.[a-zA-Z]{2,6}(\/[a-zA-Z0-9_.-]*)*(\?[a-zA-Z0-9_.-]+=[a-zA-Z0-9%_.-]*)?(#?[a-zA-Z0-9%_.=-]*)?)\b/;
     return this.prBody.split(/\r?\n/).reduce((urls, line, index, lines) => {
       if (line.includes('**Test websites**:')) {
         for (let i = index + 1; i < lines.length; i++) {

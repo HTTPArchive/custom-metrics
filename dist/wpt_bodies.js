@@ -467,7 +467,7 @@ try { // whole process is placed in a try/catch so we can log uncaught errors
             });
           }
           return target;
-        };
+        }
 
         let result = {};
 
@@ -697,7 +697,7 @@ try { // whole process is placed in a try/catch so we can log uncaught errors
             let words = 0;
             // if don't have a primary heading yet, search for one.
 
-            var hs = nodes.map(n => {
+            nodes.map(n => {
               let h = processHeading(d, target, n, l);
               characters += h.characters;
               words += h.words;

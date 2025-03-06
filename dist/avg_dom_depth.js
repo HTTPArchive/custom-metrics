@@ -12,7 +12,7 @@ function avgDomDepth() {
 function numParents(elem) {
   var n = 0;
   if ( elem.parentNode ) {
-    while ( elem = elem.parentNode) {
+    while ((elem = elem.parentNode)) {
       n++;
     }
   }

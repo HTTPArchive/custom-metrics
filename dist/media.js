@@ -1,51 +1,6 @@
 //[media]
 // Uncomment the previous line for testing on webpagetest.org
 
-// Sanitize the `attributes` property.
-function getNodeAttributes(node) {
-  // Inspired by dequelabs/axe-core.
-  if (node.attributes instanceof NamedNodeMap) {
-    return node.attributes;
-  }
-  return node.cloneNode(false).attributes;
-}
-
-// Map nodes to their attributes,
-function parseNodes(nodes) {
-  var parsedNodes = [];
-  if (nodes) {
-    for (var i = 0, len = nodes.length; i < len; i++) {
-      var node = nodes[i];
-      var attributes = Object.values(getNodeAttributes(node));
-      var el = {};
-
-      el.tagName = node.tagName.toLowerCase(); // for reference
-      for (var n = 0, len2 = attributes.length; n < len2; n++) {
-        var attribute = attributes[n];
-        el[attribute.name.toLowerCase()] = attribute.value;
-      }
-
-      parsedNodes.push(el);
-    }
-  }
-  return parsedNodes;
-}
-
-// Return the set of attributes for nodes,
-function getNodesAttributes(nodes) {
-  if (!nodes) {
-    return [];
-  }
-  var uniqueAttributes = new Set();
-  for (var node of nodes) {
-    var attributes = Object.values(getNodeAttributes(node));
-    for (var attribute of attributes) {
-      uniqueAttributes.add(attribute.name.toLowerCase());
-    }
-  }
-  return Array.from(uniqueAttributes);
-}
-
 return JSON.stringify({
   // Counts the number of picture tags containing an img tag
   'num_picture_img': document.querySelectorAll('picture img').length,

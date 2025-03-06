@@ -32,7 +32,9 @@ function getWordPressTheme() {
       theme.child_theme = childTheme.replace( 'wp-child-theme-', '' );
     }
 
-  } catch ( e ) {}
+  } catch ( e ) {
+    // continue regardless of error
+  }
   return theme;
 }
 
@@ -179,7 +181,9 @@ function getWordPressContentType() {
         }
       }
     }
-  } catch ( e ) {}
+  } catch ( e ) {
+    // continue regardless of error
+  }
   return content;
 }
 

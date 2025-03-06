@@ -83,7 +83,7 @@ return JSON.stringify({
       // HEIF
       'heif', 'heic',
     ];
-    const extension_regex = new RegExp(`\.(${image_file_extensions.join('|')})$`, 'i');
+    const extension_regex = new RegExp(`\\.(${image_file_extensions.join('|')})$`, 'i');
 
     let total_elements_with_non_empty_alt = 0;
     let total_with_file_extension = 0;

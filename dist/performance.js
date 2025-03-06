@@ -9,7 +9,7 @@ function getRawHtmlDocument() {
         rawHtml = response_bodies[0].response_body;
     }
 
-    rawHtmlDocument = document.implementation.createHTMLDocument("New Document");
+    let rawHtmlDocument = document.implementation.createHTMLDocument("New Document");
     rawHtmlDocument.documentElement.innerHTML = rawHtml;
 
     return rawHtmlDocument;
@@ -247,7 +247,7 @@ function parseLinkHeader(link) {
             if (!paramPattern.test(p)) {
                 return;
             }
-            const [_, key, value] = p.match(paramPattern);
+            const [, key, value] = p.match(paramPattern);
             return {key, value};
         });
         return [src, params];

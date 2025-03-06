@@ -113,7 +113,7 @@ return fetchWithTimeout('/robots.txt')
       }
 
       // Record counts by user-agent
-      counts_by_useragent = {};
+      let counts_by_useragent = {};
       var applies_to_useragent = [];
       var last = null;
 
@@ -137,7 +137,7 @@ return fetchWithTimeout('/robots.txt')
               }
 
           } else if (record.record_type in BY_USERAGENT_TYPES) {
-              for (ua of applies_to_useragent) {
+              for (let ua of applies_to_useragent) {
                   counts_by_useragent[ua][BY_USERAGENT_TYPES[record.record_type]] += 1;
               }
 

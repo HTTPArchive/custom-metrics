@@ -14,10 +14,10 @@ function numKeys(storage) {
     return storage.length;
   }
   else {
-    len = 0;
-    for ( var key in storage ) {
+    let len = 0;
+    Object.keys(storage).forEach(() => {
       len++;
-    }
+    });
     return len;
   }
 }
