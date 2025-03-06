@@ -116,7 +116,7 @@ return Promise.all([
       };
     });
   }),
-  // privacy sandbox
+  // Privacy Sandbox
   parseResponse('/.well-known/related-website-set.json', r => {
     return r.text().then(text => {
       let result = {
