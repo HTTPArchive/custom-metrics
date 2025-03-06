@@ -12,8 +12,7 @@ function avgDomDepth() {
 function numParents(elem) {
   var n = 0;
   if ( elem.parentNode ) {
-    /* eslint-disable-next-line no-cond-assign */
-    while (elem = elem.parentNode) {
+    while ((elem = elem.parentNode)) {
       n++;
     }
   }
