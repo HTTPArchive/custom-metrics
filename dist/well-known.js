@@ -101,43 +101,33 @@ return Promise.all([
   }),
   // Apple App Site Association
   parseResponse('/.well-known/apple-app-site-association', r => {
-    return r.text().then(text => {
-      let result = {
-        applinks: null,
-        webcredentials: null,
-        appclips: null
-      };
-
-      try {
-        let data = JSON.parse(text);
-        result.applinks = data.applinks || null;
-        result.webcredentials = data.webcredentials || null;
-        result.appclips = data.appclips || null;
-      } catch (e) {
-        // Failed to parse JSON, result will contain default values.
+    return r.json().then(data => {
+      let hasAppLinks = false;
+      let hasWebCredentials = false;
+      if (data.applinks) {
+        hasAppLinks = true;
       }
-
-      return result;
+      if (data.webcredentials) {
+        hasWebCredentials = true;
+      }  
+      return {
+        app_links: hasAppLinks,
+        web_credentials: hasWebCredentials
+      };
     });
   }),
   // privacy sandbox
-  parseResponse('/.well-known/related-website-set.json', r => { //Related Website Set
+  parseResponse('/.well-known/related-website-set.json', r => {
     return r.text().then(text => {
       let result = {
         primary: null,
-        associatedSites: null,
-        serviceSites: null,
-        ccTLDs: null,
-        rationaleBySite: null
+        associatedSites: null
       };
 
       try {
         let data = JSON.parse(text);
         result.primary = data.primary || null;
         result.associatedSites = data.associatedSites || null;
-        result.serviceSites = data.serviceSites || null;
-        result.ccTLDs = data.ccTLDs || null;
-        result.rationaleBySite = data.rationaleBySite || null;
       } catch (e) {
         // Failed to parse JSON, result will contain default values.
       }
