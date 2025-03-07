@@ -8,8 +8,6 @@
 // 3. Test your change by following the instructions at https://github.com/HTTPArchive/almanac.httparchive.org/issues/33#issuecomment-502288773.
 // 4. Submit a PR to update this file.
 
-import psl from 'psl'; // Import the psl library for Public Suffix List parsing.
-
 function fetchWithTimeout(url) {
   var controller = new AbortController();
   setTimeout(() => {controller.abort()}, 5000);
@@ -81,14 +79,6 @@ function parseResponseWithRedirects(url, parser) {
     });
 }
 
-function getRootDomain(hostname) {
-  const parsed = psl.parse(hostname);
-  if (parsed.error){
-     return hostname;
-  }
-  return parsed.domain || hostname; // Use parsed.domain, fallback to hostname if null
-}
-
 return Promise.all([
   // ecommerce
   parseResponse('/.well-known/assetlinks.json', r => {
@@ -128,45 +118,20 @@ return Promise.all([
   }),
   // Privacy Sandbox
   parseResponse('/.well-known/related-website-set.json', r => {
-    return r.text()  // Get the response as text first.
-        .then(text => {
-            try {
-                const data = JSON.parse(text);
-                return {
-                    primary: data.primary || null,
-                    associatedSites: data.associatedSites || null
-                };
-            } catch (error) {
-                // If JSON parsing fails, try the root domain.
-                const domain = getRootDomain(window.location.hostname);
-                const retryUrl = `https://${domain}/.well-known/related-website-set.json`;
-                return fetchWithTimeout(retryUrl) // Use fetchWithTimeout for the retry.
-                    .then(retryResponse => {
-                        if (!retryResponse.ok) {
-                            return null; // Return null if the retry fails.
-                        }
-                        return retryResponse.text();
-                    })
-                    .then(retryText => {
-                        if (!retryText) {
-                            return null;
-                        }
-                        try {
-                            const retryData = JSON.parse(retryText);
-                            return {
-                                 primary: retryData.primary || null,
-                                associatedSites: retryData.associatedSites || null
-                            };
-                        } catch (retryError) {
-                            return null; // Return null if parsing the retry response fails
-                        }
-                    }).catch(e => {
-                        return null;
-                    });
-            }
-        }).catch(err => {
-           return null;
-        });
+    return r.text().then(text => {
+      let result = {
+        primary: null,
+        associatedSites: null
+      };
+      try {
+        let data = JSON.parse(text);
+        result.primary = data.primary || null;
+        result.associatedSites = data.associatedSites || null;
+      } catch (e) {
+        // Failed to parse JSON, result will contain default values.
+      }
+      return result;
+    });
   }),
   parseResponse('/.well-known/privacy-sandbox-attestations.json'), //Attestation File
   // privacy
