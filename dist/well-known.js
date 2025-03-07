@@ -99,9 +99,40 @@ return Promise.all([
       };
     });
   }),
-  parseResponse('/.well-known/apple-app-site-association'),
-  // privacy sandbox
-  parseResponse('/.well-known/related-website-set.json'), //Related Website Set
+  // Apple App Site Association
+  parseResponse('/.well-known/apple-app-site-association', r => {
+    return r.json().then(data => {
+      let hasAppLinks = false;
+      let hasWebCredentials = false;
+      if (data.applinks) {
+        hasAppLinks = true;
+      }
+      if (data.webcredentials) {
+        hasWebCredentials = true;
+      }
+      return {
+        app_links: hasAppLinks,
+        web_credentials: hasWebCredentials
+      };
+    });
+  }),
+  // Privacy Sandbox
+  parseResponse('/.well-known/related-website-set.json', r => {
+    return r.text().then(text => {
+      let result = {
+        primary: null,
+        associatedSites: null
+      };
+      try {
+        let data = JSON.parse(text);
+        result.primary = data.primary || null;
+        result.associatedSites = data.associatedSites || null;
+      } catch (e) {
+        // Failed to parse JSON, result will contain default values.
+      }
+      return result;
+    });
+  }),
   parseResponse('/.well-known/privacy-sandbox-attestations.json'), //Attestation File
   // privacy
   parseResponse('/.well-known/gpc.json', r => {
