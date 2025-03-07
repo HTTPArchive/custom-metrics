@@ -128,43 +128,45 @@ return Promise.all([
   }),
   // Privacy Sandbox
   parseResponse('/.well-known/related-website-set.json', r => {
-    return fetchWithTimeout(r.url)
-      .then(response => {
-        if (!response.ok) {
-          // Retry logic
-          const domain = getRootDomain(window.location.hostname);
-          const retryUrl = `https://${domain}/.well-known/related-website-set.json`;
-          return fetchWithTimeout(retryUrl)
-            .then(retryResponse => {
-              if (!retryResponse.ok) {
-                throw new Error(`Retry failed with status: ${retryResponse.status}`);
-              }
-              return retryResponse.text();
-            });
-        }
-        return response.text();
-      })
-      .then(text => {
-          let result = {
-              primary: null,
-              associatedSites: null
-          };
-        try {
-          const data = JSON.parse(text);
-          result.primary = data.primary || null;
-          result.associatedSites = data.associatedSites || null;
-        } catch (e) {
-          // Failed to parse JSON, result will contain default values (already set).
-        }
-        return result;
-      })
-      .catch(error => {
-        // Return null object on any error
-          return {
-              primary: null,
-              associatedSites: null
-          };
-      });
+    return r.text()  // Get the response as text first.
+        .then(text => {
+            try {
+                const data = JSON.parse(text);
+                return {
+                    primary: data.primary || null,
+                    associatedSites: data.associatedSites || null
+                };
+            } catch (error) {
+                // If JSON parsing fails, try the root domain.
+                const domain = getRootDomain(window.location.hostname);
+                const retryUrl = `https://${domain}/.well-known/related-website-set.json`;
+                return fetchWithTimeout(retryUrl) // Use fetchWithTimeout for the retry.
+                    .then(retryResponse => {
+                        if (!retryResponse.ok) {
+                            return null; // Return null if the retry fails.
+                        }
+                        return retryResponse.text();
+                    })
+                    .then(retryText => {
+                        if (!retryText) {
+                            return null;
+                        }
+                        try {
+                            const retryData = JSON.parse(retryText);
+                            return {
+                                 primary: retryData.primary || null,
+                                associatedSites: retryData.associatedSites || null
+                            };
+                        } catch (retryError) {
+                            return null; // Return null if parsing the retry response fails
+                        }
+                    }).catch(e => {
+                        return null;
+                    });
+            }
+        }).catch(err => {
+           return null;
+        });
   }),
   parseResponse('/.well-known/privacy-sandbox-attestations.json'), //Attestation File
   // privacy
