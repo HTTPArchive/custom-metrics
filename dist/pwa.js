@@ -24,7 +24,7 @@ const manifestURLs = new Set(Array.from(document.querySelectorAll('link[rel=mani
 
 const initiatorMap = requests.reduce((map, request) => {
   const url = request.url;
-  let initiator = request.initiator.url;
+  let initiator = request.initiator?.url;
   if (!initiator) {
     initiator = request.initiator?.stack?.callFrames?.[0]?.url
   }
