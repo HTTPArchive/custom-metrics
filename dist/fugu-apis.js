@@ -748,6 +748,69 @@ const patterns = {
     blinkFeatureID: 3902,
     chromeStatusID: 5741247866077184,
   },
+  'Prompt': {
+    regEx: /LanguageModel\.create\s*\(/g,
+    where: 'JavaScript',
+    supported: (async () => 'LanguageModel' in self)(),
+    featureDetection: `(async () => 'LanguageModel' in self)()`,
+    documentation: 'https://developer.chrome.com/docs/ai/prompt-api',
+    blinkFeatureID: 5405,
+    chromeStatusID: 5134603979063296,
+  },
+  'Summarizer': {
+    regEx: /Summarizer\.create\s*\(/g,
+    where: 'JavaScript',
+    supported: (async () => 'Summarizer' in self)(),
+    featureDetection: `(async () => 'Summarizer' in self)()`,
+    documentation: 'https://developer.chrome.com/docs/ai/summarizer-api',
+    blinkFeatureID: 5445,
+    chromeStatusID: 5193953788559360,
+  },
+  'Writer': {
+    regEx: /Writer\.create\s*\(/g,
+    where: 'JavaScript',
+    supported: (async () => 'Writer' in self)(),
+    featureDetection: `(async () => 'Writer' in self)()`,
+    documentation: 'https://developer.chrome.com/docs/ai/writer-api',
+    blinkFeatureID: 5417,
+    chromeStatusID: 4712595362414592,
+  },
+  'Rewriter': {
+    regEx: /Rewriter\.create\s*\(/g,
+    where: 'JavaScript',
+    supported: (async () => 'Rewriter' in self)(),
+    featureDetection: `(async () => 'Rewriter' in self)()`,
+    documentation: 'https://developer.chrome.com/docs/ai/rewriter-api',
+    blinkFeatureID: 5431,
+    chromeStatusID: 5112320150470656,
+  },
+  'Proofreader': {
+    regEx: /Proofreader\.create\s*\(/g,
+    where: 'JavaScript',
+    supported: (async () => 'Proofreader' in self)(),
+    featureDetection: `(async () => 'Proofreader' in self)()`,
+    documentation: 'https://github.com/webmachinelearning/proofreader-api',
+    blinkFeatureID: 5567,
+    chromeStatusID: 5164677291835392,
+  },
+  'Translator': {
+    regEx: /Translator\.create\s*\(/g,
+    where: 'JavaScript',
+    supported: (async () => 'Translator' in self)(),
+    featureDetection: `(async () => 'Translator' in self)()`,
+    documentation: 'https://developer.chrome.com/docs/ai/translator-api',
+    blinkFeatureID: 5392,
+    chromeStatusID: 5172811302961152,
+  },
+  'LanguageDetector': {
+    regEx: /LanguageDetector\.create\s*\(/g,
+    where: 'JavaScript',
+    supported: (async () => 'LanguageDetector' in self)(),
+    featureDetection: `(async () => 'LanguageDetector' in self)()`,
+    documentation: 'https://developer.chrome.com/docs/ai/language-detection',
+    blinkFeatureID: 5401,
+    chromeStatusID: 6494349985841152,
+  },
 };
 
 const responseBodies = $WPT_BODIES;
@@ -763,7 +826,7 @@ const checkURLConditions = (where, url, mimeType, responseBody) => {
   // (https://developer.mozilla.org/en-US/docs/Web/HTTP/Basics_of_HTTP/MIME_types#textjavascript).
   if (
     where === "JavaScript" &&
-    /.m?js/.test(url) &&
+    /\.m?js/.test(url) &&
     mimeType.toLowerCase().endsWith("script")
   ) {
     return true;
