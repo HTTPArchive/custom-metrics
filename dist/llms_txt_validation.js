@@ -12,9 +12,9 @@ return fetchWithTimeout('/llms.txt')
     const ct = response.headers.get('Content-Type')||'';
     if (!ct.toLowerCase().includes('text/plain')) return JSON.stringify({valid:0, message: ct, error: "Invalid content type"});
     return response.text().then(text => {
-      const m = s=> (text.match(new RegExp(`\\${s}`,'g'))||[]).length;
-      if ((text.match(/```/g)||[]).length %2) return JSON.stringify({valid:0, error:"Invalid markdown fences"});
-      if (m('[')!==m(']')||m('(')!==m(')')) return JSON.stringify({valid:0, error:"Unmatched braces"});
+      const m = s => (text.match(new RegExp(`\\${s}`,'g'))||[]).length;
+      if (m('[')!==m(']')||m('(')!==m(')')) return JSON.stringify({valid:0, error:"Invalid markdown: Unmatched braces"});
+      if ((text.match(/```/g)||[]).length %2) return JSON.stringify({valid:0, error:"Invalid markdown: Uneven code fences"});
       return JSON.stringify({valid:1});
     });
   })
