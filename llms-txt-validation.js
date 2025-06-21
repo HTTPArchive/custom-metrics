@@ -1,4 +1,4 @@
-[llms-txt-valid]
+//[llms-txt-valid]
 return fetch('/llms.txt')
   .then(response => {
     if (!response.ok) return 0;
