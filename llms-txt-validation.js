@@ -8,7 +8,7 @@ return fetch('/llms.txt')
       const m = s=> (text.match(new RegExp(`\\${s}`,'g'))||[]).length;
       if ((text.match(/```/g)||[]).length %2) return JSON.stringify({valid:0,error:""});
       if (m('[')!==m(']')||m('(')!==m(')')) return JSON.stringify({valid:0,error:""});
-      return JSON.stringify({valid":1});
+      return JSON.stringify({valid:1});
     });
   })
   .catch(error => {
