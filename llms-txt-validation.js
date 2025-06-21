@@ -11,4 +11,6 @@ return fetch('/llms.txt')
       return 1;
     });
   })
-  .catch(()=>0);
+  .catch(error => {
+    return JSON.stringify({message: error.message, error: error});
+  });
