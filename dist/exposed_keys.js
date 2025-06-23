@@ -75,62 +75,12 @@ const keyMap = {
   zohocrm: '\\b(1000\\.[a-f0-9]{32}\\.[a-f0-9]{32})\\b'
 };
 const scripts = Array.from(document.scripts);
-function fetchWithTimeout(url) {
-  var controller = new AbortController();
-  setTimeout(() => {controller.abort()}, 5000);
-  return fetch(url, {signal: controller.signal});
-}
-
-function parseResponse(url, parser) {
-  return fetchWithTimeout(url)
-  .then(request => {
-    let resultObj = {};
-    if(!request.redirected && request.status === 200) {
-      resultObj['found'] = true;
-      if(parser) {
-        let promise = parser(request);
-        if (promise) {
-          return promise
-          .then(data => {
-            resultObj['data'] = data;
-            return [url, resultObj];
-          })
-          .catch(error => {
-            return [url, {'error': error.message}];
-          });
-        } else {
-          resultObj['error'] = 'parser did not return a promise';
-          return [url, resultObj];
-        }
-      } else {
-        return [url, resultObj];
-      }
-    } else {
-      resultObj['found'] = false;
-      return [url, resultObj];
-    }
-  })
-  .catch(error => {
-    return [url, {'error': error.message}];
-  });
-}
-
-return Promise.all(
-  scripts.map(script => {
-    if (script.src) {
-      return parseResponse(script.src, response => response.text());
-    } else {
-      return Promise.resolve(script.textContent.trim());
-    }
-  })
-).then((all_data) => {
-  const combinedScripts = all_data.reduce((acc, data) => {
-    if (Array.isArray(data)) {
-      return acc + data[1].data + '\n';
-    } else {
-      return acc + data;
-    }
-  }, '');
+let requests = $WPT_BODIES;
+const combinedScripts = scripts
+  .filter(script => !script.src)
+  .map(script => script.textContent)
+  .concat(requests.filter(request => request.type === 'Script').map(request => request.response_body))
+  .join('\n');
 
   const matched_keys = [];
   for (const [provider, pattern] of Object.entries(keyMap)) {
@@ -139,9 +89,4 @@ return Promise.all(
       matched_keys.push(provider);
     }
   }
-
-  return matched_keys;
-}).catch(error => {
-  return JSON.stringify({ message: error.message, error });
-});
-
+return matched_keys;
