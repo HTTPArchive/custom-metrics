@@ -1,9 +1,80 @@
 // Regex derived from TruffleHog https://github.com/trufflesecurity/trufflehog
-const key_regex = ['\\b(aio\\_[a-zA-Z0-9]{28})\\b', '\\b(sk-ant-(?:admin01|api03)-[\\w\\-]{93}AA)\\b', '\\b(apify\\_api\\_[a-zA-Z-0-9]{36})\\b', '\\b(v1\\.0-[A-Za-z0-9-]{171})\\b', '\\b(CFPAT-[a-zA-Z0-9_\\-]{43})\\b', '\\b([a-z0-9-]+(?:\\.[a-z0-9-]+)*\\.(cloud\\.databricks\\.com|gcp\\.databricks\\.com|azuredatabricks\\.net))\\b', '\\b(web\\_[0-9a-z]{32})\\b', '\\b((?:dop|doo|dor)_v1_[a-f0-9]{64})\\b', '(https:\\/\\/discord\\.com\\/api\\/webhooks\\/[0-9]{18,19}\\/[0-9a-zA-Z-]{68})', '\\b(ey[a-zA-Z0-9]{34}.ey[a-zA-Z0-9]{154}.[a-zA-Z0-9_-]{43})\\b', '\\b(dp\\.pt\\.[a-zA-Z0-9]{43})\\b', '\\b(API_KEY[0-9A-Z]{32})\\b', '\\b(flb_live_[0-9a-zA-Z]{20})\\b', '\\b(shltm_[0-9a-zA-Z-_]{40})', '\\b(FLWSECK-[0-9a-z]{32}-X)\\b', '\\b(fio-u-[0-9a-zA-Z_-]{64})\\b', '\\bftp://[\\S]{3,50}:([\\S]{3,50})@[-.%\\w\\/:]+\\b', '\\{[^{]+auth_provider_x509_cert_url[^}]+\\}', '\\{[^{]+client_secret[^}]+\\}', '\\b((?:master-|account-)[0-9A-Za-z]{20})\\b', '\\b(live_[0-9A-Za-z\\_\\-]{40}[ "\'\\r\\n]{1})', '\\b(glc_eyJ[A-Za-z0-9+\\/=]{60,160})', '\\b(glsa_[0-9a-zA-Z_]{41})\\b', '\\b(gsk_[a-zA-Z0-9]{52})\\b', '\\b(?:hf_|api_org_)[a-zA-Z0-9]{34}\\b', '\\b(s-s4t2(?:ud|af)-[a-f0-9]{64})\\b', 'jdbc:[\\w]{3,10}:[^\\s"\'<>,(){}[\\]&]{10,512}', '\\b(pk_[a-zA-Z0-9]{34})\\b', '\\b((?:api|sdk)-[a-z0-9]{8}-[a-z0-9]{4}-4[a-z0-9]{3}-[a-z0-9]{4}-[a-z0-9]{12})\\b', '\\b(lin_api_[0-9A-Za-z]{40})\\b', '\\b(pk\\.[a-zA-Z-0-9]{32})\\b', '[0-9a-f]{32}-us[0-9]{1,2}', '(https:\\/\\/[a-zA-Z-0-9]+\\.webhook\\.office\\.com\\/webhookb2\\/[a-zA-Z-0-9]{8}-[a-zA-Z-0-9]{4}-[a-zA-Z-0-9]{4}-[a-zA-Z-0-9]{4}-[a-zA-Z-0-9]{12}\\@[a-zA-Z-0-9]{8}-[a-zA-Z-0-9]{4}-[a-zA-Z-0-9]{4}-[a-zA-Z-0-9]{4}-[a-zA-Z-0-9]{12}\\/IncomingWebhook\\/[a-zA-Z-0-9]{32}\\/[a-zA-Z-0-9]{8}-[a-zA-Z-0-9]{4}-[a-zA-Z-0-9]{4}-[a-zA-Z-0-9]{4}-[a-zA-Z-0-9]{12})', '\\b(NF\\-[a-zA-Z0-9]{32})\\b', '\\b(secret_[A-Za-z0-9]{43})\\b', '(npm_[0-9a-zA-Z]{36})', '\\b(nvapi-[a-zA-Z0-9_-]{64})\\b', '\\b(sk-[a-zA-Z0-9_-]+T3BlbkFJ[a-zA-Z0-9_-]+)\\b', '\\b(ak_live_[a-zA-Z0-9]{30})\\b', '\\b(sk\\_[a-z]{1,}\\_[A-Za-z0-9]{40})\\b', '\\b(phx_[a-zA-Z0-9_]{43})\\b', '\\b(PMAK-[a-zA-Z-0-9]{59})\\b', '\\b(pnu_[a-zA-Z0-9]{36})\\b', '-----\\s*?BEGIN[ A-Z0-9_-]*?PRIVATE KEY\\s*?-----[\\s\\S]*?----\\s*?END[ A-Z0-9_-]*? PRIVATE KEY\\s*?-----', '\\b(sub-c-[0-9a-z]{8}-[a-z0-9]{4}-[a-z0-9]{4}-[a-z0-9]{4}-[a-z0-9]{12})\\b', '\\b(pul-[a-z0-9]{40})\\b', '\\b(?:amqps?):\\/\\/[\\S]{3,50}:([\\S]{3,50})@[-.%\\w\\/:]+\\b', '\\b(ramp_id_[a-zA-Z0-9]{40})\\b', '\\brzp_live_[A-Za-z0-9]{14}\\b', '(rdme_[a-z0-9]{70})', '\\b(ey[a-zA-Z0-9-._]{153}.ey[a-zA-Z0-9-._]{916,1000})\\b', '\\bredi[s]{1,2}://[\\S]{3,50}:([\\S]{3,50})@[-.%\\w\\/:]+\\b', '\\b(r8_[0-9A-Za-z-_]{37})\\b', '\\b(rh-api-[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12})\\b', '\\b(rubygems_[a-zA0-9]{48})\\b', '\\bSG\\.[\\w\\-]{20,24}\\.[\\w\\-]{39,50}\\b', '\\b(xkeysib\\-[A-Za-z0-9_-]{81})\\b', '\\b(shppa_|shpat_)([0-9A-Fa-f]{32})\\b', '\\b(slk_[a-f0-9]{64})\\b', '(?:sandbox-)?sq0i[a-z]{2}-[0-9A-Za-z_-]{22,43}', '\\b(sq0idp-[0-9A-Za-z]{22})\\b', '\\b(sbp_[a-z0-9]{40})\\b', '\\btskey-[a-z]+-[0-9A-Za-z_]+-[0-9A-Za-z_]+\\b', '\\b([A-Za-z0-9]{14}.atlasv1.[A-Za-z0-9]{67})\\b', '(https://[\\w-]+\\.tines\\.com/webhook/[a-z0-9]{32}/[a-z0-9]{32})', '\\bthog-key-[0-9a-f]{16}\\b', '\\bAC[0-9a-f]{32}\\b', '\\b(BBFF-[0-9a-zA-Z]{30})\\b', '\\bhttps?:\\/\\/[\\w!#$%&()*+,\\-./;<=>?@[\\\\\\]^_{|}~]{0,50}:([\\w!#$%&()*+,\\-./:;<=>?[\\\\\\]^_{|}~]{3,50})@[a-zA-Z0-9.-]+(?:\\.[a-zA-Z]{2,})?(?::\\d{1,5})?[\\w/]+\\b', '\\b(VF\\.(?:(?:DM|WS)\\.)?[a-fA-F0-9]{24}\\.[a-zA-Z0-9]{16})\\b', '\\b(xai-[0-9a-zA-Z_]{80})\\b', '(https:\\/\\/hooks\\.zapier\\.com\\/hooks\\/catch\\/[A-Za-z0-9\\/]{16})', '\\b(1000\\.[a-f0-9]{32}\\.[a-f0-9]{32})\\b']
-const key_providers = ['adafruitio', 'anthropic', 'apify', 'cloudflarecakey', 'contentfulpersonalaccesstoken', 'databrickstoken', 'dfuse', 'digitaloceanv2', 'discordwebhook', 'documo', 'doppler', 'finage', 'fleetbase', 'flexport', 'flutterwave', 'frameio', 'ftp', 'gcp', 'gcpapplicationdefaultcredentials', 'gemini', 'gocardless', 'grafana', 'grafanaserviceaccount', 'groq', 'huggingface', 'intra42', 'jdbc', 'klaviyo', 'launchdarkly', 'linearapi', 'locationiq', 'mailchimp', 'microsoftteamswebhook', 'nightfall', 'notion', 'npmtokenv2', 'nvapi', 'openai', 'pagarme', 'paystack', 'posthog', 'postman', 'prefect', 'privatekey', 'pubnubsubscriptionkey', 'pulumi', 'rabbitmq', 'ramp', 'razorpay', 'readme', 'reallysimplesystems', 'redis', 'replicate', 'robinhoodcrypto', 'rubygems', 'sendgrid', 'sendinbluev2', 'shopify', 'sourcegraphcody', 'squareapp', 'squareup', 'supabasetoken', 'tailscale', 'terraformcloudpersonaltoken', 'tineswebhook', 'trufflehogenterprise', 'twilio', 'ubidots', 'uri', 'voiceflow', 'xai', 'zapierwebhook', 'zohocrm']
-
+const keyMap = {
+  adafruitio: '\\b(aio\\_[a-zA-Z0-9]{28})\\b',
+  anthropic: '\\b(sk-ant-(?:admin01|api03)-[\\w\\-]{93}AA)\\b',
+  apify: '\\b(apify\\_api\\_[a-zA-Z-0-9]{36})\\b',
+  cloudflarecakey: '\\b(v1\\.0-[A-Za-z0-9-]{171})\\b',
+  contentfulpersonalaccesstoken: '\\b(CFPAT-[a-zA-Z0-9_\\-]{43})\\b',
+  databrickstoken: '\\b([a-z0-9-]+(?:\\.[a-z0-9-]+)*\\.(cloud\\.databricks\\.com|gcp\\.databricks\\.com|azuredatabricks\\.net))\\b',
+  dfuse: '\\b(web\\_[0-9a-z]{32})\\b',
+  digitaloceanv2: '\\b((?:dop|doo|dor)_v1_[a-f0-9]{64})\\b',
+  discordwebhook: '(https:\\/\\/discord\\.com\\/api\\/webhooks\\/[0-9]{18,19}\\/[0-9a-zA-Z-]{68})',
+  documo: '\\b(ey[a-zA-Z0-9]{34}.ey[a-zA-Z0-9]{154}.[a-zA-Z0-9_-]{43})\\b',
+  doppler: '\\b(dp\\.pt\\.[a-zA-Z0-9]{43})\\b',
+  finage: '\\b(API_KEY[0-9A-Z]{32})\\b',
+  fleetbase: '\\b(flb_live_[0-9a-zA-Z]{20})\\b',
+  flexport: '\\b(shltm_[0-9a-zA-Z-_]{40})',
+  flutterwave: '\\b(FLWSECK-[0-9a-z]{32}-X)\\b',
+  frameio: '\\b(fio-u-[0-9a-zA-Z_-]{64})\\b',
+  ftp: '\\bftp://[\\S]{3,50}:([\\S]{3,50})@[-.%\\w\\/:]+\\b',
+  gcp: '\\{[^{]+auth_provider_x509_cert_url[^}]+\\}',
+  gcpapplicationdefaultcredentials: '\\{[^{]+client_secret[^}]+\\}',
+  gemini: '\\b((?:master-|account-)[0-9A-Za-z]{20})\\b',
+  gocardless: '\\b(live_[0-9A-Za-z\\_\\-]{40}[ "\'\\r\\n]{1})',
+  grafana: '\\b(glc_eyJ[A-Za-z0-9+\\/=]{60,160})',
+  grafanaserviceaccount: '\\b(glsa_[0-9a-zA-Z_]{41})\\b',
+  groq: '\\b(gsk_[a-zA-Z0-9]{52})\\b',
+  huggingface: '\\b(?:hf_|api_org_)[a-zA-Z0-9]{34}\\b',
+  intra42: '\\b(s-s4t2(?:ud|af)-[a-f0-9]{64})\\b',
+  jdbc: 'jdbc:[\\w]{3,10}:[^\\s"\'<>,(){}[\\]&]{10,512}',
+  klaviyo: '\\b(pk_[a-zA-Z0-9]{34})\\b',
+  launchdarkly: '\\b((?:api|sdk)-[a-z0-9]{8}-[a-z0-9]{4}-4[a-z0-9]{3}-[a-z0-9]{4}-[a-z0-9]{12})\\b',
+  linearapi: '\\b(lin_api_[0-9A-Za-z]{40})\\b',
+  locationiq: '\\b(pk\\.[a-zA-Z-0-9]{32})\\b',
+  mailchimp: '[0-9a-f]{32}-us[0-9]{1,2}',
+  microsoftteamswebhook: '(https:\\/\\/[a-zA-Z-0-9]+\\.webhook\\.office\\.com\\/webhookb2\\/[a-zA-Z0-9-@\\/]{136,}/IncomingWebhook\\/[a-zA-Z0-9]{32}\\/[a-zA-Z0-9-]{36})',
+  nightfall: '\\b(NF\\-[a-zA-Z0-9]{32})\\b',
+  notion: '\\b(secret_[A-Za-z0-9]{43})\\b',
+  npmtokenv2: '(npm_[0-9a-zA-Z]{36})',
+  nvapi: '\\b(nvapi-[a-zA-Z0-9_-]{64})\\b',
+  openai: '\\b(sk-[a-zA-Z0-9_-]+T3BlbkFJ[a-zA-Z0-9_-]+)\\b',
+  pagarme: '\\b(ak_live_[a-zA-Z0-9]{30})\\b',
+  paystack: '\\b(sk\\_[a-z]{1,}\\_[A-Za-z0-9]{40})\\b',
+  posthog: '\\b(phx_[a-zA-Z0-9_]{43})\\b',
+  postman: '\\b(PMAK-[a-zA-Z-0-9]{59})\\b',
+  prefect: '\\b(pnu_[a-zA-Z0-9]{36})\\b',
+  privatekey: '-----\\s*?BEGIN[ A-Z0-9_-]*?PRIVATE KEY\\s*?-----[\\s\\S]*?----\\s*?END[ A-Z0-9_-]*? PRIVATE KEY\\s*?-----',
+  pubnubsubscriptionkey: '\\b(sub-c-[0-9a-z]{8}-[a-z0-9]{4}-[a-z0-9]{4}-[a-z0-9]{4}-[a-z0-9]{12})\\b',
+  pulumi: '\\b(pul-[a-z0-9]{40})\\b',
+  rabbitmq: '\\b(?:amqps?):\\/\\/[\\S]{3,50}:([\\S]{3,50})@[-.%\\w\\/:]+\\b',
+  ramp: '\\b(ramp_id_[a-zA-Z0-9]{40})\\b',
+  razorpay: '\\brzp_live_[A-Za-z0-9]{14}\\b',
+  readme: '(rdme_[a-z0-9]{70})',
+  reallysimplesystems: '\\b(ey[a-zA-Z0-9-._]{153}.ey[a-zA-Z0-9-._]{916,1000})\\b',
+  redis: '\\bredi[s]{1,2}://[\\S]{3,50}:([\\S]{3,50})@[-.%\\w\\/:]+\\b',
+  replicate: '\\b(r8_[0-9A-Za-z-_]{37})\\b',
+  robinhoodcrypto: '\\b(rh-api-[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12})\\b',
+  rubygems: '\\b(rubygems_[a-zA0-9]{48})\\b',
+  sendgrid: '\\bSG\\.[\\w\\-]{20,24}\\.[\\w\\-]{39,50}\\b',
+  sendinbluev2: '\\b(xkeysib\\-[A-Za-z0-9_-]{81})\\b',
+  shopify: '\\b(shppa_|shpat_)([0-9A-Fa-f]{32})\\b',
+  sourcegraphcody: '\\b(slk_[a-f0-9]{64})\\b',
+  squareapp: '(?:sandbox-)?sq0i[a-z]{2}-[0-9A-Za-z_-]{22,43}',
+  squareup: '\\b(sq0idp-[0-9A-Za-z]{22})\\b',
+  supabasetoken: '\\b(sbp_[a-z0-9]{40})\\b',
+  tailscale: '\\btskey-[a-z]+-[0-9A-Za-z_]+-[0-9A-Za-z_]+\\b',
+  terraformcloudpersonaltoken: '\\b([A-Za-z0-9]{14}.atlasv1.[A-Za-z0-9]{67})\\b',
+  tineswebhook: '(https://[\\w-]+\\.tines\\.com/webhook/[a-z0-9]{32}/[a-z0-9]{32})',
+  trufflehogenterprise: '\\bthog-key-[0-9a-f]{16}\\b',
+  twilio: '\\bAC[0-9a-f]{32}\\b',
+  ubidots: '\\b(BBFF-[0-9a-zA-Z]{30})\\b',
+  uri: '\\bhttps?:\\/\\/[\\w!#$%&()*+,\\-./;<=>?@[\\\\\\]^_{|}~]{0,50}:([\\w!#$%&()*+,\\-./:;<=>?[\\\\\\]^_{|}~]{3,50})@[a-zA-Z0-9.-]+(?:\\.[a-zA-Z]{2,})?(?::\\d{1,5})?[\\w/]+\\b',
+  voiceflow: '\\b(VF\\.(?:(?:DM|WS)\\.)?[a-fA-F0-9]{24}\\.[a-zA-Z0-9]{16})\\b',
+  xai: '\\b(xai-[0-9a-zA-Z_]{80})\\b',
+  zapierwebhook: '(https:\\/\\/hooks\\.zapier\\.com\\/hooks\\/catch\\/[A-Za-z0-9\\/]{16})',
+  zohocrm: '\\b(1000\\.[a-f0-9]{32}\\.[a-f0-9]{32})\\b'
+};
 const scripts = Array.from(document.scripts);
-
 function fetchWithTimeout(url) {
   var controller = new AbortController();
   setTimeout(() => {controller.abort()}, 5000);
@@ -43,6 +114,7 @@ function parseResponse(url, parser) {
     return [url, {'error': error.message}];
   });
 }
+
 return Promise.all(
   scripts.map(script => {
     if (script.src) {
@@ -52,24 +124,24 @@ return Promise.all(
     }
   })
 ).then((all_data) => {
-  let combinedScripts = all_data.reduce((acc, data) => {
+  const combinedScripts = all_data.reduce((acc, data) => {
     if (Array.isArray(data)) {
-      return acc + data[1].data + '\n'; 
+      return acc + data[1].data + '\n';
     } else {
-      return acc + data ;
+      return acc + data;
     }
   }, '');
-  console.log(combinedScripts)
-  let matched_keys = [];
-  for (let i = 0; i < key_providers.length; i++) {
-  const regex = new RegExp(key_regex[i], 'g');
-  const matches = combinedScripts.match(regex);
-  if (matches) {
-    matched_keys.push(key_providers[i]);
+
+  const matched_keys = [];
+  for (const [provider, pattern] of Object.entries(keyMap)) {
+    const regex = new RegExp(pattern, 'g');
+    if (regex.test(combinedScripts)) {
+      matched_keys.push(provider);
+    }
   }
-}
+
   return matched_keys;
 }).catch(error => {
-  return JSON.stringify({message: error.message, error: error});
+  return JSON.stringify({ message: error.message, error });
 });
 
