@@ -20,7 +20,7 @@
   },
   "homepage": "https://github.com/HTTPArchive/custom-metrics#readme",
   "devDependencies": {
-    "fugu-api-data": "^1.21.0",
+    "fugu-api-data": "^1.22.0",
     "jest": "^29.7.0",
     "webpagetest": "github:HTTPArchive/WebPageTest.api-nodejs"
   },
