@@ -60,7 +60,8 @@ return {
 
 To test a custom metric, for example [`doctype.js`](https://github.com/HTTPArchive/legacy.httparchive.org/blob/master/custom_metrics/doctype.js), you can enter the script directly on [webpagetest.httparchive.org](https://webpagetest.httparchive.org/?debug=1) under "Advanced" -> "Custom" tab.
 
-![image](https://user-images.githubusercontent.com/1120896/59539351-e3ecdd80-8eca-11e9-8b43-76bbd7a12029.png)
+![Custom tab](https://github.com/user-attachments/assets/902c9f0f-89a7-4281-b724-391fbbbe43ca)
+
 
 Note that all WPT custom metrics must have `[metricName]` at the start of the script. This is excluded in the HTTP Archive code and generated automatically based on the file name, so you will need to manually ensure that it's set.
 
@@ -69,9 +70,9 @@ The log ouput can be found in the main results page to the left of the waterfall
 
 To see the custom metric results, select a run, first click on "Details", and then on the "Custom Metrics" link in the top right corner:
 
-![image](https://user-images.githubusercontent.com/1120896/88727164-0e185380-d0fd-11ea-973e-81a50cd24013.png)
+![Details results](https://github.com/user-attachments/assets/eaa39b6c-1aa9-43f7-a910-a9eebd1f0a47)
 
-![image](https://user-images.githubusercontent.com/1120896/88727208-24beaa80-d0fd-11ea-8ae1-57df2c8505e4.png)
+![Custom metrics](https://github.com/user-attachments/assets/21eba08c-f758-481c-a01a-03477a4b4fd1)
 
 For complex metrics like [almanac.js](./dist/almanac.js) you can more easily explore the results by copy/pasting the JSON into your browser console.
 
