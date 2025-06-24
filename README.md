@@ -58,13 +58,13 @@ return {
 
 ### Manual testing using webpagetest.org website
 
-To test a custom metric, for example [`doctype.js`](https://github.com/HTTPArchive/legacy.httparchive.org/blob/master/custom_metrics/doctype.js), you can enter the script directly on [webpagetest.org](https://webpagetest.org?debug=1) under the "Custom" tab.
+To test a custom metric, for example [`doctype.js`](https://github.com/HTTPArchive/legacy.httparchive.org/blob/master/custom_metrics/doctype.js), you can enter the script directly on [webpagetest.httparchive.org](https://webpagetest.httparchive.org/?debug=1) under "Advanced" -> "Custom" tab.
 
 ![image](https://user-images.githubusercontent.com/1120896/59539351-e3ecdd80-8eca-11e9-8b43-76bbd7a12029.png)
 
 Note that all WPT custom metrics must have `[metricName]` at the start of the script. This is excluded in the HTTP Archive code and generated automatically based on the file name, so you will need to manually ensure that it's set.
 
-If you include the `debug=1` parameter on the WPT home page, for example [https://webpagetest.org?debug=1](https://webpagetest.org?debug=1), the test results will include a raw debug log from the agent including the devtools commands to run the custom metrics (and any handled exceptions).
+If you include the `debug=1` parameter on the WPT home page, for example [https://webpagetest.httparchive.org?debug=1](https://webpagetest.httparchive.org?debug=1), the test results will include a raw debug log from the agent including the devtools commands to run the custom metrics (and any handled exceptions).
 The log ouput can be found in the main results page to the left of the waterfall. For each run there will be a link for the "debug log" (next to the timeline and trace links).
 
 To see the custom metric results, select a run, first click on "Details", and then on the "Custom Metrics" link in the top right corner:
@@ -77,7 +77,7 @@ For complex metrics like [almanac.js](./dist/almanac.js) you can more easily exp
 
 ### Automated WPT test runs
 
-1. WPT tests are running using [WPT API wrapper](https://github.com/webpagetest/webpagetest-api).
+1. WPT tests are running using [WPT API wrapper](https://github.com/HTTPArchive/WebPageTest.api-nodejs).
 2. Test runs are using a private WPT instance, set by the `WPT_HOST` environment variable.
 3. By default, WebAlmanac website is used for testing in every PR.
 4. PR author can define a list of websites to test additionally, by using a markdown list as shown in [PR template](https://github.com/HTTPArchive/custom-metrics/blob/main/.github/PULL_REQUEST_TEMPLATE/custom_metrics_pr_template.md).
