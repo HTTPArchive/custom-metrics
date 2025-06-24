@@ -2,7 +2,7 @@
 
 const patterns = {
   'Absolute Orientation Sensor': {
-    regEx: /new\s+AbsoluteOrientationSensor\s*\(/g,
+    regEx: /\bnew\s+AbsoluteOrientationSensor\s*\(/g,
     where: 'JavaScript',
     supported: (async () => 'AbsoluteOrientationSensor' in self)(),
     featureDetection: `(async () => 'AbsoluteOrientationSensor' in self)()`,
@@ -11,7 +11,7 @@ const patterns = {
     chromeStatusID: 5698781827825664,
   },
   'Accelerometer': {
-    regEx: /new\s+Accelerometer\s*\(/g,
+    regEx: /\bnew\s+Accelerometer\s*\(/g,
     where: 'JavaScript',
     supported: (async () => 'Accelerometer' in self)(),
     featureDetection: `(async () => 'Accelerometer' in self)()`,
@@ -30,7 +30,7 @@ const patterns = {
     chromeStatusID: 6560913322672128,
   },
   'Ambient Light Sensor': {
-    regEx: /new\s+AmbientLightSensor\s*\(\)/g,
+    regEx: /\bnew\s+AmbientLightSensor\s*\(\)/g,
     where: 'JavaScript',
     supported: (async () => 'AmbientLightSensor' in self)(),
     featureDetection: `(async () => 'AmbientLightSensor' in self)()`,
@@ -39,7 +39,7 @@ const patterns = {
     chromeStatusID: 5298357018820608,
   },
   'Async Clipboard': {
-    regEx: /navigator\.clipboard\.writeText\s*\(/g,
+    regEx: /\bnavigator\.clipboard\.writeText\s*\(/g,
     where: 'JavaScript',
     supported: (async () =>
       'clipboard' in navigator && 'writeText' in navigator.clipboard)(),
@@ -49,7 +49,7 @@ const patterns = {
     chromeStatusID: 5861289330999296,
   },
   'Async Clipboard (Images)': {
-    regEx: /navigator\.clipboard\.write\s*\(/g,
+    regEx: /\bnavigator\.clipboard\.write\s*\(/g,
     where: 'JavaScript',
     supported: (async () =>
       'clipboard' in navigator && 'write' in navigator.clipboard)(),
@@ -82,7 +82,7 @@ const patterns = {
     chromeStatusID: 6170807885627392,
   },
   'Badging': {
-    regEx: /navigator\.setAppBadge\s*\(/g,
+    regEx: /\bnavigator\.setAppBadge\s*\(/g,
     where: 'JavaScript',
     supported: (async () => 'setAppBadge' in navigator)(),
     featureDetection: `(async () => 'setAppBadge' in navigator)()`,
@@ -91,7 +91,7 @@ const patterns = {
     chromeStatusID: 6068482055602176,
   },
   'Cache Storage': {
-    regEx: /caches\.open\s*\(/g,
+    regEx: /\bcaches\.open\s*\(/g,
     where: 'JavaScript',
     supported: (async () => 'serviceWorker' in navigator && 'caches' in self)(),
     featureDetection: `(async () => 'serviceWorker' in navigator && 'caches' in self)()`,
@@ -101,7 +101,7 @@ const patterns = {
     chromeStatusID: 6461631328419840,
   },
   'Compression Streams': {
-    regEx: /new\s+CompressionStream\s*\(/g,
+    regEx: /\bnew\s+CompressionStream\s*\(/g,
     where: 'JavaScript',
     supported: (async () => 'CompressionStream' in self)(),
     featureDetection: `(async () => 'CompressionStream' in self)()`,
@@ -110,7 +110,7 @@ const patterns = {
     chromeStatusID: 5855937971617792,
   },
   'Compute Pressure': {
-    regEx: /new\s+ComputePressureObserver\s*\(/g,
+    regEx: /\bnew\s+ComputePressureObserver\s*\(/g,
     where: 'JavaScript',
     supported: (async () => 'ComputePressureObserver' in self)(),
     featureDetection: `(async () => 'ComputePressureObserver' in self)()`,
@@ -120,7 +120,7 @@ const patterns = {
     chromeStatusID: 5597608644968448,
   },
   'Contact Picker': {
-    regEx: /navigator\.contacts\.select\s*\(/g,
+    regEx: /\bnavigator\.contacts\.select\s*\(/g,
     where: 'JavaScript',
     supported: (async () => 'contacts' in navigator)(),
     featureDetection: `(async () => 'contacts' in navigator)()`,
@@ -129,7 +129,7 @@ const patterns = {
     chromeStatusID: 6511327140904960,
   },
   'Content Index': {
-    regEx: /index\.getAll\s*\(/g,
+    regEx: /\bindex\.getAll\s*\(/g,
     where: 'JavaScript',
     supported: (async () =>
       'serviceWorker' in navigator &&
@@ -142,7 +142,7 @@ const patterns = {
     chromeStatusID: 5658416729030656,
   },
   'Credential Management': {
-    regEx: /navigator\.credentials\.get\s*\(/g,
+    regEx: /\bnavigator\.credentials\.get\s*\(/g,
     where: 'JavaScript',
     supported: (async () => 'credentials' in navigator)(),
     featureDetection: `(async () => 'credentials' in navigator)()`,
@@ -152,7 +152,7 @@ const patterns = {
     chromeStatusID: 5026422640869376,
   },
   'Device Memory': {
-    regEx: /navigator\.deviceMemory/g,
+    regEx: /\bnavigator\.deviceMemory/g,
     where: 'JavaScript',
     supported: (async () => 'deviceMemory' in navigator)(),
     featureDetection: `(async () => 'deviceMemory' in navigator)()`,
@@ -162,7 +162,7 @@ const patterns = {
     chromeStatusID: 5119701235531776,
   },
   'Device Posture': {
-    regEx: /navigator\.devicePosture/g,
+    regEx: /\bnavigator\.devicePosture/g,
     where: 'JavaScript',
     supported: (async () => 'devicePosture' in navigator)(),
     featureDetection: `(async () => 'devicePosture' in navigator)()`,
@@ -172,7 +172,7 @@ const patterns = {
     chromeStatusID: 5185813744975872,
   },
   'Digital Goods': {
-    regEx: /getDigitalGoodsService\s*\(/g,
+    regEx: /\bgetDigitalGoodsService\s*\(/g,
     where: 'JavaScript',
     supported: (async () => 'getDigitalGoodsService' in self)(),
     featureDetection: `(async () => 'getDigitalGoodsService' in self)()`,
@@ -182,7 +182,7 @@ const patterns = {
     chromeStatusID: 5339955595313152,
   },
   'EyeDropper': {
-    regEx: /new\s+EyeDropper\s*\(\)/g,
+    regEx: /\bnew\s+EyeDropper\s*\(\)/g,
     where: 'JavaScript',
     supported: (async () => 'EyeDropper' in self)(),
     featureDetection: `(async () => 'EyeDropper' in self)()`,
@@ -201,7 +201,7 @@ const patterns = {
     chromeStatusID: 5721776357113856,
   },
   'File System Observer': {
-    regEx: /new\s+FileSystemObserver\s*\(/g,
+    regEx: /\bnew\s+FileSystemObserver\s*\(/g,
     where: 'JavaScript',
     supported: (async () => 'FileSystemObserver' in self)(),
     featureDetection: `(async () => 'FileSystemObserver' in self)()`,
@@ -212,7 +212,7 @@ const patterns = {
   },
   'File System Access': {
     regEx:
-      /showOpenFilePicker\s*\(|showSaveFilePicker\s*\(|showDirectoryPicker\s*\(/g,
+      /\bshowOpenFilePicker\s*\(|showSaveFilePicker\s*\(|showDirectoryPicker\s*\(/g,
     where: 'JavaScript',
     supported: (async () => 'showOpenFilePicker' in self)(),
     featureDetection: `(async () => 'showOpenFilePicker' in self)()`,
@@ -221,7 +221,7 @@ const patterns = {
     chromeStatusID: 6284708426022912,
   },
   'Gamepad': {
-    regEx: /navigator\.getGamepads\s*\(/g,
+    regEx: /\bnavigator\.getGamepads\s*\(/g,
     where: 'JavaScript',
     supported: (async () => 'getGamepads' in navigator)(),
     featureDetection: `(async () => 'getGamepads' in navigator)()`,
@@ -230,7 +230,7 @@ const patterns = {
     chromeStatusID: 5118776383111168,
   },
   'getInstalledRelatedApps': {
-    regEx: /navigator\.getInstalledRelatedApps\s*\(/g,
+    regEx: /\bnavigator\.getInstalledRelatedApps\s*\(/g,
     where: 'JavaScript',
     supported: (async () => 'getInstalledRelatedApps' in navigator)(),
     featureDetection: `(async () => 'getInstalledRelatedApps' in navigator)()`,
@@ -239,7 +239,7 @@ const patterns = {
     chromeStatusID: 5695378309513216,
   },
   'Gravity Sensor': {
-    regEx: /new\s+GravitySensor\s*\(/g,
+    regEx: /\bnew\s+GravitySensor\s*\(/g,
     where: 'JavaScript',
     supported: (async () => 'GravitySensor' in self)(),
     featureDetection: `(async () => 'GravitySensor' in self)()`,
@@ -248,7 +248,7 @@ const patterns = {
     chromeStatusID: 5384099747332096,
   },
   'Gyroscope': {
-    regEx: /new\s+Gyroscope\s*\(/g,
+    regEx: /\bnew\s+Gyroscope\s*\(/g,
     where: 'JavaScript',
     supported: (async () => 'Gyroscope' in self)(),
     featureDetection: `(async () => 'Gyroscope' in self)()`,
@@ -257,7 +257,7 @@ const patterns = {
     chromeStatusID: 5698781827825664,
   },
   'Handwriting Recognition': {
-    regEx: /navigator\.queryHandwritingRecognizerSupport\s*\(/g,
+    regEx: /\bnavigator\.queryHandwritingRecognizerSupport\s*\(/g,
     where: 'JavaScript',
     supported: (async () => 'queryHandwritingRecognizerSupport' in navigator)(),
     featureDetection: `(async () => 'queryHandwritingRecognizerSupport' in navigator)()`,
@@ -277,7 +277,7 @@ const patterns = {
     chromeStatusID: 5720648543371264,
   },
   'Idle Detection': {
-    regEx: /new\s+IdleDetector\s*\(/g,
+    regEx: /\bnew\s+IdleDetector\s*\(/g,
     where: 'JavaScript',
     supported: (async () => 'IdleDetector' in self)(),
     featureDetection: `(async () => 'IdleDetector' in self)()`,
@@ -286,7 +286,7 @@ const patterns = {
     chromeStatusID: 4590256452009984,
   },
   'Ink': {
-    regEx: /navigator\.ink\.requestPresenter\s*\(/g,
+    regEx: /\bnavigator\.ink\.requestPresenter\s*\(/g,
     where: 'JavaScript',
     supported: (async () => 'ink' in navigator)(),
     featureDetection: `(async () => 'ink' in navigator)()`,
@@ -296,7 +296,7 @@ const patterns = {
     chromeStatusID: 5961434129235968,
   },
   'Insertable streams for MediaStreamTrack': {
-    regEx: /MediaStreamTrackProcessor\s*\(/g,
+    regEx: /\bMediaStreamTrackProcessor\s*\(/g,
     where: 'JavaScript',
     supported: (async () =>
       'MediaStreamTrackProcessor' in self &&
@@ -319,7 +319,7 @@ const patterns = {
     chromeStatusID: 5722383233056768,
   },
   'Linear Acceleration Sensor': {
-    regEx: /new\s+LinearAccelerationSensor\s*\(/g,
+    regEx: /\bnew\s+LinearAccelerationSensor\s*\(/g,
     where: 'JavaScript',
     supported: (async () => 'LinearAccelerationSensor' in self)(),
     featureDetection: `(async () => 'LinearAccelerationSensor' in self)()`,
@@ -328,7 +328,7 @@ const patterns = {
     chromeStatusID: 5698781827825664,
   },
   'Local Font Access': {
-    regEx: /queryLocalFonts\s*\(/g,
+    regEx: /\bqueryLocalFonts\s*\(/g,
     where: 'JavaScript',
     supported: (async () => 'queryLocalFonts' in self)(),
     featureDetection: `(async () => 'queryLocalFonts' in self)()`,
@@ -337,7 +337,7 @@ const patterns = {
     chromeStatusID: 6234451761692672,
   },
   'Magnetometer': {
-    regEx: /new\s+Magnetometer\s*\(/g,
+    regEx: /\bnew\s+Magnetometer\s*\(/g,
     where: 'JavaScript',
     supported: (async () => 'Magnetometer' in self)(),
     featureDetection: `(async () => 'Magnetometer' in self)()`,
@@ -346,7 +346,7 @@ const patterns = {
     chromeStatusID: 5698781827825664,
   },
   'Media Capabilities': {
-    regEx: /navigator\.mediaCapabilities\.decodingInfo\s*\(/g,
+    regEx: /\bnavigator\.mediaCapabilities\.decodingInfo\s*\(/g,
     where: 'JavaScript',
     supported: (async () => 'mediaCapabilities' in navigator)(),
     featureDetection: `(async () => 'mediaCapabilities' in navigator)()`,
@@ -357,7 +357,7 @@ const patterns = {
   },
   'Media Session': {
     regEx:
-      /navigator\.mediaSession\.setActionHandler|navigator\.mediaSession\.metadata/g,
+      /\bnavigator\.mediaSession\.setActionHandler|navigator\.mediaSession\.metadata/g,
     where: 'JavaScript',
     supported: (async () => 'mediaSession' in navigator)(),
     featureDetection: `(async () => 'mediaSession' in navigator)()`,
@@ -367,7 +367,7 @@ const patterns = {
     chromeStatusID: 5639924124483584,
   },
   'Window Management': {
-    regEx: /getScreenDetails\s*\(\)/g,
+    regEx: /\bgetScreenDetails\s*\(\)/g,
     where: 'JavaScript',
     supported: (async () => 'getScreenDetails' in self)(),
     featureDetection: `(async () => 'getScreenDetails' in self)()`,
@@ -389,7 +389,7 @@ const patterns = {
     chromeStatusID: 5734842339688448,
   },
   'Origin Private File System': {
-    regEx: /navigator\.storage\.getDirectory\s*\(\)/g,
+    regEx: /\bnavigator\.storage\.getDirectory\s*\(\)/g,
     where: 'JavaScript',
     supported: (async () =>
       'StorageManager' in self && 'getDirectory' in StorageManager.prototype)(),
@@ -408,7 +408,7 @@ const patterns = {
     chromeStatusID: 5160285237149696,
   },
   'Payment Request': {
-    regEx: /new\s+PaymentRequest\s*\(/g,
+    regEx: /\bnew\s+PaymentRequest\s*\(/g,
     where: 'JavaScript',
     supported: (async () => 'PaymentRequest' in self)(),
     featureDetection: `(async () => 'PaymentRequest' in self)()`,
@@ -418,7 +418,7 @@ const patterns = {
     chromeStatusID: 5639348045217792,
   },
   'Periodic Background Sync': {
-    regEx: /periodicSync\.register\s*\(/g,
+    regEx: /\bperiodicSync\.register\s*\(/g,
     where: 'JavaScript',
     supported: (async () => 'PeriodicSyncManager' in self)(),
     featureDetection: `(async () => 'PeriodicSyncManager' in self)()`,
@@ -428,7 +428,7 @@ const patterns = {
     chromeStatusID: 5689383275462656,
   },
   'Persistent Storage': {
-    regEx: /navigator\.storage\.persist\s*\(\)/g,
+    regEx: /\bnavigator\.storage\.persist\s*\(\)/g,
     where: 'JavaScript',
     supported: (async () =>
       'storage' in navigator && 'persist' in navigator.storage)(),
@@ -439,7 +439,7 @@ const patterns = {
     chromeStatusID: 5715811364765696,
   },
   'Storage Buckets': {
-    regEx: /navigator\.storageBuckets\.open\s*\(/g,
+    regEx: /\bnavigator\.storageBuckets\.open\s*\(/g,
     where: 'JavaScript',
     supported: (async () => 'storageBuckets' in navigator)(),
     featureDetection: `(async () => 'storageBuckets' in navigator)()`,
@@ -448,7 +448,7 @@ const patterns = {
     chromeStatusID: 5739224579964928,
   },
   'Pointer Lock (unadjustedMovement)': {
-    regEx: /unadjustedMovement\s*:\s*/g,
+    regEx: /\bunadjustedMovement\s*:\s*/g,
     where: 'JavaScript',
     supported: (async () =>
       'HTMLParagraphElement' in self
@@ -490,7 +490,7 @@ const patterns = {
     chromeStatusID: 5416033485586432,
   },
   'Relative Orientation Sensor': {
-    regEx: /new\s+RelativeOrientationSensor\s*\(/g,
+    regEx: /\bnew\s+RelativeOrientationSensor\s*\(/g,
     where: 'JavaScript',
     supported: (async () => 'RelativeOrientationSensor' in self)(),
     featureDetection: `(async () => 'RelativeOrientationSensor' in self)()`,
@@ -499,7 +499,7 @@ const patterns = {
     chromeStatusID: 5698781827825664,
   },
   'Screen Wake Lock': {
-    regEx: /navigator\.wakeLock\.request\s*\(/g,
+    regEx: /\bnavigator\.wakeLock\.request\s*\(/g,
     where: 'JavaScript',
     supported: (async () => 'wakeLock' in navigator)(),
     featureDetection: `(async () => 'wakeLock' in navigator)()`,
@@ -508,7 +508,7 @@ const patterns = {
     chromeStatusID: 4636879949398016,
   },
   'Service Worker': {
-    regEx: /navigator\.serviceWorker\.register\s*\(/g,
+    regEx: /\bnavigator\.serviceWorker\.register\s*\(/g,
     where: 'JavaScript',
     supported: (async () => 'serviceWorker' in navigator)(),
     featureDetection: `(async () => 'serviceWorker' in navigator)()`,
@@ -518,7 +518,7 @@ const patterns = {
     chromeStatusID: 6561526227927040,
   },
   'Shape Detection (Barcodes)': {
-    regEx: /new\s+BarcodeDetector\s*\(/g,
+    regEx: /\bnew\s+BarcodeDetector\s*\(/g,
     where: 'JavaScript',
     supported: (async () => 'BarcodeDetector' in self)(),
     featureDetection: `(async () => 'BarcodeDetector' in self)()`,
@@ -527,7 +527,7 @@ const patterns = {
     chromeStatusID: 4757990523535360,
   },
   'Shape Detection (Faces)': {
-    regEx: /new\s+FaceDetector\s*\(/g,
+    regEx: /\bnew\s+FaceDetector\s*\(/g,
     where: 'JavaScript',
     supported: (async () => 'FaceDetector' in self)(),
     featureDetection: `(async () => 'FaceDetector' in self)()`,
@@ -536,7 +536,7 @@ const patterns = {
     chromeStatusID: 5678216012365824,
   },
   'Shape Detection (Texts)': {
-    regEx: /new\s+TextDetector\s*\(/g,
+    regEx: /\bnew\s+TextDetector\s*\(/g,
     where: 'JavaScript',
     supported: (async () => 'TextDetector' in self)(),
     featureDetection: `(async () => 'TextDetector' in self)()`,
@@ -554,7 +554,7 @@ const patterns = {
     chromeStatusID: 5706099464339456,
   },
   'Storage Estimation': {
-    regEx: /navigator\.storage\.estimate\s*\(\)/g,
+    regEx: /\bnavigator\.storage\.estimate\s*\(\)/g,
     where: 'JavaScript',
     supported: (async () =>
       'storage' in navigator && 'estimate' in navigator.storage)(),
@@ -574,7 +574,7 @@ const patterns = {
     chromeStatusID: 5128143454076928,
   },
   'VirtualKeyboard': {
-    regEx: /navigator\.virtualKeyboard/g,
+    regEx: /\bnavigator\.virtualKeyboard/g,
     where: 'JavaScript',
     supported: (async () => 'virtualKeyboard' in navigator)(),
     featureDetection: `(async () => 'virtualKeyboard' in navigator)()`,
@@ -594,7 +594,7 @@ const patterns = {
     chromeStatusID: 5740751225880576,
   },
   'Web Audio': {
-    regEx: /new\s+AudioContext\s*\(/g,
+    regEx: /\bnew\s+AudioContext\s*\(/g,
     where: 'JavaScript',
     supported: (async () => 'AudioContext' in self)(),
     featureDetection: `(async () => 'AudioContext' in self)()`,
@@ -604,7 +604,7 @@ const patterns = {
     chromeStatusID: 6261718720184320,
   },
   'Web Share': {
-    regEx: /navigator\.share\s*\(/g,
+    regEx: /\bnavigator\.share\s*\(/g,
     where: 'JavaScript',
     supported: (async () => 'share' in navigator)(),
     featureDetection: `(async () => 'share' in navigator)()`,
@@ -613,7 +613,7 @@ const patterns = {
     chromeStatusID: 5668769141620736,
   },
   'Web Share (Files)': {
-    regEx: /navigator\.canShare\s*\(/g,
+    regEx: /\bnavigator\.canShare\s*\(/g,
     where: 'JavaScript',
     supported: (async () => 'canShare' in navigator)(),
     featureDetection: `(async () => 'canShare' in navigator)()`,
@@ -640,7 +640,7 @@ const patterns = {
     chromeStatusID: 6124071381106688,
   },
   'Web Bluetooth': {
-    regEx: /navigator\.bluetooth\.requestDevice\s*\(/g,
+    regEx: /\bnavigator\.bluetooth\.requestDevice\s*\(/g,
     where: 'JavaScript',
     supported: (async () => 'bluetooth' in navigator)(),
     featureDetection: `(async () => 'bluetooth' in navigator)()`,
@@ -649,7 +649,7 @@ const patterns = {
     chromeStatusID: 5264933985976320,
   },
   'WebCodecs': {
-    regEx: /new\s+MediaStreamTrackProcessor\s*\(/g,
+    regEx: /\bnew\s+MediaStreamTrackProcessor\s*\(/g,
     where: 'JavaScript',
     supported: (async () => 'MediaStreamTrackProcessor' in self)(),
     featureDetection: `(async () => 'MediaStreamTrackProcessor' in self)()`,
@@ -658,7 +658,7 @@ const patterns = {
     chromeStatusID: 5669293909868544,
   },
   'WebGPU': {
-    regEx: /navigator\.gpu\.requestAdapter\s*\(/g,
+    regEx: /\bnavigator\.gpu\.requestAdapter\s*\(/g,
     where: 'JavaScript',
     supported: (async () => 'gpu' in navigator)(),
     featureDetection: `(async () => 'gpu' in navigator)()`,
@@ -667,7 +667,7 @@ const patterns = {
     chromeStatusID: 6213121689518080,
   },
   'WebHID': {
-    regEx: /navigator\.hid\.requestDevice\s*\(/g,
+    regEx: /\bnavigator\.hid\.requestDevice\s*\(/g,
     where: 'JavaScript',
     supported: (async () => 'hid' in navigator)(),
     featureDetection: `(async () => 'hid' in navigator)()`,
@@ -676,7 +676,7 @@ const patterns = {
     chromeStatusID: 5172464636133376,
   },
   'Web MIDI': {
-    regEx: /navigator\.requestMIDIAccess\s*\(/g,
+    regEx: /\bnavigator\.requestMIDIAccess\s*\(/g,
     where: 'JavaScript',
     supported: (async () => 'requestMIDIAccess' in navigator)(),
     featureDetection: `(async () => 'requestMIDIAccess' in navigator)()`,
@@ -686,7 +686,7 @@ const patterns = {
     chromeStatusID: 4923613069180928,
   },
   'Web NFC': {
-    regEx: /new\s+NDEFReader\s*\(/g,
+    regEx: /\bnew\s+NDEFReader\s*\(/g,
     where: 'JavaScript',
     supported: (async () => 'NDEFReader' in self)(),
     featureDetection: `(async () => 'NDEFReader' in self)()`,
@@ -695,7 +695,7 @@ const patterns = {
     chromeStatusID: 6261030015467520,
   },
   'WebOTP': {
-    regEx: /transport\s*:\s*\[["']sms["']\]/g,
+    regEx: /\btransport\s*:\s*\[["']sms["']\]/g,
     where: 'JavaScript',
     supported: (async () => 'OTPCredential' in self)(),
     featureDetection: `(async () => 'OTPCredential' in self)()`,
@@ -704,7 +704,7 @@ const patterns = {
     chromeStatusID: 5873577578463232,
   },
   'Web Serial': {
-    regEx: /navigator\.serial\.requestPort\s*\(/g,
+    regEx: /\bnavigator\.serial\.requestPort\s*\(/g,
     where: 'JavaScript',
     supported: (async () => 'serial' in navigator)(),
     featureDetection: `(async () => 'serial' in navigator)()`,
@@ -713,7 +713,7 @@ const patterns = {
     chromeStatusID: 6577673212002304,
   },
   'WebSocketStream': {
-    regEx: /new\s+WebSocketStream\s*\(/g,
+    regEx: /\bnew\s+WebSocketStream\s*\(/g,
     where: 'JavaScript',
     supported: (async () => 'WebSocketStream' in self)(),
     featureDetection: `(async () => 'WebSocketStream' in self)()`,
@@ -722,7 +722,7 @@ const patterns = {
     chromeStatusID: 5189728691290112,
   },
   'WebTransport': {
-    regEx: /new\s+WebTransport\s*\(/g,
+    regEx: /\bnew\s+WebTransport\s*\(/g,
     where: 'JavaScript',
     supported: (async () => 'WebTransport' in self)(),
     featureDetection: `(async () => 'WebTransport' in self)()`,
@@ -731,7 +731,7 @@ const patterns = {
     chromeStatusID: 4854144902889472,
   },
   'WebUSB': {
-    regEx: /navigator\.usb\.requestDevice\s*\(/g,
+    regEx: /\bnavigator\.usb\.requestDevice\s*\(/g,
     where: 'JavaScript',
     supported: (async () => 'usb' in navigator)(),
     featureDetection: `(async () => 'usb' in navigator)()`,
@@ -749,7 +749,7 @@ const patterns = {
     chromeStatusID: 5741247866077184,
   },
   'Prompt': {
-    regEx: /LanguageModel\.create\s*\(/g,
+    regEx: /\bLanguageModel\.create\s*\(/g,
     where: 'JavaScript',
     supported: (async () => 'LanguageModel' in self)(),
     featureDetection: `(async () => 'LanguageModel' in self)()`,
@@ -758,7 +758,7 @@ const patterns = {
     chromeStatusID: 5134603979063296,
   },
   'Summarizer': {
-    regEx: /Summarizer\.create\s*\(/g,
+    regEx: /\bSummarizer\.create\s*\(/g,
     where: 'JavaScript',
     supported: (async () => 'Summarizer' in self)(),
     featureDetection: `(async () => 'Summarizer' in self)()`,
@@ -767,7 +767,7 @@ const patterns = {
     chromeStatusID: 5193953788559360,
   },
   'Writer': {
-    regEx: /Writer\.create\s*\(/g,
+    regEx: /\bWriter\.create\s*\(/g,
     where: 'JavaScript',
     supported: (async () => 'Writer' in self)(),
     featureDetection: `(async () => 'Writer' in self)()`,
@@ -776,7 +776,7 @@ const patterns = {
     chromeStatusID: 4712595362414592,
   },
   'Rewriter': {
-    regEx: /Rewriter\.create\s*\(/g,
+    regEx: /\bRewriter\.create\s*\(/g,
     where: 'JavaScript',
     supported: (async () => 'Rewriter' in self)(),
     featureDetection: `(async () => 'Rewriter' in self)()`,
@@ -785,7 +785,7 @@ const patterns = {
     chromeStatusID: 5112320150470656,
   },
   'Proofreader': {
-    regEx: /Proofreader\.create\s*\(/g,
+    regEx: /\bProofreader\.create\s*\(/g,
     where: 'JavaScript',
     supported: (async () => 'Proofreader' in self)(),
     featureDetection: `(async () => 'Proofreader' in self)()`,
@@ -794,7 +794,7 @@ const patterns = {
     chromeStatusID: 5164677291835392,
   },
   'Translator': {
-    regEx: /Translator\.create\s*\(/g,
+    regEx: /\bTranslator\.create\s*\(/g,
     where: 'JavaScript',
     supported: (async () => 'Translator' in self)(),
     featureDetection: `(async () => 'Translator' in self)()`,
@@ -803,7 +803,7 @@ const patterns = {
     chromeStatusID: 5172811302961152,
   },
   'LanguageDetector': {
-    regEx: /LanguageDetector\.create\s*\(/g,
+    regEx: /\bLanguageDetector\.create\s*\(/g,
     where: 'JavaScript',
     supported: (async () => 'LanguageDetector' in self)(),
     featureDetection: `(async () => 'LanguageDetector' in self)()`,
