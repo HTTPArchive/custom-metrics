@@ -370,7 +370,7 @@ async function getSpeculationRules() {
       }
     } catch(error) {
       return {error};
-    };
+    }
   }));
 
   return {htmlRules: htmlRules, httpHeaderRules: httpRules};
