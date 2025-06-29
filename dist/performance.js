@@ -3,6 +3,12 @@
 const response_bodies = $WPT_BODIES;
 const script_response_bodies = $WPT_BODIES.filter(body => body.type === 'Script');
 
+function fetchWithTimeout(url) {
+  var controller = new AbortController();
+  setTimeout(() => {controller.abort()}, 5000);
+  return fetch(url, {signal: controller.signal});
+}
+
 function getRawHtmlDocument() {
     let rawHtml;
     if (response_bodies.length > 0) {
@@ -324,17 +330,52 @@ function getLcpResponseObject(lcpUrl) {
     return responseObject;
 }
 
-function getSpeculationRules() {
-    return Array.from(document.querySelectorAll('script[type=speculationrules]')).map(script => {
-        try {
-            return JSON.parse(script.innerHTML);
-        } catch (error) {
-            return null;
-        }
-    });
+function getParameterCaseInsensitive(object, key) {
+  return object[Object.keys(object).find(k => k.toLowerCase() === key.toLowerCase())];
 }
 
-return Promise.all([getLcpElement()]).then(([lcp_elem_stats]) => {
+async function getSpeculationRules() {
+  // Get rules from the HTML
+  const htmlRules = Array.from(document.querySelectorAll('script[type=speculationrules]')).map(script => {
+      try {
+          return JSON.parse(script.innerHTML);
+      } catch (error) {
+          return null;
+      }
+  });
+
+  // Get rules from Speculation-Rules HTTP Header on the document
+  let httpRules = [];
+
+  // Get the first request matching the navigation as that should be the final document request (after any redirects)
+  // and only Speculation-Rules HTTP headers on that request count
+  const documentRequest = $WPT_REQUESTS.find( req => req.url === performance.getEntriesByType('navigation')[0].name);
+  if (documentRequest) {
+    // Get all Speculation-Rules headers
+    const speculationRulesHeaders = getParameterCaseInsensitive(documentRequest.response_headers, 'Speculation-Rules');
+    if (speculationRulesHeaders) {
+      await Promise.all(speculationRulesHeaders.split(',').map(async (speculationRuleLocation) => {
+        try {
+          let url = decodeURI(speculationRuleLocation).slice(1, -1);
+          if (url.startsWith('/')) {
+            url = document.location.origin + url;
+          } else if (!url.startsWith('http')) {
+            url = document.location.href + url;
+          }
+          const response = await fetchWithTimeout(url);
+          const body = await response.text();
+          httpRules.push({url: speculationRuleLocation, rule: JSON.parse(body)});
+        } catch(error) {
+          httpRules.push({url: speculationRuleLocation, errorName: error.name, errorMessage: error.message});
+        }
+      }));
+    }
+  }
+
+  return {htmlRules: htmlRules, httpHeaderRules: httpRules};
+}
+
+return Promise.all([getLcpElement(), getSpeculationRules()]).then(([lcp_elem_stats, speculationRules]) => {
     const lcpUrl = lcp_elem_stats.url;
     const rawDoc = getRawHtmlDocument();
     // Start out with true, only if LCP element is an external resource will we eval & potentially set to false.
@@ -366,8 +407,8 @@ return Promise.all([getLcpElement()]).then(([lcp_elem_stats]) => {
         lcp_preload: lcpPreload,
         web_vitals_js: getWebVitalsJS(),
         gaming_metrics: gamingMetrics,
-        speculation_rules: getSpeculationRules(),
+        speculation_rules: speculationRules,
     };
 }).catch(error => {
-    return {error};
+    return {errorName: error.name, errorMessage: error.message};
 });
