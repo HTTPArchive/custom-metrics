@@ -1,4 +1,4 @@
-[performance]
+//[performance]
 
 const response_bodies = $WPT_BODIES;
 const script_response_bodies = $WPT_BODIES.filter(body => body.type === 'Script');
@@ -347,12 +347,13 @@ async function getSpeculationRules() {
   // Get rules from Speculation-Rules HTTP Header on the document
   let httpRules = [];
 
-  const documentRequest = $WPT_REQUESTS.find( req => req.url === document.location.href);
+  // Get the first request matching the navigation as that should be the final document request (after any redirects)
+  // and only Speculation-Rules HTTP headers on that request count
+  const documentRequest = $WPT_REQUESTS.find( req => req.url === performance.getEntriesByType('navigation')[0].name);
   if (documentRequest) {
-
+    // Get all Speculation-Rules headers
     const speculationRulesHeaders = getParameterCaseInsensitive(documentRequest.response_headers, 'Speculation-Rules');
     if (speculationRulesHeaders) {
-
       await Promise.all(speculationRulesHeaders.split(',').map(async (speculationRuleLocation) => {
         try {
           let url = decodeURI(speculationRuleLocation).slice(1, -1);
