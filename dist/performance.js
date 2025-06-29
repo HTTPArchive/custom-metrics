@@ -344,7 +344,7 @@ async function getSpeculationRules() {
       }
   });
 
-  // Get rules from the HTTP requests
+  // Get rules from Speculation-Rules HTTP Header on the document
   const documentRequests = [$WPT_REQUESTS.find( req => req.url === document.location.href)] || [];
   const httpRules = await Promise.all(documentRequests.map(async request => {
     try {
