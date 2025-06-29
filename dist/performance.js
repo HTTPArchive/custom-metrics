@@ -1,4 +1,4 @@
-//[performance]
+[performance]
 
 const response_bodies = $WPT_BODIES;
 const script_response_bodies = $WPT_BODIES.filter(body => body.type === 'Script');
@@ -345,33 +345,31 @@ async function getSpeculationRules() {
   });
 
   // Get rules from Speculation-Rules HTTP Header on the document
-  const documentRequests = [$WPT_REQUESTS.find( req => req.url === document.location.href)] || [];
-  const httpRules = await Promise.all(documentRequests.map(async request => {
-    try {
-      const speculationRulesHeaders = getParameterCaseInsensitive(request.response_headers, 'Speculation-Rules');
-      if (speculationRulesHeaders) {
-        return await Promise.all(speculationRulesHeaders.split(',').map(async (speculationRuleLocation) => {
-          try {
-            let url = decodeURI(speculationRuleLocation).slice(1, -1);
-            if (url.startsWith('/')) {
-              url = document.location.origin + url;
-            } else if (!url.startsWith('http')) {
-              url = document.location.href + url;
-            }
-            const response = await fetchWithTimeout(url);
-            const body = await response.text();
-            return {url: speculationRuleLocation, rule: JSON.parse(body)};
-          } catch(error) {
-            return {error};
+  let httpRules = [];
+
+  const documentRequest = $WPT_REQUESTS.find( req => req.url === document.location.href);
+  if (documentRequest) {
+
+    const speculationRulesHeaders = getParameterCaseInsensitive(documentRequest.response_headers, 'Speculation-Rules');
+    if (speculationRulesHeaders) {
+
+      await Promise.all(speculationRulesHeaders.split(',').map(async (speculationRuleLocation) => {
+        try {
+          let url = decodeURI(speculationRuleLocation).slice(1, -1);
+          if (url.startsWith('/')) {
+            url = document.location.origin + url;
+          } else if (!url.startsWith('http')) {
+            url = document.location.href + url;
           }
-        }));
-      } else {
-        return [];
-      }
-    } catch(error) {
-      return {error};
+          const response = await fetchWithTimeout(url);
+          const body = await response.text();
+          httpRules.push({url: speculationRuleLocation, rule: JSON.parse(body)});
+        } catch(error) {
+          httpRules.push({errorName: error.name, errorMessage: error.message});
+        }
+      }));
     }
-  }));
+  }
 
   return {htmlRules: htmlRules, httpHeaderRules: httpRules};
 }
@@ -411,5 +409,5 @@ return Promise.all([getLcpElement(), getSpeculationRules()]).then(([lcp_elem_sta
         speculation_rules: speculation_rules,
     };
 }).catch(error => {
-    return {error};
+    return {errorName: error.name, errorMessage: error.message};
 });
