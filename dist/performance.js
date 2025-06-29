@@ -366,7 +366,7 @@ async function getSpeculationRules() {
           const body = await response.text();
           httpRules.push({url: speculationRuleLocation, rule: JSON.parse(body)});
         } catch(error) {
-          httpRules.push({errorName: error.name, errorMessage: error.message});
+          httpRules.push({url: speculationRuleLocation, errorName: error.name, errorMessage: error.message});
         }
       }));
     }
@@ -375,7 +375,7 @@ async function getSpeculationRules() {
   return {htmlRules: htmlRules, httpHeaderRules: httpRules};
 }
 
-return Promise.all([getLcpElement(), getSpeculationRules()]).then(([lcp_elem_stats, speculation_rules]) => {
+return Promise.all([getLcpElement(), getSpeculationRules()]).then(([lcp_elem_stats, speculationRules]) => {
     const lcpUrl = lcp_elem_stats.url;
     const rawDoc = getRawHtmlDocument();
     // Start out with true, only if LCP element is an external resource will we eval & potentially set to false.
@@ -407,7 +407,7 @@ return Promise.all([getLcpElement(), getSpeculationRules()]).then(([lcp_elem_sta
         lcp_preload: lcpPreload,
         web_vitals_js: getWebVitalsJS(),
         gaming_metrics: gamingMetrics,
-        speculation_rules: speculation_rules,
+        speculation_rules: speculationRules,
     };
 }).catch(error => {
     return {errorName: error.name, errorMessage: error.message};
