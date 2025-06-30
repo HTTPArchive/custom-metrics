@@ -723,6 +723,36 @@ Example response:
 [5, 12, 11]
 ```
 
+## content_visibility
+
+Detects elements using the `content-visibility` CSS property for performance optimization analysis. Returns information about elements that have content-visibility set to values other than 'visible' (such as 'auto', 'hidden', or 'skip').
+
+Example response:
+
+```json
+{
+  "total": 15,
+  "elements": [
+    {
+      "tagName": "div",
+      "contentVisibility": "auto",
+      "className": "lazy-section",
+      "id": "section-1"
+    },
+    {
+      "tagName": "section",
+      "contentVisibility": "hidden",
+      "className": "hidden-content",
+      "id": ""
+    }
+  ],
+  "values": {
+    "auto": 12,
+    "hidden": 3
+  }
+}
+```
+
 ## [Images.js](https://github.com/HTTPArchive/custom-metrics/blob/main/dist/Images.js) metrics
 
 A JSON array of `<img>` elements on the page.
