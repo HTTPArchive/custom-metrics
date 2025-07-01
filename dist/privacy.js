@@ -300,7 +300,7 @@ let sync_metrics = {
     // These are determined by looking at the tests in https://github.com/fingerprintjs/fingerprintjs
     const fingerprintingAPIs = [
       // Payment APIs
-      'ApplePaySession\\.canMakePayments',
+      'ApplePaySession\.canMakePayments',
 
       // Audio fingerprinting
       'createAnalyser',
@@ -312,12 +312,12 @@ let sync_metrics = {
       'OscillatorNode',
 
       // Canvas fingerprinting
-      'canvas\\.getContext',
-      'canvas\\.toDataURL',
-      'canvasRenderingContext2D\\.fillText',
-      'canvasRenderingContext2D\\.strokeText',
-      'canvasRenderingContext2D\\.getImageData',
-      'HTMLCanvasElement\\.toBlob',
+      'canvas\.getContext',
+      'canvas\.toDataURL',
+      'canvasRenderingContext2D\.fillText',
+      'canvasRenderingContext2D\.strokeText',
+      'canvasRenderingContext2D\.getImageData',
+      'HTMLCanvasElement\.toBlob',
 
       // CSS media queries for fingerprinting
       '@media.*color-gamut',
@@ -350,7 +350,7 @@ let sync_metrics = {
       'attributionSourceId',
 
       // Time zone fingerprinting
-      'resolvedOptions\\(\\)\\.timeZone',
+      'resolvedOptions\(\)\.timeZone',
       'getTimezoneOffset',
 
       // WebGL fingerprinting
@@ -363,18 +363,18 @@ let sync_metrics = {
       // Screen properties
       'availWidth',
       'availHeight',
-      'screen\\.width',
-      'screen\\.height',
-      'screen\\.colorDepth',
+      'screen\.width',
+      'screen\.height',
+      'screen\.colorDepth',
 
       // Navigator properties
-      'navigator\\.platform',
-      'navigator\\.plugins',
-      'navigator\\.language',
-      'navigator\\.oscpu',
-      'navigator\\.vendor',
-      'navigator\\.getBattery',
-      'navigator\\.getGamepads',
+      'navigator\.platform',
+      'navigator\.plugins',
+      'navigator\.language',
+      'navigator\.oscpu',
+      'navigator\.vendor',
+      'navigator\.getBattery',
+      'navigator\.getGamepads',
 
       // Geolocation API: https://developer.mozilla.org/en-US/docs/Web/API/Geolocation_API
       'getCurrentPosition',
@@ -387,8 +387,8 @@ let sync_metrics = {
 
       // Additional modern fingerprinting vectors
       'RTCPeerConnection',
-      'document\\.fonts',
-      'performance\\.memory',
+      'document\.fonts',
+      'performance\.memory',
     ];
 
     // Pre-compile regexes - handle already escaped patterns
