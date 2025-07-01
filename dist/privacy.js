@@ -87,90 +87,6 @@ const parseDSRdelete = async (response) => {
 }
 
 let sync_metrics = {
-  /**
-   * Privacy policies
-   * Wording sourced from: https://github.com/RUB-SysSec/we-value-your-privacy/blob/master/privacy_wording.json
-   * words = privacy_wording.map(country => country.words).filter((v, i, a) => a.indexOf(v) === i).flat().sort().join('|');
-   */
-  privacy_wording_links: (() => {
-    const languageKeywords = {
-      af: "beskyttelse af personlige oplysninger|privatlivspolitik|persondata",
-      ar: "الخصوصية|سياسة البيانات|سياسة الخصوصية|سياسة الخصوصية والبيانات",
-      az: "məxfilik|şəxsi məlumatlar",
-      be: "абарона дадзеных|палітыка прыватнасці",
-      bg: "поверителност|политика за бисквитки|политика за данни|условия|условия за ползване|политика за поверителност",
-      bn: "গোপনীয়তা|ডেটা নীতি|গোপনীয়তা নীতি",
-      bs: "privatnost|politika privatnosti|politika podataka|pravila o privatnosti",
-      ca: "protecció de dades|política de privacitat",
-      cs: "ochrana dat|ochrana osobních údajů|ochrana soukromí|ochrana súkromia|ochrana udaju|ochrana údajov|ochrany osobných údajov|podmínky|soukromi|soukromí|zásady používání dat|zásady používání cookies",
-      da: "cookiepolitik|datapolicy|beskyttelse af personlige oplysninger|personlige data|personoplysninger|privatlivspolitik|regler om fortrolighed",
-      de: "datenrichtlinie|datenschutz|datenschutzbestimmungen|datenschutzrichtlinie|privatssphäre|cookie-richtlinie|privatsphärenerklärung",
-      el: "απόρρητο|πολιτική απορρήτου|πολιτική δεδομένων|προσωπικά δεδομένα|όροι και γνωστοποιήσεις|πολιτική cookies",
-      en: "cookie policy|cookies|data policy|datapolicy|privacy|privacy policy|cookiepolicy",
-      es: "aviso legal|confidencialidad|confidencialite|confidentialité|política de datos|privacidad|privacidad|politica de datos|política de privacidad|política de cookies",
-      et: "andmekaitsetingimused|isikuandmete|isikuandmete töötlemise|kasutustingimused|privaatsuspoliitika|andmepoliitika|küpsisepoliitika",
-      eu: "privatua|datu pertsonalen babesa|datu pertsonalen politika",
-      fa: "حریم خصوصی|سیاست حفظ حریم خصوصی|سیاست داده|داده های شخصی",
-      fi: "yksityisyyden suoja|yksityisyydensuoja|yksityisyys|tietokäytäntö|tietosuoja|tietosuojakäytäntö|tietosuojaseloste|evästekäytäntö",
-      fil: "patakaran sa cookies",
-      fr: "cgu|cgv|confidentialité|mentions légales|politique d’utilisation des données|rgpd|vie privée|politique de confidentialité|politique de données|politique de cookie",
-      ga: "beartas príobháideachta|beartas sonraí|beartas fianán|beartas sonraí pearsanta",
-      he: "מדיניות נתונים|פרטיות",
-      hi: "गोपनीयता|डेटा नीति|गोपनीयता नीति",
-      hr: "privatnost|pravila o privatnosti|pravila o podacima|pravila o kolačićima",
-      hu: "adatvédelem|adatvédelmi|személyes adatok védelme|adatvédelmi nyilatkozat|adatkezelési tájékoztató|cookie-kra vonatkozó irányelv",
-      id: "integritetspolicy|piškotki|kebijakan privasi",
-      is: "persónuvernd|persónuverndarstefna",
-      it: "normativa sui dati|privatezza|informativa sulla privacy|informativa sui dati|informativa sui cookie|politica dei dati|politica dei cookies",
-      ja: "プライバシー|データポリシー|個人情報保護",
-      ko: "개인정보|개인정보 처리방침|개인정보 보호정책|개인정보 보호|정보 처리 방침",
-      ka: "კერძო წამყვანი|პირადი ინფორმაციის დაცვა|პირადი ინფორმაციის პოლიტიკა",
-      lt: "privatumas|privatumo|slapukai|slapukkih|privatumo politika|duomenų politika|slapukų politika|privatumo pareiškimas",
-      lv: "sīkdatne|sīkdatņu|privātuma|privātums|privātuma politika|datu politika|sīkdatņu politika|privātuma politikas paziņojums",
-      mt: "politika dwar il-privatezza|politika tad-data|politika tal-cookies|politika dwar id-dati",
-      ms: "privasi|polisi data|polisi privasi|data peribadi|terma dan syarat",
-      nb: "personvern|informasjonskapselregler",
-      nl: "gegevensbeleid|privacybeleid|cookiebeleid|privacyverklaring",
-      no: "personvern|personvernerklæring|informasjonskapsler|personvernspolicy",
-      pl: "prywatnosci|prywatności|prywatność|zasady dotyczące danych|polityka prywatności|polityka danych|polityka plików cookie",
-      pt: "privacidade|política de privacidade|política de dados|política de cookies",
-      ro: "confidențialitate|politica de utilizare|protectia datelor|politica de confidențialitate|politica de date|politica cookie",
-      ru: "конфиденциальность|политика использования данных|политика конфиденциальности|политика данных|политика файлов cookie|персональных данных",
-      si: "piškotki",
-      sk: "ochrana osobných údajov|zásady ochrany osobných|zásady používání dat|zásady využívania údajov|zásady ochrany osobných údajov|zásady používania údajov|zásady používania cookies|ochrana údajov",
-      sl: "piškotki|varstvo podatkov|zasebnost|pravilnik o zasebnosti|pravilnik o podatkih|pravilnik o piškotkih|politika zasebnosti",
-      sq: "konfidencialiteti|politika e privatësisë|politika e të dhënave personale",
-      sr: "konfidentsiaalsuse|pravila o upotrebi podataka|privatnost|privatnosti|prywatnosci|prywatności|prywatność|protecţia datelor|политика о подацима|приватност|защита података",
-      sv: "integritetspolicy|personuppgifter|privatlivspolitik|sekretess|webbplatsen|yksityisyyden suoja|yksityisyydensuoja|yksityisyys|datapolitik",
-      sw: "política de datos",
-      tr: "gizlilik|kişisel verilerin korunması|politika e të dhënave|politikat e privatesise|politikat e privatësisë|veri i̇lkesi|veri politikası|gizlilik politikası|veri politikası|çerez politikası",
-      th: "ความเป็นส่วนตัว|นโยบายความเป็นส่วนตัว|นโยบายข้อมูล|ข้อมูลส่วนบุคคล|เงื่อนไข",
-      vi: "quyền riêng tư|chính sách bảo mật|chính sách dữ liệu|dữ liệu cá nhân|điều khoản và điều kiện",
-      uk: "конфіденційність|конфіденційності|політика даних|файлів cookie|персональних даних|захисту даних",
-      zh: "数据使用政策|隐私政策|数据保护政策|隐私保护政策|數據使用政策|隱私政策|數據保護政策|隱私保護政策"
-    }
-    const websiteLanguage = document.documentElement.lang.slice(0, 2).toLowerCase();
-    let keywords;
-    if (websiteLanguage == 'en') {
-      keywords = languageKeywords[websiteLanguage]
-    } else if (!(websiteLanguage in languageKeywords)) {
-      keywords = Object.values(languageKeywords).join('|');
-    } else {
-      keywords = languageKeywords[websiteLanguage] + '|' + languageKeywords['en']
-    }
-    const pattern = new RegExp(`(?:${keywords})`, 'gi');
-
-    const privacy_links = Array.from(document.querySelectorAll('a')).filter(a =>
-      pattern.test(a.innerText)
-    ).map(
-      a => ({
-        text: a.innerText,
-      })
-    );
-
-    return privacy_links;
-  })(),
-
   // Consent Management Platforms
 
   /**
@@ -250,7 +166,7 @@ let sync_metrics = {
   })(),
 
   /**
-   * Global Privacy Platfrom (GPP)
+   * Global Privacy Protocol (GPP)
    * https://github.com/InteractiveAdvertisingBureau/Global-Privacy-Platform
    */
   iab_gpp: (() => {
