@@ -296,112 +296,156 @@ let sync_metrics = {
     return rp;
   })(),
 
-  /**
-   * Media devices
-   * https://developer.mozilla.org/en-US/docs/Web/API/MediaDevices
-   */
-  media_devices: {
-    navigator_mediaDevices_enumerateDevices: testPropertyStringInResponseBodies(
-      'mediaDevices.+enumerateDevices'
-    ),
-    navigator_mediaDevices_getUserMedia: testPropertyStringInResponseBodies(
-      'mediaDevices.+getUserMedia'
-    ),
-    navigator_mediaDevices_getDisplayMedia: testPropertyStringInResponseBodies(
-      'mediaDevices.+getDisplayMedia'
-    ),
-  },
-
-  /**
-   * Geolocation API
-   * https://developer.mozilla.org/en-US/docs/Web/API/Geolocation_API
-   */
-  geolocation: {
-    navigator_geolocation_getCurrentPosition: testPropertyStringInResponseBodies(
-      'geolocation.+getCurrentPosition'
-    ),
-    navigator_geolocation_watchPosition: testPropertyStringInResponseBodies(
-      'geolocation.+watchPosition'
-    ),
-  },
-
   fingerprinting: (() => {
-    //These are determined by looking at the tests in https://github.com/fingerprintjs/fingerprintjs
+    // These are determined by looking at the tests in https://github.com/fingerprintjs/fingerprintjs
     const fingerprintingAPIs = [
-      'ApplePaySession.canMakePayments',
-      'getChannelData', //audioContext
-      'toDataURL', //canvas
-      'getImageData', //canvas, not actually used by fingerprintJS
-      'screen.colorDepth',
-      'color-gamut',
-      'prefers-contrast',
+      // Payment APIs
+      'ApplePaySession\\.canMakePayments',
+
+      // Audio fingerprinting
+      'createAnalyser',
+      'createOscillator',
+      'createScriptProcessor',
+      'getChannelData',
+      'getFloatFrequencyData',
+      'getByteFrequencyData',
+      'OscillatorNode',
+
+      // Canvas fingerprinting
+      'canvas\\.getContext',
+      'canvas\\.toDataURL',
+      'canvasRenderingContext2D\\.fillText',
+      'canvasRenderingContext2D\\.strokeText',
+      'canvasRenderingContext2D\\.getImageData',
+      'HTMLCanvasElement\\.toBlob',
+
+      // CSS media queries for fingerprinting
+      '@media.*color-gamut',
+      '@media.*prefers-contrast',
+      '@media.*forced-colors',
+      '@media.*dynamic-range',
+      '@media.*inverted-colors',
+      '@media.*min-monochrome',
+      '@media.*max-monochrome',
+      '@media.*prefers-reduced-motion',
+      '@media.*prefers-reduced-transparency',
+
+      // Hardware fingerprinting
       'cpuClass',
       'deviceMemory',
-      'forced-colors',
       'hardwareConcurrency',
-      'dynamic-range',
-      'indexedDB',
-      'inverted-colors',
-      'navigator.language', //"language" would be too generic here
-      'navigator.userLanguage', //TODO exists?
-      'localStorage',
-      'min-monochrome',
-      'max-monochrome',
-      'openDatabase',
-      'navigator.oscpu',
-      'pdfViewerEnabled',
-      'navigator.platform', //"platform" would be too generic
-      'navigator.plugins',
-      'attributionSourceId',
-      'prefers-reduced-motion',
-      'prefers-reduced-transparency',
-      'availWidth',
-      'availHeight',
-      'screen.width',
-      'screen.height',
-      'sessionStorage',
-      'resolvedOptions().timeZone',
-      'getTimezoneOffset',
       'maxTouchPoints',
       'ontouchstart',
-      'navigator.vendor',
+
+      // Storage APIs (potential fingerprinting)
+      'indexedDB',
+      'localStorage',
+      'sessionStorage',
+      'openDatabase',
+
+      // PDF and plugins
+      'pdfViewerEnabled',
+
+      // Attribution and tracking
+      'attributionSourceId',
+
+      // Time zone fingerprinting
+      'resolvedOptions\\(\\)\\.timeZone',
+      'getTimezoneOffset',
+
+      // WebGL fingerprinting
       'vendorUnmasked',
       'rendererUnmasked',
       'shadingLanguageVersion',
       'WEBGL_debug_renderer_info',
-      'getShaderPrecisionFormat'
-    ].map(api => api.toLowerCase())
+      'getShaderPrecisionFormat',
 
-    const response_bodies = $WPT_BODIES.filter(body => (body.response_body && (body.type === 'Document' || body.type === 'Script')))
+      // Screen properties
+      'availWidth',
+      'availHeight',
+      'screen\\.width',
+      'screen\\.height',
+      'screen\\.colorDepth',
 
-    let fingerprintingUsageCounts = {}
-    let likelyFingerprintingScripts = []
+      // Navigator properties
+      'navigator\\.platform',
+      'navigator\\.plugins',
+      'navigator\\.language',
+      'navigator\\.oscpu',
+      'navigator\\.vendor',
+      'navigator\\.getBattery',
+      'navigator\\.getGamepads',
+
+      // Geolocation API: https://developer.mozilla.org/en-US/docs/Web/API/Geolocation_API
+      'getCurrentPosition',
+      'watchPosition',
+
+      // Media devices: https://developer.mozilla.org/en-US/docs/Web/API/MediaDevices
+      'enumerateDevices',
+      'getUserMedia',
+      'getDisplayMedia',
+
+      // Additional modern fingerprinting vectors
+      'RTCPeerConnection',
+      'document\\.fonts',
+      'performance\\.memory',
+    ];
+
+    // Pre-compile regexes - handle already escaped patterns
+    const compiledRegexes = fingerprintingAPIs.map(api => ({
+      api,
+      regex: new RegExp(api, 'gi')
+    }));
+    let likelyFingerprintingScripts = [];
 
     response_bodies.forEach(req => {
-      let total_occurrences = 0
+      try {
+        let detectedApis = [];
+        let totalOccurrences = 0;
 
-      let body = req.response_body.toLowerCase()
+        compiledRegexes.forEach(({ api, regex }) => {
+          try {
+            // Reset regex index for global regex
+            regex.lastIndex = 0;
 
-      fingerprintingAPIs.forEach(api => {
-        let api_occurrences = 0
-        let index = body.indexOf(api)
-        while (index !== -1) {
-          api_occurrences++
-          index = body.indexOf(api, index + 1)
+            // Use a more memory-efficient counting approach
+            let match;
+            let matches = 0;
+            while ((match = regex.exec(req.response_body)) !== null) {
+              matches++;
+              // Prevent infinite loops on zero-length matches
+              if (match.index === regex.lastIndex) {
+                regex.lastIndex++;
+              }
+            }
+
+            if (matches > 0) {
+              detectedApis.push(api);
+              totalOccurrences += matches;
+            }
+          } catch (regexError) {
+            // Skip this API on regex error - avoid console.warn in WebPageTest
+          }
+        });
+
+        // Track scripts with significant fingerprinting API usage (threshold: 4+ APIs or high occurrence count)
+        const suspicionScore = Math.round((detectedApis.length * 2 + totalOccurrences) / 3);
+        if (detectedApis.length >= 4 || suspicionScore >= 8) {
+          likelyFingerprintingScripts.push({
+            url: req.url,
+            detectedApis: detectedApis,
+            suspicionScore: suspicionScore
+          });
         }
-
-        if (api_occurrences > 0) {
-          fingerprintingUsageCounts[api] = (fingerprintingUsageCounts[api] || 0) + api_occurrences
-        }
-        total_occurrences += api_occurrences
-      })
-
-      if (total_occurrences >= 5) { //TODO what should this threshold be?
-        likelyFingerprintingScripts.push(req.url)
+      } catch (error) {
+        // Skip this request on error - avoid console.warn in WebPageTest
       }
-    })
+    });
 
-    return { counts: fingerprintingUsageCounts, likelyFingerprintingScripts }
+    // Sort by suspicion score (highest first)
+    likelyFingerprintingScripts.sort((a, b) => b.suspicionScore - a.suspicionScore);
+
+    return likelyFingerprintingScripts;
   })(),
 
   /**
