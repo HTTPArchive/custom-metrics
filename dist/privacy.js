@@ -302,6 +302,16 @@ let sync_metrics = {
       // Payment APIs
       'ApplePaySession\.canMakePayments',
 
+      // User Agent and Platform fingerprinting
+      'navigator\.userAgent',
+      'navigator\.platform',
+      'navigator\.oscpu',
+      'navigator\.vendor',
+      'navigator\.vendorSub',
+      'navigator\.product',
+      'navigator\.productSub',
+      'navigator\.buildID',
+
       // Audio fingerprinting
       'createAnalyser',
       'createOscillator',
@@ -310,6 +320,19 @@ let sync_metrics = {
       'getFloatFrequencyData',
       'getByteFrequencyData',
       'OscillatorNode',
+      'AudioContext',
+      'webkitAudioContext',
+      'AnalyserNode',
+      'createDynamicsCompressor',
+      'channelCount',
+      'channelCountMode',
+      'channelInterpretation',
+      'fftSize',
+      'frequencyBinCount',
+      'maxDecibels',
+      'minDecibels',
+      'smoothingTimeConstant',
+      'sampleRate',
 
       // Canvas fingerprinting
       'canvas\.getContext',
@@ -318,6 +341,8 @@ let sync_metrics = {
       'canvasRenderingContext2D\.strokeText',
       'canvasRenderingContext2D\.getImageData',
       'HTMLCanvasElement\.toBlob',
+      'getContext\(.*2d.*\)',
+      'getContext\(.*webgl.*\)',
 
       // CSS media queries for fingerprinting
       '@media.*color-gamut',
@@ -345,13 +370,21 @@ let sync_metrics = {
 
       // PDF and plugins
       'pdfViewerEnabled',
+      'navigator\.plugins',
+      'navigator\.mimeTypes',
+      'Plugin\s',
+      'MimeType',
 
       // Attribution and tracking
       'attributionSourceId',
 
-      // Time zone fingerprinting
+      // Time zone and language fingerprinting
       'resolvedOptions\(\)\.timeZone',
       'getTimezoneOffset',
+      'navigator\.language',
+      'navigator\.languages',
+      'Intl\.DateTimeFormat',
+      'Intl\.Collator',
 
       // WebGL fingerprinting
       'vendorUnmasked',
@@ -359,6 +392,14 @@ let sync_metrics = {
       'shadingLanguageVersion',
       'WEBGL_debug_renderer_info',
       'getShaderPrecisionFormat',
+      'WebGLRenderingContext',
+      'getParameter',
+      'getSupportedExtensions',
+      'getExtension',
+      'VENDOR',
+      'RENDERER',
+      'VERSION',
+      'SHADING_LANGUAGE_VERSION',
 
       // Screen properties
       'availWidth',
@@ -366,29 +407,126 @@ let sync_metrics = {
       'screen\.width',
       'screen\.height',
       'screen\.colorDepth',
+      'screen\.pixelDepth',
+      'screen\.availTop',
+      'screen\.availLeft',
+      'outerWidth',
+      'outerHeight',
+      'innerWidth',
+      'innerHeight',
+      'devicePixelRatio',
 
-      // Navigator properties
-      'navigator\.platform',
-      'navigator\.plugins',
-      'navigator\.language',
-      'navigator\.oscpu',
-      'navigator\.vendor',
-      'navigator\.getBattery',
-      'navigator\.getGamepads',
+      // Window and browser chrome fingerprinting
+      'locationbar',
+      'menubar',
+      'personalbar',
+      'scrollbars',
+      'statusbar',
+      'toolbar',
+      'history\.length',
 
       // Geolocation API: https://developer.mozilla.org/en-US/docs/Web/API/Geolocation_API
       'getCurrentPosition',
       'watchPosition',
+      'navigator\.geolocation',
 
-      // Media devices: https://developer.mozilla.org/en-US/docs/Web/API/MediaDevices
+      // Media devices and capabilities
       'enumerateDevices',
       'getUserMedia',
       'getDisplayMedia',
+      'navigator\.mediaDevices',
+      'canPlayType',
+      'HTMLVideoElement\.canPlayType',
+      'HTMLAudioElement\.canPlayType',
+
+      // Permissions API
+      'navigator\.permissions',
+      'permissions\.query',
+
+      // Battery API
+      'navigator\.battery',
+      'navigator\.getBattery',
+      'charging',
+      'chargingTime',
+      'dischargingTime',
+      // 'level',
+
+      // Connection API
+      'navigator\.connection',
+      'navigator\.mozConnection',
+      'navigator\.webkitConnection',
+      'downlink',
+      'effectiveType',
+      // 'rtt',
+      // 'saveData',
+
+      // Sensors APIs
+      'Accelerometer',
+      'Gyroscope',
+      'LinearAccelerationSensor',
+      'AbsoluteOrientationSensor',
+      'RelativeOrientationSensor',
+      'AmbientLightSensor',
+      'ProximitySensor',
+
+      // Touch and input
+      'TouchEvent',
+      'createTouch',
+      'createTouchList',
+
+      // Font detection
+      'document\.fonts',
+      'FontFace',
+
+      // Do Not Track
+      'navigator\.doNotTrack',
+      'window\.doNotTrack',
+
+      // Cookie detection
+      'navigator\.cookieEnabled',
+
+      // Java detection
+      'navigator\.javaEnabled',
 
       // Additional modern fingerprinting vectors
       'RTCPeerConnection',
-      'document\.fonts',
+      'webkitRTCPeerConnection',
+      'mozRTCPeerConnection',
       'performance\.memory',
+      'performance\.timing',
+      'Notification\.permission',
+
+      // Keyboard layout detection
+      'KeyboardLayoutMap',
+      'navigator\.keyboard',
+      'getLayoutMap',
+
+      // Gamepad API
+      'navigator\.getGamepads',
+      'GamepadEvent',
+
+      // Storage quota
+      'navigator\.storage',
+      'navigator\.webkitTemporaryStorage',
+      'navigator\.webkitPersistentStorage',
+      'estimate',
+
+      // Speech APIs
+      'SpeechSynthesis',
+      'SpeechRecognition',
+
+      // WebRTC Data Channel
+      'RTCDataChannel',
+      'createDataChannel',
+
+      // Crypto subtle fingerprinting
+      'crypto\.subtle',
+      'SubtleCrypto',
+
+      // Worker capabilities
+      'Worker',
+      'SharedWorker',
+      'ServiceWorker'
     ];
 
     // Pre-compile regexes - handle already escaped patterns
@@ -402,6 +540,12 @@ let sync_metrics = {
       try {
         let detectedApis = [];
         let totalOccurrences = 0;
+        let body = req.response_body;
+
+        // Validate response body
+        if (!body || typeof body !== 'string') {
+          return; // Skip invalid response bodies
+        }
 
         compiledRegexes.forEach(({ api, regex }) => {
           try {
@@ -411,7 +555,7 @@ let sync_metrics = {
             // Use a more memory-efficient counting approach
             let match;
             let matches = 0;
-            while ((match = regex.exec(req.response_body)) !== null) {
+            while ((match = regex.exec(body)) !== null) {
               matches++;
               // Prevent infinite loops on zero-length matches
               if (match.index === regex.lastIndex) {
@@ -428,22 +572,17 @@ let sync_metrics = {
           }
         });
 
-        // Track scripts with significant fingerprinting API usage (threshold: 4+ APIs or high occurrence count)
-        const suspicionScore = Math.round((detectedApis.length * 2 + totalOccurrences) / 3);
-        if (detectedApis.length >= 4 || suspicionScore >= 8) {
+        // Track scripts with significant fingerprinting API usage
+        if (detectedApis.length >= 5 ) {
           likelyFingerprintingScripts.push({
             url: req.url,
-            detectedApis: detectedApis,
-            suspicionScore: suspicionScore
+            detectedApis
           });
         }
       } catch (error) {
         // Skip this request on error - avoid console.warn in WebPageTest
       }
     });
-
-    // Sort by suspicion score (highest first)
-    likelyFingerprintingScripts.sort((a, b) => b.suspicionScore - a.suspicionScore);
 
     return likelyFingerprintingScripts;
   })(),
