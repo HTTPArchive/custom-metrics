@@ -777,39 +777,5 @@ return JSON.stringify({
 
   'length_of_h1s': (() => {
     return [...document.querySelectorAll('h1')].map(node => node.innerText.length);
-  })(),
-
-  'content_visibility': (() => {
-    // Detects elements using the content-visibility CSS property
-    const elements = document.querySelectorAll('*');
-    const contentVisibilityElements = [];
-    const contentVisibilityValues = {};
-    
-    for (const element of elements) {
-      try {
-        const computedStyle = getComputedStyle(element);
-        const contentVisibility = computedStyle.getPropertyValue('content-visibility');
-        
-        if (contentVisibility && contentVisibility !== 'visible') {
-          contentVisibilityElements.push({
-            tagName: element.tagName.toLowerCase(),
-            contentVisibility: contentVisibility.trim(),
-            className: element.className || '',
-            id: element.id || ''
-          });
-
-          const value = contentVisibility.trim();
-          contentVisibilityValues[value] = (contentVisibilityValues[value] || 0) + 1;
-        }
-      } catch (e) {
-        // continue regardless of error
-      }
-    }
-    
-    return {
-      total: contentVisibilityElements.length,
-      elements: contentVisibilityElements,
-      values: contentVisibilityValues
-    };
   })()
 });

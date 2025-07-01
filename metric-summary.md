@@ -723,7 +723,9 @@ Example response:
 [5, 12, 11]
 ```
 
-## content_visibility
+## [css.js](https://github.com/HTTPArchive/custom-metrics/blob/main/dist/css.js) metrics
+
+### content_visibility
 
 Detects elements using the `content-visibility` CSS property for performance optimization analysis. Returns information about elements that have content-visibility set to values other than 'visible' (such as 'auto', 'hidden', or 'skip').
 
