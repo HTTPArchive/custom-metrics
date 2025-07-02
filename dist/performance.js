@@ -3,12 +3,6 @@
 const response_bodies = $WPT_BODIES;
 const script_response_bodies = $WPT_BODIES.filter(body => body.type === 'Script');
 
-function fetchWithTimeout(url) {
-  var controller = new AbortController();
-  setTimeout(() => {controller.abort()}, 5000);
-  return fetch(url, {signal: controller.signal});
-}
-
 function getRawHtmlDocument() {
     let rawHtml;
     if (response_bodies.length > 0) {
@@ -362,7 +356,7 @@ async function getSpeculationRules() {
   return {htmlRules: htmlRules, httpHeaderRules: httpRules};
 }
 
-return Promise.all([getLcpElement(), getSpeculationRules()]).then(([lcp_elem_stats, speculationRules]) => {
+return Promise.all([getLcpElement()]).then(([lcp_elem_stats]) => {
     const lcpUrl = lcp_elem_stats.url;
     const rawDoc = getRawHtmlDocument();
     // Start out with true, only if LCP element is an external resource will we eval & potentially set to false.
@@ -394,7 +388,7 @@ return Promise.all([getLcpElement(), getSpeculationRules()]).then(([lcp_elem_sta
         lcp_preload: lcpPreload,
         web_vitals_js: getWebVitalsJS(),
         gaming_metrics: gamingMetrics,
-        speculation_rules: speculationRules,
+        speculation_rules: getSpeculationRules(),
     };
 }).catch(error => {
     return {errorName: error.name, errorMessage: error.message};
