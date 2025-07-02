@@ -344,33 +344,18 @@ async function getSpeculationRules() {
       }
   });
 
-  // Get rules from Speculation-Rules HTTP Header on the document
-  let httpRules = [];
-
-  // Get the first request matching the navigation as that should be the final document request (after any redirects)
-  // and only Speculation-Rules HTTP headers on that request count
-  const documentRequest = $WPT_REQUESTS.find( req => req.url === performance.getEntriesByType('navigation')[0].name);
-  if (documentRequest) {
-    // Get all Speculation-Rules headers
-    const speculationRulesHeaders = getParameterCaseInsensitive(documentRequest.response_headers, 'Speculation-Rules');
-    if (speculationRulesHeaders) {
-      await Promise.all(speculationRulesHeaders.split(',').map(async (speculationRuleLocation) => {
-        try {
-          let url = decodeURI(speculationRuleLocation).slice(1, -1);
-          if (url.startsWith('/')) {
-            url = document.location.origin + url;
-          } else if (!url.startsWith('http')) {
-            url = document.location.href + url;
-          }
-          const response = await fetchWithTimeout(url);
-          const body = await response.text();
-          httpRules.push({url: speculationRuleLocation, rule: JSON.parse(body)});
-        } catch(error) {
-          httpRules.push({url: speculationRuleLocation, errorName: error.name, errorMessage: error.message});
-        }
-      }));
-    }
-  }
+  // Get rules from Speculation-Rules HTTP responses
+  // There is an assumption this is actually used on the page(e.g. it could be fetched manually from JS and
+  // then not used, rather than fetched by browser from HTTP header), but think that's rare enough so OK.
+  const httpRules = response_bodies
+    .filter(req => getParameterCaseInsensitive(req.response_headers, 'content-type') === 'application/speculationrules+json')
+    .map(req => {
+      try {
+        return {url: req.url, rule: JSON.parse(req.response_body)};
+      } catch(error) {
+        return {url: req.url, errorName: error.name, errorMessage: error.message};
+      }
+    })
 
   return {htmlRules: htmlRules, httpHeaderRules: httpRules};
 }
