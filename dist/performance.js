@@ -339,11 +339,12 @@ function getSpeculationRules() {
   });
 
   // Get rules from Speculation-Rules HTTP responses
-  // There is an assumption this is actually used on the page(e.g. it could be fetched manually from JS and
-  // then not used, rather than fetched by browser from HTTP header), but think that's rare enough so OK.
+  // There is an assumption this is actually used on the page but by checking both the `content-type`
+  // and the `sec-fetch-dest`, that should be the case.
   const httpRules = Array.from(
     response_bodies
     .filter(req => getParameterCaseInsensitive(req.response_headers, 'content-type') === 'application/speculationrules+json')
+    .filter(req => getParameterCaseInsensitive(req.response_headers, 'sec-fetch-dest') === 'speculationrules')
     .map(req => {
       try {
         return {url: req.url, rule: JSON.parse(req.response_body)};
