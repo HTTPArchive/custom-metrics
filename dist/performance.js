@@ -347,7 +347,8 @@ async function getSpeculationRules() {
   // Get rules from Speculation-Rules HTTP responses
   // There is an assumption this is actually used on the page(e.g. it could be fetched manually from JS and
   // then not used, rather than fetched by browser from HTTP header), but think that's rare enough so OK.
-  const httpRules = response_bodies
+  const httpRules = Array.from(
+    response_bodies
     .filter(req => getParameterCaseInsensitive(req.response_headers, 'content-type') === 'application/speculationrules+json')
     .map(req => {
       try {
@@ -356,6 +357,7 @@ async function getSpeculationRules() {
         return {url: req.url, errorName: error.name, errorMessage: error.message};
       }
     })
+  );
 
   return {htmlRules: htmlRules, httpHeaderRules: httpRules};
 }
