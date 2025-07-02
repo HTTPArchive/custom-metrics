@@ -328,7 +328,7 @@ function getParameterCaseInsensitive(object, key) {
   return object[Object.keys(object).find(k => k.toLowerCase() === key.toLowerCase())];
 }
 
-async function getSpeculationRules() {
+function getSpeculationRules() {
   // Get rules from the HTML
   const htmlRules = Array.from(document.querySelectorAll('script[type=speculationrules]')).map(script => {
       try {
