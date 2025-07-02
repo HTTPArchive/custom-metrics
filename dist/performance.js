@@ -344,7 +344,7 @@ function getSpeculationRules() {
   const httpRules = Array.from(
     response_bodies
     .filter(req => getParameterCaseInsensitive(req.response_headers, 'content-type') === 'application/speculationrules+json')
-    .filter(req => getParameterCaseInsensitive(req.response_headers, 'sec-fetch-dest') === 'speculationrules')
+    .filter(req => getParameterCaseInsensitive(req.request_headers, 'sec-fetch-dest') === 'speculationrules')
     .map(req => {
       try {
         return {url: req.url, rule: JSON.parse(req.response_body)};
