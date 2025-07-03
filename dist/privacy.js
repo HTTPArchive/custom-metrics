@@ -297,275 +297,137 @@ let sync_metrics = {
   })(),
 
   fingerprinting: (() => {
-    // These are determined by looking at the tests in https://github.com/fingerprintjs/fingerprintjs
-    const fingerprintingAPIs = [
+    // The APIs are determined by looking at the tests in https://github.com/fingerprintjs/fingerprintjs and https://amiunique.org/fingerprint
+    // Grouped by unique API to improve diversity metric reliability
+    const fingerprintingAPIs = {
       // Payment APIs
-      'ApplePaySession\.canMakePayments',
+      'payment': 'ApplePaySession\.canMakePayments',
 
       // User Agent and Platform fingerprinting
-      'navigator\.userAgent',
-      'navigator\.platform',
-      'navigator\.oscpu',
-      'navigator\.vendor',
-      'navigator\.vendorSub',
-      'navigator\.product',
-      'navigator\.productSub',
-      'navigator\.buildID',
+      'navigator_userAgent': 'navigator\.userAgent',
+      'navigator_platform': 'navigator\.platform',
+      'navigator_oscpu': 'navigator\.oscpu',
+      'navigator_vendor': 'navigator\.(vendor|vendorSub)',
+      'navigator_product': 'navigator\.(product|productSub)',
+      'navigator_buildID': 'navigator\.buildID',
 
       // Audio fingerprinting
-      'createAnalyser',
-      'createOscillator',
-      'createScriptProcessor',
-      'getChannelData',
-      'getFloatFrequencyData',
-      'getByteFrequencyData',
-      'OscillatorNode',
-      'AudioContext',
-      'webkitAudioContext',
-      'AnalyserNode',
-      'createDynamicsCompressor',
-      'channelCount',
-      'channelCountMode',
-      'channelInterpretation',
-      'fftSize',
-      'frequencyBinCount',
-      'maxDecibels',
-      'minDecibels',
-      'smoothingTimeConstant',
-      'sampleRate',
+      'audio_context': '(AudioContext|webkitAudioContext)',
+      'audio_analysis': '(createAnalyser|AnalyserNode|getFloatFrequencyData|getByteFrequencyData|fftSize|frequencyBinCount|maxDecibels|minDecibels|smoothingTimeConstant)',
+      'audio_processing': '(createOscillator|OscillatorNode|createScriptProcessor|createDynamicsCompressor)',
+      'audio_data': '(getChannelData|channelCount|channelCountMode|channelInterpretation|sampleRate)',
 
       // Canvas fingerprinting
-      'canvas\.getContext',
-      'canvas\.toDataURL',
-      'canvasRenderingContext2D\.fillText',
-      'canvasRenderingContext2D\.strokeText',
-      'canvasRenderingContext2D\.getImageData',
-      'HTMLCanvasElement\.toBlob',
-      'getContext\(.*2d.*\)',
-      'getContext\(.*webgl.*\)',
+      'canvas_context': 'canvas\.getContext|getContext\(.*(2d|webgl).*\)',
+      'canvas_rendering': '(canvasRenderingContext2D\.(fillText|strokeText|getImageData)|canvas\.toDataURL|HTMLCanvasElement\.toBlob)',
 
       // CSS media queries for fingerprinting
-      '@media.*color-gamut',
-      '@media.*prefers-contrast',
-      '@media.*forced-colors',
-      '@media.*dynamic-range',
-      '@media.*inverted-colors',
-      '@media.*min-monochrome',
-      '@media.*max-monochrome',
-      '@media.*prefers-reduced-motion',
-      '@media.*prefers-reduced-transparency',
+      'css_media_queries': '@media.*(color-gamut|prefers-contrast|forced-colors|dynamic-range|inverted-colors|min-monochrome|max-monochrome|prefers-reduced-motion|prefers-reduced-transparency)',
 
       // Hardware fingerprinting
-      'cpuClass',
-      'deviceMemory',
-      'hardwareConcurrency',
-      'maxTouchPoints',
-      'ontouchstart',
+      'hardware_info': '(cpuClass|deviceMemory|hardwareConcurrency|maxTouchPoints)',
+
+      // Touch capabilities
+      'touch_capabilities': '(ontouchstart|TouchEvent|createTouch|createTouchList)',
 
       // Storage APIs (potential fingerprinting)
-      'indexedDB',
-      'localStorage',
-      'sessionStorage',
-      'openDatabase',
+      'storage_apis': '(indexedDB|localStorage|sessionStorage|openDatabase)',
 
       // PDF and plugins
-      'pdfViewerEnabled',
-      'navigator\.plugins',
-      'navigator\.mimeTypes',
-      'Plugin\s',
-      'MimeType',
+      'plugins': '(pdfViewerEnabled|navigator\.(plugins|mimeTypes)|Plugin\s|MimeType)',
 
       // Attribution and tracking
-      'attributionSourceId',
+      'attribution': 'attributionSourceId',
 
       // Time zone and language fingerprinting
-      'resolvedOptions\(\)\.timeZone',
-      'getTimezoneOffset',
-      'navigator\.language',
-      'navigator\.languages',
-      'Intl\.DateTimeFormat',
-      'Intl\.Collator',
+      'timezone': '(resolvedOptions\(\)\.timeZone|getTimezoneOffset)',
+      'language': '(navigator\.(language|languages)|Intl\.(DateTimeFormat|Collator))',
 
       // WebGL fingerprinting
-      'vendorUnmasked',
-      'rendererUnmasked',
-      'shadingLanguageVersion',
-      'WEBGL_debug_renderer_info',
-      'getShaderPrecisionFormat',
-      'WebGLRenderingContext',
-      'getParameter',
-      'getSupportedExtensions',
-      'getExtension',
-      'VENDOR',
-      'RENDERER',
-      'VERSION',
-      'SHADING_LANGUAGE_VERSION',
+      'webgl_info': '(vendorUnmasked|rendererUnmasked|shadingLanguageVersion|WEBGL_debug_renderer_info|WebGLRenderingContext)',
+      'webgl_params': '(getShaderPrecisionFormat|getParameter|getSupportedExtensions|getExtension|VENDOR|RENDERER|VERSION|SHADING_LANGUAGE_VERSION)',
 
       // Screen properties
-      'availWidth',
-      'availHeight',
-      'screen\.width',
-      'screen\.height',
-      'screen\.colorDepth',
-      'screen\.pixelDepth',
-      'screen\.availTop',
-      'screen\.availLeft',
-      'outerWidth',
-      'outerHeight',
-      'innerWidth',
-      'innerHeight',
-      'devicePixelRatio',
+      'screen_properties': '(availWidth|availHeight)|screen\.(width|height|colorDepth|pixelDepth|availTop|availLeft)|(outerWidth|outerHeight|innerWidth|innerHeight)|devicePixelRatio',
 
       // Window and browser chrome fingerprinting
-      'locationbar',
-      'menubar',
-      'personalbar',
-      'scrollbars',
-      'statusbar',
-      'toolbar',
-      'history\.length',
+      'browser_chrome': '(locationbar|menubar|personalbar|scrollbars|statusbar|toolbar|history\.length)',
 
-      // Geolocation API: https://developer.mozilla.org/en-US/docs/Web/API/Geolocation_API
-      'getCurrentPosition',
-      'watchPosition',
-      'navigator\.geolocation',
+      // Geolocation API
+      'geolocation': '(getCurrentPosition|watchPosition|navigator\.geolocation)',
 
       // Media devices and capabilities
-      'enumerateDevices',
-      'getUserMedia',
-      'getDisplayMedia',
-      'navigator\.mediaDevices',
-      'canPlayType',
-      'HTMLVideoElement\.canPlayType',
-      'HTMLAudioElement\.canPlayType',
+      'media_devices': '(enumerateDevices|getUserMedia|getDisplayMedia|navigator\.mediaDevices)',
+      'media_capabilities': '(canPlayType|HTMLVideoElement\.canPlayType|HTMLAudioElement\.canPlayType)',
 
       // Permissions API
-      'navigator\.permissions',
-      'permissions\.query',
+      'permissions': '(navigator\.permissions|permissions\.query)',
 
       // Battery API
-      'navigator\.battery',
-      'navigator\.getBattery',
-      'charging',
-      'chargingTime',
-      'dischargingTime',
-      // 'level',
+      'battery': '(navigator\.(battery|getBattery)|charging|chargingTime|dischargingTime)',
 
       // Connection API
-      'navigator\.connection',
-      'navigator\.mozConnection',
-      'navigator\.webkitConnection',
-      'downlink',
-      'effectiveType',
-      // 'rtt',
-      // 'saveData',
+      'connection': '(navigator\.(connection|mozConnection|webkitConnection)|downlink|effectiveType)',
 
       // Sensors APIs
-      'Accelerometer',
-      'Gyroscope',
-      'LinearAccelerationSensor',
-      'AbsoluteOrientationSensor',
-      'RelativeOrientationSensor',
-      'AmbientLightSensor',
-      'ProximitySensor',
-
-      // Touch and input
-      'TouchEvent',
-      'createTouch',
-      'createTouchList',
+      'sensors': '(Accelerometer|Gyroscope|LinearAccelerationSensor|AbsoluteOrientationSensor|RelativeOrientationSensor|AmbientLightSensor|ProximitySensor)',
 
       // Font detection
-      'document\.fonts',
-      'FontFace',
+      'fonts': '(document\.fonts|FontFace)',
 
       // Do Not Track
-      'navigator\.doNotTrack',
-      'window\.doNotTrack',
+      'do_not_track': '(navigator\.doNotTrack|window\.doNotTrack)',
 
       // Cookie detection
-      'navigator\.cookieEnabled',
+      'cookies': 'navigator\.cookieEnabled',
 
       // Java detection
-      'navigator\.javaEnabled',
+      'java': 'navigator\.javaEnabled',
 
-      // Additional modern fingerprinting vectors
-      'RTCPeerConnection',
-      'webkitRTCPeerConnection',
-      'mozRTCPeerConnection',
-      'performance\.memory',
-      'performance\.timing',
-      'Notification\.permission',
+      // WebRTC
+      'webrtc_peer': '(RTCPeerConnection|webkitRTCPeerConnection|mozRTCPeerConnection)',
+      'webrtc_data': '(RTCDataChannel|createDataChannel)',
+
+      // Performance APIs
+      'performance': '(performance\.(memory|timing))',
+
+      // Notifications
+      'notifications': 'Notification\.permission',
 
       // Keyboard layout detection
-      'KeyboardLayoutMap',
-      'navigator\.keyboard',
-      'getLayoutMap',
+      'keyboard': '(KeyboardLayoutMap|navigator\.keyboard|getLayoutMap)',
 
       // Gamepad API
-      'navigator\.getGamepads',
-      'GamepadEvent',
+      'gamepad': '(navigator\.getGamepads|GamepadEvent)',
 
       // Storage quota
-      'navigator\.storage',
-      'navigator\.webkitTemporaryStorage',
-      'navigator\.webkitPersistentStorage',
-      'estimate',
+      'storage_quota': '(navigator\.(storage|webkitTemporaryStorage|webkitPersistentStorage)|estimate)',
 
       // Speech APIs
-      'SpeechSynthesis',
-      'SpeechRecognition',
-
-      // WebRTC Data Channel
-      'RTCDataChannel',
-      'createDataChannel',
+      'speech': '(SpeechSynthesis|SpeechRecognition)',
 
       // Crypto subtle fingerprinting
-      'crypto\.subtle',
-      'SubtleCrypto',
+      'crypto': '(crypto\.subtle|SubtleCrypto)',
 
       // Worker capabilities
-      'Worker',
-      'SharedWorker',
-      'ServiceWorker'
-    ];
+      'workers': '(Worker|SharedWorker|ServiceWorker)'
+    };
 
     // Pre-compile regexes - handle already escaped patterns
-    const compiledRegexes = fingerprintingAPIs.map(api => ({
-      api,
-      regex: new RegExp(api, 'gi')
+    const compiledRegexes = Object.entries(fingerprintingAPIs).map(([apiName, pattern]) => ({
+      api: apiName,
+      regex: new RegExp(pattern, 'gi')
     }));
     let likelyFingerprintingScripts = [];
 
     response_bodies.forEach(req => {
       try {
         let detectedApis = [];
-        let totalOccurrences = 0;
-        let body = req.response_body;
-
-        // Validate response body
-        if (!body || typeof body !== 'string') {
-          return; // Skip invalid response bodies
-        }
 
         compiledRegexes.forEach(({ api, regex }) => {
           try {
-            // Reset regex index for global regex
-            regex.lastIndex = 0;
-
-            // Use a more memory-efficient counting approach
-            let match;
-            let matches = 0;
-            while ((match = regex.exec(body)) !== null) {
-              matches++;
-              // Prevent infinite loops on zero-length matches
-              if (match.index === regex.lastIndex) {
-                regex.lastIndex++;
-              }
-            }
-
-            if (matches > 0) {
+            if (regex.test(req.response_body)) {
               detectedApis.push(api);
-              totalOccurrences += matches;
             }
           } catch (regexError) {
             // Skip this API on regex error - avoid console.warn in WebPageTest
@@ -573,7 +435,7 @@ let sync_metrics = {
         });
 
         // Track scripts with significant fingerprinting API usage
-        if (detectedApis.length >= 5 ) {
+        if (detectedApis.length >= 5) {
           likelyFingerprintingScripts.push({
             url: req.url,
             detectedApis
