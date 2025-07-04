@@ -160,10 +160,11 @@
 
   // Try to execute the metric, with ultimate fallback
   try {
-    return contentVisibility();
+    const result = contentVisibility();
+    return JSON.stringify(result);
   } catch (error) {
     // Ultimate fallback - if even the main function fails
-    return {
+    const fallbackResult = {
       used: false,
       count: 0,
       values: [],
@@ -175,5 +176,6 @@
         errors: ['ultimate_error: ' + error.message]
       }
     };
+    return JSON.stringify(fallbackResult);
   }
 })();
