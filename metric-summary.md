@@ -723,35 +723,33 @@ Example response:
 [5, 12, 11]
 ```
 
-## [css.js](https://github.com/HTTPArchive/custom-metrics/blob/main/dist/css.js) metrics
+## [content-visibility.js](https://github.com/HTTPArchive/custom-metrics/blob/main/dist/content-visibility.js) metrics
 
 ### content_visibility
+Detects CSS rules using the `content-visibility` property for performance optimization analysis. This metric uses efficient regex-based detection with performance optimizations to find content-visibility declarations in stylesheets, style blocks, and inline styles. Returns information about CSS rules that have content-visibility set to values other than 'visible' (such as 'auto', 'hidden', or 'skip').
 
-Detects elements using the `content-visibility` CSS property for performance optimization analysis. Returns information about elements that have content-visibility set to values other than 'visible' (such as 'auto', 'hidden', or 'skip').
+**Performance Optimizations:**
+- Early exit for inline styles when content-visibility is found in stylesheets/style blocks
+- Pre-filtering of inline styles to avoid unnecessary regex processing
 
 Example response:
 
 ```json
 {
-  "total": 15,
-  "elements": [
-    {
-      "tagName": "div",
-      "contentVisibility": "auto",
-      "className": "lazy-section",
-      "id": "section-1"
-    },
-    {
-      "tagName": "section",
-      "contentVisibility": "hidden",
-      "className": "hidden-content",
-      "id": ""
-    }
+  "used": true,
+  "count": 5,
+  "values": [
+    "auto",
+    "hidden", 
+    "skip",
+    "auto",
+    "hidden"
   ],
-  "values": {
-    "auto": 12,
-    "hidden": 3
-  }
+  "uniqueValues": [
+    "auto",
+    "hidden",
+    "skip"
+  ]
 }
 ```
 
