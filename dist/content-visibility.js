@@ -20,19 +20,24 @@
 
     const contentVisibilityValues = [];
 
-    // Remove CSS comments first
-    css = css.replace(/\/\*[\s\S]*?\*\//g, '');
+    try {
+      // Remove CSS comments first
+      css = css.replace(/\/\*[\s\S]*?\*\//g, '');
 
-    // Regex to match content-visibility property declarations
-    // Matches: content-visibility: value; or content-visibility: value
-    const contentVisibilityRegex = /content-visibility\s*:\s*([^;}\s]+(?:\s+[^;}\s]+)*)/gi;
-    let regexMatch;
+      // Regex to match content-visibility property declarations
+      // Matches: content-visibility: value; or content-visibility: value
+      const contentVisibilityRegex = /content-visibility\s*:\s*([^;}\s]+(?:\s+[^;}\s]+)*)/gi;
+      let regexMatch;
 
-    while ((regexMatch = contentVisibilityRegex.exec(css)) !== null) {
-      const value = regexMatch[1].trim();
-      if (value) {
-        contentVisibilityValues.push(value);
+      while ((regexMatch = contentVisibilityRegex.exec(css)) !== null) {
+        const value = regexMatch[1].trim();
+        if (value) {
+          contentVisibilityValues.push(value);
+        }
       }
+    } catch (error) {
+      // Return empty array if regex processing fails
+      return [];
     }
 
     return contentVisibilityValues;
@@ -47,12 +52,17 @@
     const unique = [];
     const seen = {};
 
-    for (let valueIndex = 0; valueIndex < values.length; valueIndex++) {
-      const value = values[valueIndex];
-      if (!seen[value]) {
-        seen[value] = true;
-        unique.push(value);
+    try {
+      for (let valueIndex = 0; valueIndex < values.length; valueIndex++) {
+        const value = values[valueIndex];
+        if (!seen[value]) {
+          seen[value] = true;
+          unique.push(value);
+        }
       }
+    } catch (error) {
+      // Return original array if deduplication fails
+      return values;
     }
 
     return unique;
@@ -64,47 +74,88 @@
    */
   function contentVisibility() {
     const contentVisibilityValues = [];
+    let debugInfo = {
+      stylesheetsProcessed: 0,
+      styleBlocksProcessed: 0,
+      inlineStylesProcessed: 0,
+      errors: []
+    };
 
-    // Process stylesheets first (usually largest source)
-    const stylesheets = $WPT_BODIES.filter(body => body.type === 'Stylesheet');
-    for (let stylesheetIndex = 0; stylesheetIndex < stylesheets.length; stylesheetIndex++) {
-      const stylesheet = stylesheets[stylesheetIndex];
-      if (stylesheet.response_body) {
-        const values = extractContentVisibilityValues(stylesheet.response_body);
-        contentVisibilityValues.push(...values);
-      }
-    }
+    try {
+      // Process stylesheets first (usually largest source)
+      if (typeof $WPT_BODIES !== 'undefined' && Array.isArray($WPT_BODIES)) {
+        const stylesheets = $WPT_BODIES.filter(body => body.type === 'Stylesheet');
+        debugInfo.stylesheetsProcessed = stylesheets.length;
 
-    // Process style blocks (usually fewer elements)
-    const styleElements = document.querySelectorAll('style');
-    for (let styleIndex = 0; styleIndex < styleElements.length; styleIndex++) {
-      const styleElement = styleElements[styleIndex];
-      if (styleElement.innerHTML) {
-        const values = extractContentVisibilityValues(styleElement.innerHTML);
-        contentVisibilityValues.push(...values);
-      }
-    }
-
-    // Process inline styles (most expensive - limit scope if possible)
-    // Only process if we haven't found any content-visibility yet
-    if (contentVisibilityValues.length === 0) {
-      const elementsWithStyle = document.querySelectorAll('[style]');
-      for (let elementIndex = 0; elementIndex < elementsWithStyle.length; elementIndex++) {
-        const elementWithStyle = elementsWithStyle[elementIndex];
-        const styleAttr = elementWithStyle.getAttribute('style');
-        if (styleAttr && styleAttr.includes('content-visibility')) {
-          const values = extractContentVisibilityValues(styleAttr);
-          contentVisibilityValues.push(...values);
+        for (let stylesheetIndex = 0; stylesheetIndex < stylesheets.length; stylesheetIndex++) {
+          const stylesheet = stylesheets[stylesheetIndex];
+          if (stylesheet && stylesheet.response_body) {
+            const values = extractContentVisibilityValues(stylesheet.response_body);
+            contentVisibilityValues.push(...values);
+          }
         }
       }
-    }
 
-    return {
-      used: contentVisibilityValues.length > 0,
-      count: contentVisibilityValues.length,
-      values: contentVisibilityValues,
-      uniqueValues: getUniqueValues(contentVisibilityValues)
-    };
+      // Process style blocks (usually fewer elements)
+      if (typeof document !== 'undefined' && document.querySelectorAll) {
+        try {
+          const styleElements = document.querySelectorAll('style');
+          debugInfo.styleBlocksProcessed = styleElements.length;
+
+          for (let styleIndex = 0; styleIndex < styleElements.length; styleIndex++) {
+            const styleElement = styleElements[styleIndex];
+            if (styleElement && styleElement.innerHTML) {
+              const values = extractContentVisibilityValues(styleElement.innerHTML);
+              contentVisibilityValues.push(...values);
+            }
+          }
+        } catch (error) {
+          debugInfo.errors.push('style_blocks_error: ' + error.message);
+        }
+      }
+
+      // Process inline styles (most expensive - limit scope if possible)
+      // Only process if we haven't found any content-visibility yet
+      if (contentVisibilityValues.length === 0 && typeof document !== 'undefined' && document.querySelectorAll) {
+        try {
+          const elementsWithStyle = document.querySelectorAll('[style]');
+          debugInfo.inlineStylesProcessed = elementsWithStyle.length;
+
+          for (let elementIndex = 0; elementIndex < elementsWithStyle.length; elementIndex++) {
+            const elementWithStyle = elementsWithStyle[elementIndex];
+            if (elementWithStyle) {
+              const styleAttr = elementWithStyle.getAttribute('style');
+              if (styleAttr && styleAttr.includes('content-visibility')) {
+                const values = extractContentVisibilityValues(styleAttr);
+                contentVisibilityValues.push(...values);
+              }
+            }
+          }
+        } catch (error) {
+          debugInfo.errors.push('inline_styles_error: ' + error.message);
+        }
+      }
+
+      return {
+        used: contentVisibilityValues.length > 0,
+        count: contentVisibilityValues.length,
+        values: contentVisibilityValues,
+        uniqueValues: getUniqueValues(contentVisibilityValues),
+        debug: debugInfo
+      };
+    } catch (error) {
+      // Return a safe fallback if the entire function fails
+      return {
+        used: false,
+        count: 0,
+        values: [],
+        uniqueValues: [],
+        debug: {
+          ...debugInfo,
+          errors: [...debugInfo.errors, 'main_error: ' + error.message]
+        }
+      };
+    }
   }
 
   return contentVisibility();
