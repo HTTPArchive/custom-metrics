@@ -1,6 +1,6 @@
 /**
  * Content Visibility Custom Metric - Optimized Version
- * 
+ *
  * Analyzes CSS usage of the content-visibility property using efficient
  * regex-based detection with performance optimizations.
  */

@@ -740,7 +740,7 @@ Example response:
   "count": 5,
   "values": [
     "auto",
-    "hidden", 
+    "hidden",
     "skip",
     "auto",
     "hidden"
