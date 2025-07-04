@@ -158,5 +158,22 @@
     }
   }
 
-  return contentVisibility();
+  // Try to execute the metric, with ultimate fallback
+  try {
+    return contentVisibility();
+  } catch (error) {
+    // Ultimate fallback - if even the main function fails
+    return {
+      used: false,
+      count: 0,
+      values: [],
+      uniqueValues: [],
+      debug: {
+        stylesheetsProcessed: 0,
+        styleBlocksProcessed: 0,
+        inlineStylesProcessed: 0,
+        errors: ['ultimate_error: ' + error.message]
+      }
+    };
+  }
 })();
