@@ -87,90 +87,6 @@ const parseDSRdelete = async (response) => {
 }
 
 let sync_metrics = {
-  /**
-   * Privacy policies
-   * Wording sourced from: https://github.com/RUB-SysSec/we-value-your-privacy/blob/master/privacy_wording.json
-   * words = privacy_wording.map(country => country.words).filter((v, i, a) => a.indexOf(v) === i).flat().sort().join('|');
-   */
-  privacy_wording_links: (() => {
-    const languageKeywords = {
-      af: "beskyttelse af personlige oplysninger|privatlivspolitik|persondata",
-      ar: "الخصوصية|سياسة البيانات|سياسة الخصوصية|سياسة الخصوصية والبيانات",
-      az: "məxfilik|şəxsi məlumatlar",
-      be: "абарона дадзеных|палітыка прыватнасці",
-      bg: "поверителност|политика за бисквитки|политика за данни|условия|условия за ползване|политика за поверителност",
-      bn: "গোপনীয়তা|ডেটা নীতি|গোপনীয়তা নীতি",
-      bs: "privatnost|politika privatnosti|politika podataka|pravila o privatnosti",
-      ca: "protecció de dades|política de privacitat",
-      cs: "ochrana dat|ochrana osobních údajů|ochrana soukromí|ochrana súkromia|ochrana udaju|ochrana údajov|ochrany osobných údajov|podmínky|soukromi|soukromí|zásady používání dat|zásady používání cookies",
-      da: "cookiepolitik|datapolicy|beskyttelse af personlige oplysninger|personlige data|personoplysninger|privatlivspolitik|regler om fortrolighed",
-      de: "datenrichtlinie|datenschutz|datenschutzbestimmungen|datenschutzrichtlinie|privatssphäre|cookie-richtlinie|privatsphärenerklärung",
-      el: "απόρρητο|πολιτική απορρήτου|πολιτική δεδομένων|προσωπικά δεδομένα|όροι και γνωστοποιήσεις|πολιτική cookies",
-      en: "cookie policy|cookies|data policy|datapolicy|privacy|privacy policy|cookiepolicy",
-      es: "aviso legal|confidencialidad|confidencialite|confidentialité|política de datos|privacidad|privacidad|politica de datos|política de privacidad|política de cookies",
-      et: "andmekaitsetingimused|isikuandmete|isikuandmete töötlemise|kasutustingimused|privaatsuspoliitika|andmepoliitika|küpsisepoliitika",
-      eu: "privatua|datu pertsonalen babesa|datu pertsonalen politika",
-      fa: "حریم خصوصی|سیاست حفظ حریم خصوصی|سیاست داده|داده های شخصی",
-      fi: "yksityisyyden suoja|yksityisyydensuoja|yksityisyys|tietokäytäntö|tietosuoja|tietosuojakäytäntö|tietosuojaseloste|evästekäytäntö",
-      fil: "patakaran sa cookies",
-      fr: "cgu|cgv|confidentialité|mentions légales|politique d’utilisation des données|rgpd|vie privée|politique de confidentialité|politique de données|politique de cookie",
-      ga: "beartas príobháideachta|beartas sonraí|beartas fianán|beartas sonraí pearsanta",
-      he: "מדיניות נתונים|פרטיות",
-      hi: "गोपनीयता|डेटा नीति|गोपनीयता नीति",
-      hr: "privatnost|pravila o privatnosti|pravila o podacima|pravila o kolačićima",
-      hu: "adatvédelem|adatvédelmi|személyes adatok védelme|adatvédelmi nyilatkozat|adatkezelési tájékoztató|cookie-kra vonatkozó irányelv",
-      id: "integritetspolicy|piškotki|kebijakan privasi",
-      is: "persónuvernd|persónuverndarstefna",
-      it: "normativa sui dati|privatezza|informativa sulla privacy|informativa sui dati|informativa sui cookie|politica dei dati|politica dei cookies",
-      ja: "プライバシー|データポリシー|個人情報保護",
-      ko: "개인정보|개인정보 처리방침|개인정보 보호정책|개인정보 보호|정보 처리 방침",
-      ka: "კერძო წამყვანი|პირადი ინფორმაციის დაცვა|პირადი ინფორმაციის პოლიტიკა",
-      lt: "privatumas|privatumo|slapukai|slapukkih|privatumo politika|duomenų politika|slapukų politika|privatumo pareiškimas",
-      lv: "sīkdatne|sīkdatņu|privātuma|privātums|privātuma politika|datu politika|sīkdatņu politika|privātuma politikas paziņojums",
-      mt: "politika dwar il-privatezza|politika tad-data|politika tal-cookies|politika dwar id-dati",
-      ms: "privasi|polisi data|polisi privasi|data peribadi|terma dan syarat",
-      nb: "personvern|informasjonskapselregler",
-      nl: "gegevensbeleid|privacybeleid|cookiebeleid|privacyverklaring",
-      no: "personvern|personvernerklæring|informasjonskapsler|personvernspolicy",
-      pl: "prywatnosci|prywatności|prywatność|zasady dotyczące danych|polityka prywatności|polityka danych|polityka plików cookie",
-      pt: "privacidade|política de privacidade|política de dados|política de cookies",
-      ro: "confidențialitate|politica de utilizare|protectia datelor|politica de confidențialitate|politica de date|politica cookie",
-      ru: "конфиденциальность|политика использования данных|политика конфиденциальности|политика данных|политика файлов cookie|персональных данных",
-      si: "piškotki",
-      sk: "ochrana osobných údajov|zásady ochrany osobných|zásady používání dat|zásady využívania údajov|zásady ochrany osobných údajov|zásady používania údajov|zásady používania cookies|ochrana údajov",
-      sl: "piškotki|varstvo podatkov|zasebnost|pravilnik o zasebnosti|pravilnik o podatkih|pravilnik o piškotkih|politika zasebnosti",
-      sq: "konfidencialiteti|politika e privatësisë|politika e të dhënave personale",
-      sr: "konfidentsiaalsuse|pravila o upotrebi podataka|privatnost|privatnosti|prywatnosci|prywatności|prywatność|protecţia datelor|политика о подацима|приватност|защита података",
-      sv: "integritetspolicy|personuppgifter|privatlivspolitik|sekretess|webbplatsen|yksityisyyden suoja|yksityisyydensuoja|yksityisyys|datapolitik",
-      sw: "política de datos",
-      tr: "gizlilik|kişisel verilerin korunması|politika e të dhënave|politikat e privatesise|politikat e privatësisë|veri i̇lkesi|veri politikası|gizlilik politikası|veri politikası|çerez politikası",
-      th: "ความเป็นส่วนตัว|นโยบายความเป็นส่วนตัว|นโยบายข้อมูล|ข้อมูลส่วนบุคคล|เงื่อนไข",
-      vi: "quyền riêng tư|chính sách bảo mật|chính sách dữ liệu|dữ liệu cá nhân|điều khoản và điều kiện",
-      uk: "конфіденційність|конфіденційності|політика даних|файлів cookie|персональних даних|захисту даних",
-      zh: "数据使用政策|隐私政策|数据保护政策|隐私保护政策|數據使用政策|隱私政策|數據保護政策|隱私保護政策"
-    }
-    const websiteLanguage = document.documentElement.lang.slice(0, 2).toLowerCase();
-    let keywords;
-    if (websiteLanguage == 'en') {
-      keywords = languageKeywords[websiteLanguage]
-    } else if (!(websiteLanguage in languageKeywords)) {
-      keywords = Object.values(languageKeywords).join('|');
-    } else {
-      keywords = languageKeywords[websiteLanguage] + '|' + languageKeywords['en']
-    }
-    const pattern = new RegExp(`(?:${keywords})`, 'gi');
-
-    const privacy_links = Array.from(document.querySelectorAll('a')).filter(a =>
-      pattern.test(a.innerText)
-    ).map(
-      a => ({
-        text: a.innerText,
-      })
-    );
-
-    return privacy_links;
-  })(),
-
   // Consent Management Platforms
 
   /**
@@ -250,7 +166,7 @@ let sync_metrics = {
   })(),
 
   /**
-   * Global Privacy Platfrom (GPP)
+   * Global Privacy Protocol (GPP)
    * https://github.com/InteractiveAdvertisingBureau/Global-Privacy-Platform
    */
   iab_gpp: (() => {
@@ -380,112 +296,157 @@ let sync_metrics = {
     return rp;
   })(),
 
-  /**
-   * Media devices
-   * https://developer.mozilla.org/en-US/docs/Web/API/MediaDevices
-   */
-  media_devices: {
-    navigator_mediaDevices_enumerateDevices: testPropertyStringInResponseBodies(
-      'mediaDevices.+enumerateDevices'
-    ),
-    navigator_mediaDevices_getUserMedia: testPropertyStringInResponseBodies(
-      'mediaDevices.+getUserMedia'
-    ),
-    navigator_mediaDevices_getDisplayMedia: testPropertyStringInResponseBodies(
-      'mediaDevices.+getDisplayMedia'
-    ),
-  },
-
-  /**
-   * Geolocation API
-   * https://developer.mozilla.org/en-US/docs/Web/API/Geolocation_API
-   */
-  geolocation: {
-    navigator_geolocation_getCurrentPosition: testPropertyStringInResponseBodies(
-      'geolocation.+getCurrentPosition'
-    ),
-    navigator_geolocation_watchPosition: testPropertyStringInResponseBodies(
-      'geolocation.+watchPosition'
-    ),
-  },
-
   fingerprinting: (() => {
-    //These are determined by looking at the tests in https://github.com/fingerprintjs/fingerprintjs
-    const fingerprintingAPIs = [
-      'ApplePaySession.canMakePayments',
-      'getChannelData', //audioContext
-      'toDataURL', //canvas
-      'getImageData', //canvas, not actually used by fingerprintJS
-      'screen.colorDepth',
-      'color-gamut',
-      'prefers-contrast',
-      'cpuClass',
-      'deviceMemory',
-      'forced-colors',
-      'hardwareConcurrency',
-      'dynamic-range',
-      'indexedDB',
-      'inverted-colors',
-      'navigator.language', //"language" would be too generic here
-      'navigator.userLanguage', //TODO exists?
-      'localStorage',
-      'min-monochrome',
-      'max-monochrome',
-      'openDatabase',
-      'navigator.oscpu',
-      'pdfViewerEnabled',
-      'navigator.platform', //"platform" would be too generic
-      'navigator.plugins',
-      'attributionSourceId',
-      'prefers-reduced-motion',
-      'prefers-reduced-transparency',
-      'availWidth',
-      'availHeight',
-      'screen.width',
-      'screen.height',
-      'sessionStorage',
-      'resolvedOptions().timeZone',
-      'getTimezoneOffset',
-      'maxTouchPoints',
-      'ontouchstart',
-      'navigator.vendor',
-      'vendorUnmasked',
-      'rendererUnmasked',
-      'shadingLanguageVersion',
-      'WEBGL_debug_renderer_info',
-      'getShaderPrecisionFormat'
-    ].map(api => api.toLowerCase())
+    // The APIs are determined by looking at the tests in https://github.com/fingerprintjs/fingerprintjs and https://amiunique.org/fingerprint
+    // Grouped by unique API to improve diversity metric reliability
+    const fingerprintingAPIs = {
+      // Payment APIs
+      'payment': 'ApplePaySession\.canMakePayments',
 
-    const response_bodies = $WPT_BODIES.filter(body => (body.response_body && (body.type === 'Document' || body.type === 'Script')))
+      // User Agent and Platform fingerprinting
+      'navigator_userAgent': 'navigator\.userAgent',
+      'navigator_platform': 'navigator\.platform',
+      'navigator_oscpu': 'navigator\.oscpu',
+      'navigator_vendor': 'navigator\.(vendor|vendorSub)',
+      'navigator_product': 'navigator\.(product|productSub)',
+      'navigator_buildID': 'navigator\.buildID',
 
-    let fingerprintingUsageCounts = {}
-    let likelyFingerprintingScripts = []
+      // Audio fingerprinting
+      'audio_context': '(AudioContext|webkitAudioContext)',
+      'audio_analysis': '(createAnalyser|AnalyserNode|getFloatFrequencyData|getByteFrequencyData|fftSize|frequencyBinCount|maxDecibels|minDecibels|smoothingTimeConstant)',
+      'audio_processing': '(createOscillator|OscillatorNode|createScriptProcessor|createDynamicsCompressor)',
+      'audio_data': '(getChannelData|channelCount|channelCountMode|channelInterpretation|sampleRate)',
+
+      // Canvas fingerprinting
+      'canvas_context': 'canvas\.getContext|getContext\(.*(2d|webgl).*\)',
+      'canvas_rendering': '(canvasRenderingContext2D\.(fillText|strokeText|getImageData)|canvas\.toDataURL|HTMLCanvasElement\.toBlob)',
+
+      // CSS media queries for fingerprinting
+      'css_media_queries': '@media.*(color-gamut|prefers-contrast|forced-colors|dynamic-range|inverted-colors|min-monochrome|max-monochrome|prefers-reduced-motion|prefers-reduced-transparency)',
+
+      // Hardware fingerprinting
+      'hardware_info': '(cpuClass|deviceMemory|hardwareConcurrency|maxTouchPoints)',
+
+      // Touch capabilities
+      'touch_capabilities': '(ontouchstart|TouchEvent|createTouch|createTouchList)',
+
+      // Storage APIs (potential fingerprinting)
+      'storage_apis': '(indexedDB|localStorage|sessionStorage|openDatabase)',
+
+      // PDF and plugins
+      'plugins': '(pdfViewerEnabled|navigator\.(plugins|mimeTypes)|Plugin\s|MimeType)',
+
+      // Attribution and tracking
+      'attribution': 'attributionSourceId',
+
+      // Time zone and language fingerprinting
+      'timezone': '(resolvedOptions\(\)\.timeZone|getTimezoneOffset)',
+      'language': '(navigator\.(language|languages)|Intl\.(DateTimeFormat|Collator))',
+
+      // WebGL fingerprinting
+      'webgl_info': '(vendorUnmasked|rendererUnmasked|shadingLanguageVersion|WEBGL_debug_renderer_info|WebGLRenderingContext)',
+      'webgl_params': '(getShaderPrecisionFormat|getParameter|getSupportedExtensions|getExtension|VENDOR|RENDERER|VERSION|SHADING_LANGUAGE_VERSION)',
+
+      // Screen properties
+      'screen_properties': '(availWidth|availHeight)|screen\.(width|height|colorDepth|pixelDepth|availTop|availLeft)|(outerWidth|outerHeight|innerWidth|innerHeight)|devicePixelRatio',
+
+      // Window and browser chrome fingerprinting
+      'browser_chrome': '(locationbar|menubar|personalbar|scrollbars|statusbar|toolbar|history\.length)',
+
+      // Geolocation API
+      'geolocation': '(getCurrentPosition|watchPosition|navigator\.geolocation)',
+
+      // Media devices and capabilities
+      'media_devices': '(enumerateDevices|getUserMedia|getDisplayMedia|navigator\.mediaDevices)',
+      'media_capabilities': '(canPlayType|HTMLVideoElement\.canPlayType|HTMLAudioElement\.canPlayType)',
+
+      // Permissions API
+      'permissions': '(navigator\.permissions|permissions\.query)',
+
+      // Battery API
+      'battery': '(navigator\.(battery|getBattery)|charging|chargingTime|dischargingTime)',
+
+      // Connection API
+      'connection': '(navigator\.(connection|mozConnection|webkitConnection)|downlink|effectiveType)',
+
+      // Sensors APIs
+      'sensors': '(Accelerometer|Gyroscope|LinearAccelerationSensor|AbsoluteOrientationSensor|RelativeOrientationSensor|AmbientLightSensor|ProximitySensor)',
+
+      // Font detection
+      'fonts': '(document\.fonts|FontFace)',
+
+      // Do Not Track
+      'do_not_track': '(navigator\.doNotTrack|window\.doNotTrack)',
+
+      // Cookie detection
+      'cookies': 'navigator\.cookieEnabled',
+
+      // Java detection
+      'java': 'navigator\.javaEnabled',
+
+      // WebRTC
+      'webrtc_peer': '(RTCPeerConnection|webkitRTCPeerConnection|mozRTCPeerConnection)',
+      'webrtc_data': '(RTCDataChannel|createDataChannel)',
+
+      // Performance APIs
+      'performance': '(performance\.(memory|timing))',
+
+      // Notifications
+      'notifications': 'Notification\.permission',
+
+      // Keyboard layout detection
+      'keyboard': '(KeyboardLayoutMap|navigator\.keyboard|getLayoutMap)',
+
+      // Gamepad API
+      'gamepad': '(navigator\.getGamepads|GamepadEvent)',
+
+      // Storage quota
+      'storage_quota': '(navigator\.(storage|webkitTemporaryStorage|webkitPersistentStorage)|estimate)',
+
+      // Speech APIs
+      'speech': '(SpeechSynthesis|SpeechRecognition)',
+
+      // Crypto subtle fingerprinting
+      'crypto': '(crypto\.subtle|SubtleCrypto)',
+
+      // Worker capabilities
+      'workers': '(Worker|SharedWorker|ServiceWorker)'
+    };
+
+    // Pre-compile regexes - handle already escaped patterns
+    const compiledRegexes = Object.entries(fingerprintingAPIs).map(([apiName, pattern]) => ({
+      api: apiName,
+      regex: new RegExp(pattern, 'gi')
+    }));
+    let likelyFingerprintingScripts = [];
 
     response_bodies.forEach(req => {
-      let total_occurrences = 0
+      try {
+        let detectedApis = [];
 
-      let body = req.response_body.toLowerCase()
+        compiledRegexes.forEach(({ api, regex }) => {
+          try {
+            if (regex.test(req.response_body)) {
+              detectedApis.push(api);
+            }
+          } catch (regexError) {
+            // Skip this API on regex error - avoid console.warn in WebPageTest
+          }
+        });
 
-      fingerprintingAPIs.forEach(api => {
-        let api_occurrences = 0
-        let index = body.indexOf(api)
-        while (index !== -1) {
-          api_occurrences++
-          index = body.indexOf(api, index + 1)
+        // Track scripts with significant fingerprinting API usage
+        if (detectedApis.length >= 5) {
+          likelyFingerprintingScripts.push({
+            url: req.url,
+            detectedApis
+          });
         }
-
-        if (api_occurrences > 0) {
-          fingerprintingUsageCounts[api] = (fingerprintingUsageCounts[api] || 0) + api_occurrences
-        }
-        total_occurrences += api_occurrences
-      })
-
-      if (total_occurrences >= 5) { //TODO what should this threshold be?
-        likelyFingerprintingScripts.push(req.url)
+      } catch (error) {
+        // Skip this request on error - avoid console.warn in WebPageTest
       }
-    })
+    });
 
-    return { counts: fingerprintingUsageCounts, likelyFingerprintingScripts }
+    return likelyFingerprintingScripts;
   })(),
 
   /**
