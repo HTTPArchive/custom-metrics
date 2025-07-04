@@ -324,14 +324,37 @@ function getLcpResponseObject(lcpUrl) {
     return responseObject;
 }
 
+function getParameterCaseInsensitive(object, key) {
+  return object[Object.keys(object).find(k => k.toLowerCase() === key.toLowerCase())];
+}
+
 function getSpeculationRules() {
-    return Array.from(document.querySelectorAll('script[type=speculationrules]')).map(script => {
-        try {
-            return JSON.parse(script.innerHTML);
-        } catch (error) {
-            return null;
-        }
-    });
+  // Get rules from the HTML
+  const htmlRules = Array.from(document.querySelectorAll('script[type=speculationrules]')).map(script => {
+      try {
+          return JSON.parse(script.innerHTML);
+      } catch (error) {
+          return null;
+      }
+  });
+
+  // Get rules from Speculation-Rules HTTP responses
+  // There is an assumption this is actually used on the page but by checking both the `content-type`
+  // and the `sec-fetch-dest`, that should be the case.
+  const httpRules = Array.from(
+    response_bodies
+    .filter(req => getParameterCaseInsensitive(req.response_headers, 'content-type') === 'application/speculationrules+json')
+    .filter(req => getParameterCaseInsensitive(req.request_headers, 'sec-fetch-dest') === 'speculationrules')
+    .map(req => {
+      try {
+        return {url: req.url, rule: JSON.parse(req.response_body)};
+      } catch(error) {
+        return {url: req.url, errorName: error.name, errorMessage: error.message};
+      }
+    })
+  );
+
+  return {htmlRules: htmlRules, httpHeaderRules: httpRules};
 }
 
 return Promise.all([getLcpElement()]).then(([lcp_elem_stats]) => {
@@ -369,5 +392,5 @@ return Promise.all([getLcpElement()]).then(([lcp_elem_stats]) => {
         speculation_rules: getSpeculationRules(),
     };
 }).catch(error => {
-    return {error};
+    return {errorName: error.name, errorMessage: error.message};
 });
