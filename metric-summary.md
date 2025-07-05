@@ -723,7 +723,7 @@ Example response:
 [5, 12, 11]
 ```
 
-## [content-visibility.js](https://github.com/HTTPArchive/custom-metrics/blob/main/dist/content-visibility.js) metrics
+## [content_visibility.js](https://github.com/HTTPArchive/custom-metrics/blob/main/dist/content_visibility.js) metrics
 
 ### content_visibility
 Detects CSS rules using the `content-visibility` property for performance optimization analysis. This metric uses efficient regex-based detection with performance optimizations to find content-visibility declarations in stylesheets, style blocks, and inline styles. Returns information about CSS rules that have content-visibility set to values other than 'visible' (such as 'auto', 'hidden', or 'skip').

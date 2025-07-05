@@ -3,21 +3,21 @@
 
 function extractContentVisibilityFromAST(ast) {
   const contentVisibilityValues = [];
-  
+
   if (!ast || !Array.isArray(ast)) {
     return contentVisibilityValues;
   }
-  
+
   const rulesToProcess = [...ast];
-  
+
   while (rulesToProcess.length > 0) {
     const rule = rulesToProcess.shift();
-    
+
     if (rule.type === 'rule' && rule.declarations) {
       // Process regular CSS rules
       for (const declaration of rule.declarations) {
-        if (declaration.type === 'declaration' && 
-            declaration.property && 
+        if (declaration.type === 'declaration' &&
+            declaration.property &&
             declaration.property.toLowerCase() === 'content-visibility' &&
             declaration.value) {
           contentVisibilityValues.push(declaration.value.trim());
@@ -31,8 +31,8 @@ function extractContentVisibilityFromAST(ast) {
       for (const keyframe of rule.keyframes) {
         if (keyframe.declarations) {
           for (const declaration of keyframe.declarations) {
-            if (declaration.type === 'declaration' && 
-                declaration.property && 
+            if (declaration.type === 'declaration' &&
+                declaration.property &&
                 declaration.property.toLowerCase() === 'content-visibility' &&
                 declaration.value) {
               contentVisibilityValues.push(declaration.value.trim());
@@ -42,7 +42,7 @@ function extractContentVisibilityFromAST(ast) {
       }
     }
   }
-  
+
   return contentVisibilityValues;
 }
 
