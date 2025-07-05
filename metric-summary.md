@@ -723,6 +723,36 @@ Example response:
 [5, 12, 11]
 ```
 
+## [content_visibility.js](https://github.com/HTTPArchive/custom-metrics/blob/main/dist/content_visibility.js) metrics
+
+### content_visibility
+Detects CSS rules using the `content-visibility` property for performance optimization analysis. This metric uses efficient regex-based detection with performance optimizations to find content-visibility declarations in stylesheets, style blocks, and inline styles. Returns information about CSS rules that have content-visibility set to values other than 'visible' (such as 'auto', 'hidden', or 'skip').
+
+**Performance Optimizations:**
+- Early exit for inline styles when content-visibility is found in stylesheets/style blocks
+- Pre-filtering of inline styles to avoid unnecessary regex processing
+
+Example response:
+
+```json
+{
+  "used": true,
+  "count": 5,
+  "values": [
+    "auto",
+    "hidden",
+    "skip",
+    "auto",
+    "hidden"
+  ],
+  "uniqueValues": [
+    "auto",
+    "hidden",
+    "skip"
+  ]
+}
+```
+
 ## [Images.js](https://github.com/HTTPArchive/custom-metrics/blob/main/dist/Images.js) metrics
 
 A JSON array of `<img>` elements on the page.
