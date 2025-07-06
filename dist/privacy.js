@@ -49,27 +49,19 @@ const fetchAndParse = async (url, parser) => {
 };
 
 /**
- * Checks if the response URL ends with any of the specified endings and if the response is OK.
- * @param {Response} response - The fetch response object.
- * @param {string[]} endings - An array of URL endings to check against.
- * @returns {boolean} - Returns true if the response is OK and the URL ends with one of the specified endings.
- */
-const isPresent = (response, endings) => response.ok && endings.some(ending => response.url.endsWith(ending));
-
-/**
  * Parses the response from a DSR delete request.
  * @param {Response} response - The response object from the fetch request.
  * @returns {Promise<Object>} A promise that resolves to an object containing the parsed response data.
  */
 const parseDSRdelete = async (response) => {
   let result = {
-    present: isPresent(response, ['/dsrdelete.json']),
+    present: response.ok && response.url.endsWith('/dsrdelete.json') && response.headers.get('content-type') === 'application/json',
     status: response.status,
   };
   Object.assign(result, result.present ? { redirected: response.redirected } : {});
 
   try {
-    let content = JSON.parse(await response.text());
+    let content = JSON.parse(response.text());
     if (result.present && content) {
       for (const element of content.identifiers) {
         delete element.id;
