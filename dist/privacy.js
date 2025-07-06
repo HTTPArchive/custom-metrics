@@ -529,10 +529,7 @@ let sync_metrics = {
 
     let CCPAdata = {
       hasCCPALink: CCPALinks.length > 0,
-    }
-    if (CCPAdata.hasCCPALink) {
-      CCPAdata.CCPALinkPhrases = CCPALinks.map(link => link.textContent.trim().toLowerCase())
-    }
+    };
 
     return CCPAdata
   })()
