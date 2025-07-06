@@ -30,14 +30,14 @@ function testPropertyStringInResponseBodies(pattern) {
    * @param {function} parser - The function to parse the response.
    * @returns {Promise<Object>} The parsed response or an error object.
    */
-const fetchAndParse = async (url, parser) => {
+const fetchAndParse = (url, parser) => {
   const timeout = 5000;
   const controller = new AbortController();
   const { signal } = controller;
   setTimeout(() => controller.abort(), timeout);
 
   try {
-    const response = await fetch(url, { signal });
+    const response = fetch(url, { signal });
     return parser(response);
   } catch (error) {
     return {
@@ -53,7 +53,7 @@ const fetchAndParse = async (url, parser) => {
  * @param {Response} response - The response object from the fetch request.
  * @returns {Promise<Object>} A promise that resolves to an object containing the parsed response data.
  */
-const parseDSRdelete = async (response) => {
+const parseDSRdelete = (response) => {
   let result = {
     present: response.ok && response.url.endsWith('/dsrdelete.json') && response.headers.get('content-type') === 'application/json',
     status: response.status,
@@ -388,7 +388,7 @@ let sync_metrics = {
   * IAB: Data Deletion Request Framework
   * https://github.com/InteractiveAdvertisingBureau/Data-Subject-Rights/blob/main/Data%20Deletion%20Request%20Framework.md
   */
-let iab_ddr = fetchAndParse("/dsrdelete.json", parseDSRdelete);
+let iab_ddr = fetchAndParse("/.well-known/dsrdelete.json", parseDSRdelete);
 
 return Promise.all([iab_ddr]).then(([iab_ddr]) => {
   return JSON.stringify({
