@@ -388,11 +388,9 @@ let sync_metrics = {
   * IAB: Data Deletion Request Framework
   * https://github.com/InteractiveAdvertisingBureau/Data-Subject-Rights/blob/main/Data%20Deletion%20Request%20Framework.md
   */
-let iab_ddr = fetchAndParse("/dsrdelete.json", parseDSRdelete);
+let iab_ddr = await fetchAndParse("/dsrdelete.json", parseDSRdelete);
 
-return Promise.all([iab_ddr]).then(([iab_ddr]) => {
-  return JSON.stringify({
-    ...sync_metrics,
-    ...{ iab_ddr: iab_ddr }
-  });
+return JSON.stringify({
+  ...sync_metrics,
+  ...{ iab_ddr: iab_ddr }
 });
