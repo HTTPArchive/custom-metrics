@@ -811,6 +811,16 @@ const patterns = {
     blinkFeatureID: 5401,
     chromeStatusID: 6494349985841152,
   },
+  'Web Install': {
+    regEx: /\bnavigator\.install\s*\(/g,
+    where: 'JavaScript',
+    supported: (async () => 'install' in navigator)(),
+    featureDetection: `(async () => 'install' in navigator)()`,
+    documentation:
+      'https://github.com/MicrosoftEdge/MSEdgeExplainers/blob/main/WebInstall/explainer.md',
+    blinkFeatureID: undefined,
+    chromeStatusID: 5183481574850560,
+  },
 };
 
 const responseBodies = $WPT_BODIES;
