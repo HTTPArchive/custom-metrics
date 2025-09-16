@@ -123,6 +123,7 @@ function validate(tokenElem) {
  * @returns {any} value
  */
 function getParameterCaseInsensitive(object, key) {
+  if (!object || !key) return;
   return object[Object.keys(object).find(k => k.toLowerCase() === key.toLowerCase())];
 }
 
