@@ -215,7 +215,7 @@ return JSON.stringify({
     };
   }),
   screen_reader_classes: captureAndLogError(() => {
-    return document.querySelectorAll('.sr-only', '.visually-hidden', '.screen-reader-text', '.element-invisible').length > 0;
+    return document.querySelectorAll('.sr-only', '.visually-hidden', '.screen-reader-text', '.element-invisible', '.sr', '.visuallyhidden',  '.skip-link', '.scrn-rdr',  '.usa-skipnav',  '.usa-sr-only', '.a11y-hide').length > 0;
   }),
   form_control_a11y_tree: captureAndLogError(() => {
     const attributes_to_track_regex = /^(aria-.+|type|id|name|placeholder|accept|autocomplete|autofocus|capture|max|maxlength|min|minlength|required|readonly|pattern|multiple|step)$/i;
