@@ -311,6 +311,29 @@ return Promise.all([
       url: r.url
     });
   }),
+  // A2A Agent Card (required + strongly recommended fields)
+  parseResponse('/.well-known/agent-card.json', r => {
+    return r.text().then(text => {
+      let result = {
+        url: null,
+        preferredTransport: null,
+        protocolVersion: null,
+        name: null,
+        description: null
+      };
+      try {
+        let data = JSON.parse(text);
+        result.url = data.url || null;
+        result.preferredTransport = data.preferredTransport || null;
+        result.protocolVersion = data.protocolVersion || null;
+        result.name = data.name || null;
+        result.description = data.description || null;
+      } catch (e) {
+        // Failed to parse JSON
+      }
+      return result;
+    });
+  }),
   parseResponseWithRedirects('/.well-known/resource-that-should-not-exist-whose-status-code-should-not-be-200/', r => {
     return Promise.resolve({
       status: r.status,
