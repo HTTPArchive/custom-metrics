@@ -821,6 +821,24 @@ const patterns = {
     blinkFeatureID: undefined,
     chromeStatusID: 5183481574850560,
   },
+  'WebNN': {
+    regEx: /\bnavigator\.ml\.createContext\s*\(/g,
+    where: 'JavaScript',
+    supported: (async () => 'ml' in navigator)(),
+    featureDetection: `(async () => 'ml' in navigator)()`,
+    documentation: 'https://github.com/webmachinelearning/webnn',
+    blinkFeatureID: undefined,
+    chromeStatusID: 5176273954144256,
+  },
+  'WebMCP': {
+    regEx: /\bnavigator\.modelContext\.provideContext\s*\(/g,
+    where: 'JavaScript',
+    supported: (async () => 'modelContext' in navigator)(),
+    featureDetection: `(async () => 'modelContext' in navigator)()`,
+    documentation: 'https://github.com/webmachinelearning/webmcp',
+    blinkFeatureID: undefined,
+    chromeStatusID: 5117755740913664,
+  },
 };
 
 const responseBodies = $WPT_BODIES;
