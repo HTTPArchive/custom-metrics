@@ -767,7 +767,7 @@ const patterns = {
     chromeStatusID: 5193953788559360,
   },
   'Writer': {
-    regEx: /\bWriter\.create\s*\(/g,
+    regEx: /\bawait Writer\.create\s*\(/g,
     where: 'JavaScript',
     supported: (async () => 'Writer' in self)(),
     featureDetection: `(async () => 'Writer' in self)()`,
