@@ -11,6 +11,9 @@ on:
 jobs:
   test:
     name: WebPageTest Test Cases
+    permissions:
+      contents: read
+      pull-requests: write
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
