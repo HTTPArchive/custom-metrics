@@ -1,6 +1,6 @@
 const { WPTTestRunner } = require('./wpt.js');
 const assert = require('assert');
-const test_website = "https://almanac.httparchive.org/en/2022/";
+const test_website = "https://almanac.httparchive.org/en/2025/";
 
 let wpt_data;
 beforeAll(async () => {
