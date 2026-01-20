@@ -1,3 +1,5 @@
+//[meta_viewport]
+
 var viewport = undefined;
 var metaTags = document.getElementsByTagName("meta");
 for (var i = 0; i < metaTags.length; i++) {
@@ -7,4 +9,4 @@ for (var i = 0; i < metaTags.length; i++) {
     }
 }
 /* eslint-disable-next-line no-control-regex */
-return viewport.replace(/[\x00-\x1F\x80-\xFF]/g, "");
+return JSON.stringify(viewport.replace(/[\x00-\x1F\x80-\xFF]/g, ""));
