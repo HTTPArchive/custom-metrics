@@ -177,15 +177,48 @@ const parseSellersJSON = async (response) => {
   return result;
 }
 
+
+// https://github.com/InteractiveAdvertisingBureau/Data-Subject-Rights/blob/main/Data%20Deletion%20Request%20Framework.md
+const parseDSRDeleteJSON = async (response) => {
+  let content;
+  try {
+    content = JSON.parse(await response.text());
+  } catch {
+    content = null;
+  }
+  let result = {
+    present: isPresent(response, ['/dsrdelete.json']),
+    status: response.status,
+    redirected: response.redirected,
+  };
+
+  if (result.present && content) {
+    result = {
+      ...result,
+      redirected_to: response.redirected ? response.url : null,
+      endpoint: content.endpoint || null,
+      pollFrequency: content.pollFrequency || null,
+      identifiers: content.identifiers ? content.identifiers.map(({ type, format }) => ({ type, format })) : null,
+      vendorScriptRequirement: typeof content.vendorScriptRequirement === 'boolean' ? content.vendorScriptRequirement : null,
+      vendorScript: typeof content.vendorScript === 'string' ? true : null,
+      dsrdeleteJsonUri: content.dsrdeleteJsonUri || null,
+    };
+  }
+
+  return result;
+}
+
 return Promise.all([
   fetchAndParse("/ads.txt", parseAdsTxt).catch(e => e),
   fetchAndParse("/app-ads.txt", parseAdsTxt).catch(e => e),
   fetchAndParse("/sellers.json", parseSellersJSON).catch(e => e),
+  fetchAndParse("/dsrdelete.json", parseDSRDeleteJSON).catch(e => e),
 ]).then((all_data) => {
   return JSON.stringify({
     ads: all_data[0],
     app_ads: all_data[1],
-    sellers: all_data[2]
+    sellers: all_data[2],
+    dsrdelete: all_data[3]
   });
 }).catch(error => {
   return JSON.stringify({
