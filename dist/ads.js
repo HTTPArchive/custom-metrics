@@ -193,16 +193,13 @@ const parseDSRDeleteJSON = async (response) => {
   };
 
   if (result.present && content) {
-    result = {
-      ...result,
-      redirected_to: response.redirected ? response.url : null,
-      endpoint: content.endpoint || null,
-      pollFrequency: content.pollFrequency || null,
-      identifiers: content.identifiers ? content.identifiers.map(({ type, format }) => ({ type, format })) : null,
-      vendorScriptRequirement: typeof content.vendorScriptRequirement === 'boolean' ? content.vendorScriptRequirement : null,
-      vendorScript: typeof content.vendorScript === 'string' ? true : null,
-      dsrdeleteJsonUri: content.dsrdeleteJsonUri || null,
-    };
+    if (response.redirected) result.redirected_to = response.url;
+    if (content.endpoint) result.endpoint = content.endpoint;
+    if (content.pollFrequency) result.pollFrequency = content.pollFrequency;
+    if (content.identifiers) result.identifiers = content.identifiers.map(({ type, format }) => ({ type, format }));
+    if (typeof content.vendorScriptRequirement === 'boolean') result.vendorScriptRequirement = content.vendorScriptRequirement;
+    if (typeof content.vendorScript === 'string') result.vendorScript = true;
+    if (content.dsrdeleteJsonUri) result.dsrdeleteJsonUri = content.dsrdeleteJsonUri;
   }
 
   return result;
