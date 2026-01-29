@@ -40,22 +40,8 @@ const fetchWithTimeout = (url) => {
   return fetch(url, {signal: controller.signal});
 }
 
-const RECORD_COUNT_TYPES = {
-    'sitemap': 'sitemap',
-    'user-agent': 'user_agent',
-    'allow': 'allow',
-    'disallow': 'disallow',
-    'crawl-delay': 'crawl_delay',
-    'noindex': 'noindex',
-    'other': 'other'
-};
-
-const BY_USERAGENT_TYPES = {
-    'allow': 'allow',
-    'disallow': 'disallow',
-    'crawl-delay': 'crawl_delay',
-    'noindex': 'noindex',
-    'other': 'other'
+const NON_USERAGENT_TYPES = {
+    'sitemap': 'sitemap'
 };
 
 const parseRecords = (text)=>{
@@ -64,17 +50,20 @@ const parseRecords = (text)=>{
     const splitOnLines = (r)=>r.split(/[\r\n]+/g).filter((e)=>e.length > 0);
     const lines = splitOnLines(cleanLines(text));
 
-    const rec_types = Object.keys(RECORD_COUNT_TYPES).join('|');
-    const regex = new RegExp(`(${rec_types})(?=\\s*:)`,'gi');
+    // Match any valid token followed by a colon. While rule key-value pairs
+    // don't have a pattern definition in RFC9309, based on common rules in
+    // robots.txt files, we can assume the rule keys follow the pattern of the
+    // product token ("user-agent"), which is [a-z0-9_-].
+    // https://www.rfc-editor.org/rfc/rfc9309.html#name-formal-syntax
+    const regex = /^([a-z0-9_-]+)\s*:\s*(.*)$/;
 
-    const records = [].map.call(lines, line=>{
-
+    const records = lines.map(line => {
         let rec_match = line.match(regex);
 
         if (rec_match) {
             return {
-                record_type: rec_match[0].trim(),
-                record_value: line.slice(line.indexOf(':') + 1).trim()
+                record_type: rec_match[1].trim(),
+                record_value: rec_match[2].trim()
             };
         }
 
@@ -82,9 +71,7 @@ const parseRecords = (text)=>{
             record_type: 'other',
             record_value: line
         };
-
-    }
-    );
+    });
 
     return records;
 }
@@ -108,8 +95,12 @@ return fetchWithTimeout('/robots.txt')
 
       // Record counts by type of record
       result.record_counts.by_type = {};
-      for (let rec_type of Object.keys(RECORD_COUNT_TYPES)) {
-          result.record_counts.by_type[RECORD_COUNT_TYPES[rec_type]] = records.filter((e)=>e['record_type'] == rec_type).length;
+
+      // Count all types found
+      for (let record of records) {
+          let rawType = record.record_type;
+          let outputKey = rawType.replace(/-/g, '_');
+          result.record_counts.by_type[outputKey] = (result.record_counts.by_type[outputKey] ?? 0) + 1;
       }
 
       // Record counts by user-agent
@@ -123,10 +114,7 @@ return fetchWithTimeout('/robots.txt')
 
               // If empty build
               if (!(record.record_value in counts_by_useragent)) {
-                  counts_by_useragent[record.record_value] = Object.values(BY_USERAGENT_TYPES).reduce((a,v)=>({
-                      ...a,
-                      [v]: 0
-                  }), {});
+                  counts_by_useragent[record.record_value] = {};
               }
 
               // If prior record UA, append to list, else create list of 1.
@@ -136,11 +124,16 @@ return fetchWithTimeout('/robots.txt')
                   applies_to_useragent = [record.record_value];
               }
 
-          } else if (record.record_type in BY_USERAGENT_TYPES) {
-              for (let ua of applies_to_useragent) {
-                  counts_by_useragent[ua][BY_USERAGENT_TYPES[record.record_type]] += 1;
-              }
+          } else {
+              // Ignore global records such as 'sitemap' because they're not
+              // associated with a user-agent.
+              if (!(record.record_type in NON_USERAGENT_TYPES)) {
+                  let outputKey = record.record_type.replace(/-/g, '_');
 
+                  for (let ua of applies_to_useragent) {
+                      counts_by_useragent[ua][outputKey] = (counts_by_useragent[ua][outputKey] ?? 0) + 1
+                  }
+              }
           }
 
           last = record.record_type;
