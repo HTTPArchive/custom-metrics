@@ -40,22 +40,8 @@ const fetchWithTimeout = (url) => {
   return fetch(url, {signal: controller.signal});
 }
 
-const RECORD_COUNT_TYPES = {
-    'sitemap': 'sitemap',
-    'user-agent': 'user_agent',
-    'allow': 'allow',
-    'disallow': 'disallow',
-    'crawl-delay': 'crawl_delay',
-    'noindex': 'noindex',
-    'other': 'other'
-};
-
-const BY_USERAGENT_TYPES = {
-    'allow': 'allow',
-    'disallow': 'disallow',
-    'crawl-delay': 'crawl_delay',
-    'noindex': 'noindex',
-    'other': 'other'
+const NON_USERAGENT_TYPES = {
+    'sitemap': 'sitemap'
 };
 
 const parseRecords = (text)=>{
@@ -110,23 +96,10 @@ return fetchWithTimeout('/robots.txt')
       // Record counts by type of record
       result.record_counts.by_type = {};
 
-      // Initialize default types to 0 so they're always present in the output.
-      for (let key in RECORD_COUNT_TYPES) {
-          result.record_counts.by_type[RECORD_COUNT_TYPES[key]] = 0;
-      }
-
       // Count all types found
       for (let record of records) {
           let rawType = record.record_type;
-          let outputKey;
-
-          if (RECORD_COUNT_TYPES[rawType]) {
-              outputKey = RECORD_COUNT_TYPES[rawType];
-          } else {
-              // Normalize unknown types for output.
-              outputKey = rawType.replace(/-/g, '_');
-          }
-
+          let outputKey = rawType.replace(/-/g, '_');
           result.record_counts.by_type[outputKey] = (result.record_counts.by_type[outputKey] ?? 0) + 1;
       }
 
@@ -141,10 +114,7 @@ return fetchWithTimeout('/robots.txt')
 
               // If empty build
               if (!(record.record_value in counts_by_useragent)) {
-                  counts_by_useragent[record.record_value] = Object.values(BY_USERAGENT_TYPES).reduce((a,v)=>({
-                      ...a,
-                      [v]: 0
-                  }), {});
+                  counts_by_useragent[record.record_value] = {};
               }
 
               // If prior record UA, append to list, else create list of 1.
@@ -155,15 +125,10 @@ return fetchWithTimeout('/robots.txt')
               }
 
           } else {
-              // Ignore sitemap records because they're not associated with a
-              // user-agent.
-              if (record.record_type !== 'sitemap') {
-                  let outputKey;
-                  if (BY_USERAGENT_TYPES[record.record_type]) {
-                      outputKey = BY_USERAGENT_TYPES[record.record_type];
-                  } else {
-                      outputKey = record.record_type.replace(/-/g, '_');
-                  }
+              // Ignore global records such as 'sitemap' because they're not
+              // associated with a user-agent.
+              if (!(record.record_type in NON_USERAGENT_TYPES)) {
+                  let outputKey = record.record_type.replace(/-/g, '_');
 
                   for (let ua of applies_to_useragent) {
                       counts_by_useragent[ua][outputKey] = (counts_by_useragent[ua][outputKey] ?? 0) + 1
