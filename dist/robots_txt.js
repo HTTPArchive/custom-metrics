@@ -166,12 +166,7 @@ return fetchWithTimeout('/robots.txt')
                   }
 
                   for (let ua of applies_to_useragent) {
-                      // Initialize if not already present so we can increment
-                      // it.
-                      if (counts_by_useragent[ua][outputKey] === undefined) {
-                          counts_by_useragent[ua][outputKey] = 0;
-                      }
-                      counts_by_useragent[ua][outputKey]++;
+                      counts_by_useragent[ua][outputKey] = (counts_by_useragent[ua][outputKey] ?? 0) + 1
                   }
               }
           }
