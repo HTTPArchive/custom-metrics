@@ -127,11 +127,7 @@ return fetchWithTimeout('/robots.txt')
               outputKey = rawType.replace(/-/g, '_');
           }
 
-          // Initialize if not already present so we can increment it.
-          if (result.record_counts.by_type[outputKey] === undefined) {
-              result.record_counts.by_type[outputKey] = 0;
-          }
-          result.record_counts.by_type[outputKey]++;
+          result.record_counts.by_type[outputKey] = (result.record_counts.by_type[outputKey] ?? 0) + 1;
       }
 
       // Record counts by user-agent
