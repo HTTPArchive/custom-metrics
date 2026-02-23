@@ -81,6 +81,7 @@ return fetchWithTimeout('/robots.txt')
     let result = {};
     result.redirected = !!r.redirected;
     result.status = r.status;
+    result.content_type = r?.headers?.get('content-type');
     return r.text().then(t => {
 
       // Overall Metrics
