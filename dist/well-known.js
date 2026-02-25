@@ -10,42 +10,42 @@
 
 function fetchWithTimeout(url) {
   var controller = new AbortController();
-  setTimeout(() => {controller.abort()}, 5000);
-  return fetch(url, {signal: controller.signal});
+  setTimeout(() => { controller.abort() }, 5000);
+  return fetch(url, { signal: controller.signal });
 }
 
 function parseResponse(url, parser) {
   return fetchWithTimeout(url)
-  .then(request => {
-    let resultObj = {};
-    if(!request.redirected && request.status === 200) {
-      resultObj['found'] = true;
-      if(parser) {
-        let promise = parser(request);
-        if (promise) {
-          return promise
-          .then(data => {
-            resultObj['data'] = data;
+    .then(request => {
+      let resultObj = {};
+      if (!request.redirected && request.status === 200) {
+        resultObj['found'] = true;
+        if (parser) {
+          let promise = parser(request);
+          if (promise) {
+            return promise
+              .then(data => {
+                resultObj['data'] = data;
+                return [url, resultObj];
+              })
+              .catch(error => {
+                return [url, { 'error': error.message }];
+              });
+          } else {
+            resultObj['error'] = 'parser did not return a promise';
             return [url, resultObj];
-          })
-          .catch(error => {
-            return [url, {'error': error.message}];
-          });
+          }
         } else {
-          resultObj['error'] = 'parser did not return a promise';
           return [url, resultObj];
         }
       } else {
+        resultObj['found'] = false;
         return [url, resultObj];
       }
-    } else {
-      resultObj['found'] = false;
-      return [url, resultObj];
-    }
-  })
-  .catch(error => {
-    return [url, {'error': error.message}];
-  });
+    })
+    .catch(error => {
+      return [url, { 'error': error.message }];
+    });
 }
 
 function parseResponseWithRedirects(url, parser) {
@@ -150,58 +150,89 @@ return Promise.all([
   // FedCM
   parseResponse('/.well-known/web-identity', r => {
     return r.text().then(text => {
-        let result = {
-            provider_urls: [],
-            accounts_endpoint: null,
-            login_url: null
-        };
-        try {
-            let data = JSON.parse(text);
-            result.provider_urls = Array.isArray(data.provider_urls) && data.provider_urls.length > 0 ? data.provider_urls : [];
-            result.accounts_endpoint = data.accounts_endpoint || null;
-            result.login_url = data.login_url || null;
-        } catch (e) {
-            // Failed to parse JSON
-        }
-        return result;
+      let result = {
+        provider_urls: [],
+        accounts_endpoint: null,
+        login_url: null
+      };
+      try {
+        let data = JSON.parse(text);
+        result.provider_urls = Array.isArray(data.provider_urls) && data.provider_urls.length > 0 ? data.provider_urls : [];
+        result.accounts_endpoint = data.accounts_endpoint || null;
+        result.login_url = data.login_url || null;
+      } catch (e) {
+        // Failed to parse JSON
+      }
+      return result;
     });
   }),
   // Passkey
   parseResponse('/.well-known/passkey-endpoints', r => {
     return r.text().then(text => {
-        let result = {
-            enroll: null,
-            manage: null
-        };
-        try {
-            let data = JSON.parse(text);
-            result.enroll = data.enroll || null;
-            result.manage = data.manage || null;
-        } catch (e) {
-            // Failed to parse JSON
-        }
-        return result;
+      let result = {
+        enroll: null,
+        manage: null
+      };
+      try {
+        let data = JSON.parse(text);
+        result.enroll = data.enroll || null;
+        result.manage = data.manage || null;
+      } catch (e) {
+        // Failed to parse JSON
+      }
+      return result;
     });
   }),
   // Related Origin Requests
   parseResponse('/.well-known/webauthn', r => {
     return r.text().then(text => {
-        let result = {
-            origins: []
-        };
-        try {
-            let data = JSON.parse(text);
-            result.origins = Array.isArray(data.origins) && data.origins.length > 0 ? data.origins : [];
-        } catch (e) {
-            // Failed to parse JSON
+      let result = {
+        origins: []
+      };
+      try {
+        let data = JSON.parse(text);
+        result.origins = Array.isArray(data.origins) && data.origins.length > 0 ? data.origins : [];
+      } catch (e) {
+        // Failed to parse JSON
+      }
+      return result;
+    });
+  }),
+  // UCP
+  parseResponse('/.well-known/ucp', r => {
+    return r.text().then(text => {
+      let result = {
+        has_ucp: false,
+        version: null,
+        has_payment_handlers: false,
+        signing_keys_count: 0
+      };
+      try {
+        let data = JSON.parse(text);
+        if (data.ucp) {
+          result.has_ucp = true;
+          result.version = data.ucp.version || null;
+
+          if (data.ucp.payment_handlers && Object.keys(data.ucp.payment_handlers).length > 0) {
+            result.has_payment_handlers = true;
+          }
         }
-        return result;
+        if (data.payment && data.payment.handlers && Array.isArray(data.payment.handlers) && data.payment.handlers.length > 0) {
+          result.has_payment_handlers = true;
+        }
+        if (Array.isArray(data.signing_keys)) {
+          result.signing_keys_count = data.signing_keys.length;
+        }
+      } catch (e) {
+        // Failed to parse JSON
+      }
+      return result;
     });
   }),
   // security
   parseResponse('/robots.txt', r => {
     return r.text().then(text => {
-      let data = {'matched_disallows': {}};
+      let data = { 'matched_disallows': {} };
       let keywords = [
         'login',
         'log-in',
@@ -213,7 +244,7 @@ return Promise.all([
         'account'
       ]
       let currUserAgent = null;
-      for(let line of text.split('\n')) {
+      for (let line of text.split('\n')) {
         if (line.toLowerCase().startsWith('user-agent: ')) {
           currUserAgent = line.substring(12);
         } else if (line.toLowerCase().startsWith('disallow: ')) {
@@ -321,5 +352,5 @@ return Promise.all([
 ]).then((all_data) => {
   return JSON.stringify(Object.fromEntries(all_data));
 }).catch(error => {
-  return JSON.stringify({message: error.message, error: error});
+  return JSON.stringify({ message: error.message, error: error });
 });
