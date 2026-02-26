@@ -217,7 +217,7 @@ return Promise.all([
             result.has_payment_handlers = true;
           }
         }
-        if (data.payment && data.payment.handlers && Array.isArray(data.payment.handlers) && data.payment.handlers.length > 0) {
+        if (Array.isArray(data?.payment?.handlers) && data.payment.handlers.length > 0) {
           result.has_payment_handlers = true;
         }
         if (Array.isArray(data.signing_keys)) {
