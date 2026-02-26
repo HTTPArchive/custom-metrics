@@ -208,7 +208,7 @@ return Promise.all([
         signing_keys_count: 0
       };
       try {
-        let data = JSON.parse(text);
+        const data = JSON.parse(text);
         if (data.ucp) {
           result.has_ucp = true;
           result.version = data.ucp.version || null;
