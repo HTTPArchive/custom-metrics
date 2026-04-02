@@ -15,7 +15,7 @@ Whether the page contains any instances of  <script nomodule>
 `1` if true, `0` if false
 
 ## link-nodes
-A JSON array of <link> nodes used in the <head> element.
+A JSON array of <link> nodes
 
 Example response:
 

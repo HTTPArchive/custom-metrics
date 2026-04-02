@@ -13,4 +13,4 @@ if ( dt ) {
   }
 }
 /* eslint-disable-next-line no-control-regex */
-return sDoctype.replace(/[\x00-\x1F\x80-\xFF]/g, "").toString();
+return JSON.stringify(sDoctype.replace(/[\x00-\x1F\x80-\xFF]/g, "").toString());
