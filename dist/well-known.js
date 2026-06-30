@@ -229,6 +229,23 @@ return Promise.all([
       return result;
     });
   }),
+  // EVP
+  parseResponse('/.well-known/email-verification', r => {
+    return r.text().then(text => {
+      let result = {
+        issuance_endpoint: null,
+        signing_alg_values_supported: []
+      };
+      try {
+        const data = JSON.parse(text);
+        result.issuance_endpoint = data.issuance_endpoint || null;
+        result.signing_alg_values_supported = Array.isArray(data.signing_alg_values_supported) ? data.signing_alg_values_supported : [];
+      } catch (e) {
+        // Failed to parse JSON
+      }
+      return result;
+    });
+  }),
   // security
   parseResponse('/robots.txt', r => {
     return r.text().then(text => {
