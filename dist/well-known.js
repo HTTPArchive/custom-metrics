@@ -229,7 +229,7 @@ return Promise.all([
       return result;
     });
   }),
-  // EVP
+  // Email Verification Protocol (EVP) - https://github.com/WICG/email-verification
   parseResponse('/.well-known/email-verification', r => {
     return r.text().then(text => {
       let result = {
@@ -246,7 +246,6 @@ return Promise.all([
       return result;
     });
   }),
-  // security
   parseResponse('/robots.txt', r => {
     return r.text().then(text => {
       let data = { 'matched_disallows': {} };
