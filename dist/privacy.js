@@ -1,10 +1,23 @@
 //[privacy]
 // Uncomment the previous line for testing on webpagetest.org
 
-// README! Instructions for adding a new custom metric for the Web Almanac.
-// 2. If the value requires more than one line of code, evaluate it in an IIFE, eg `(() => { ... })()`. See `link-nodes`.
-// 3. Test your change by following the instructions at https://github.com/HTTPArchive/almanac.httparchive.org/issues/33#issuecomment-502288773.
-// 4. Submit a PR to update this file.
+/**
+ * Privacy custom metrics evaluated on page crawl.
+ *
+ * @typedef {Object} PrivacyMetrics
+ * @property {IABTCFv1} iab_tcf_v1 - IAB Transparency and Consent Framework v1 settings and vendor consents. See [IAB TCF v1.1](https://github.com/InteractiveAdvertisingBureau/GDPR-Transparency-and-Consent-Framework/blob/master/CMP%20JS%20API%20v1.1%20Final.md).
+ * @property {IABTCFv2} iab_tcf_v2 - IAB Transparency and Consent Framework v2 settings and vendor consents. See [IAB TCF v2](https://github.com/InteractiveAdvertisingBureau/GDPR-Transparency-and-Consent-Framework/blob/master/TCFv2/IAB%20Tech%20Lab%20-%20CMP%20API%20v2.md).
+ * @property {IABGPP} iab_gpp - Global Privacy Platform (GPP) ping response data. See [Global-Privacy-Platform](https://github.com/InteractiveAdvertisingBureau/Global-Privacy-Platform).
+ * @property {IABUSP} iab_usp - IAB US Privacy User Signal Mechanism (USP API) data. See [USPrivacy](https://github.com/InteractiveAdvertisingBureau/USPrivacy).
+ * @property {boolean} navigator_doNotTrack - Whether the browser's "Do Not Track" setting was accessed or detected in response bodies. See [EFF Do Not Track](https://www.eff.org/issues/do-not-track).
+ * @property {boolean} navigator_globalPrivacyControl - Whether the Global Privacy Control (GPC) property was accessed or detected in response bodies. See [Global Privacy Control](https://globalprivacycontrol.org/).
+ * @property {boolean} document_permissionsPolicy - Whether document Permissions Policy is referenced in response bodies. See [W3C Permissions Policy](https://www.w3.org/TR/permissions-policy-1/#introspection).
+ * @property {boolean} document_featurePolicy - Whether document Feature Policy (legacy Permissions Policy) is referenced in response bodies.
+ * @property {ReferrerPolicyData} referrerPolicy - Referrer policy declared for the entire document, subresource requests, or link relations. See [MDN Referrer-Policy](https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Referrer-Policy).
+ * @property {Object.<string, string[]>} request_hostnames_with_cname - Mapping of request hostnames to their canonical CNAME chains.
+ * @property {CCPAData} ccpa_link - California Consumer Privacy Act (CCPA) compliance links detection. See [CPPA FAQ](https://cppa.ca.gov/faq.html).
+ * @property {IABDataDeletionRequest} iab_ddr - IAB Data Deletion Request Framework response data. See [Data Deletion Request Framework](https://github.com/InteractiveAdvertisingBureau/Data-Subject-Rights/blob/main/Data%20Deletion%20Request%20Framework.md).
+ */
 
 const response_bodies = $WPT_BODIES.filter(body => (body.response_body && (body.type === 'Document' || body.type === 'Script')))
 
@@ -26,10 +39,10 @@ function testPropertyStringInResponseBodies(pattern) {
 }
 
 /**
-   * @param {string} url - The URL to fetch.
-   * @param {function} parser - The function to parse the response.
-   * @returns {Promise<Object>} The parsed response or an error object.
-   */
+ * @param {string} url - The URL to fetch.
+ * @param {function} parser - The function to parse the response.
+ * @returns {Promise<Object>} The parsed response or an error object.
+ */
 const fetchAndParse = async (url, parser) => {
   const timeout = 5000;
   const controller = new AbortController();
@@ -49,9 +62,24 @@ const fetchAndParse = async (url, parser) => {
 };
 
 /**
+ * IAB Data Deletion Request Framework response
+ *
+ * @typedef {Object} IABDataDeletionRequest
+ * @property {boolean} present - Whether the `/dsrdelete.json` endpoint exists and returns valid JSON.
+ * @property {number} status - HTTP status code of the `/dsrdelete.json` request.
+ * @property {boolean} [redirected] - Whether the request was redirected.
+ * @property {Object[]} [identifiers] - Sanitized identifiers supported for data deletion requests.
+ * @property {string} [endpointOrigin] - Target origin if redirected.
+ * @property {boolean} [vendorScriptPresent] - Whether vendor script is declared.
+ * @property {boolean} [vendorScriptRequirement] - Whether vendor script requirement is declared.
+ * @property {string} [error] - Error message if request or parsing failed.
+ */
+
+/**
  * Parses the response from a DSR delete request.
+ * @param {string} url - The URL requested.
  * @param {Response} response - The response object from the fetch request.
- * @returns {Promise<Object>} A promise that resolves to an object containing the parsed response data.
+ * @returns {IABDataDeletionRequest} A promise that resolves to an object containing the parsed response data.
  */
 const parseDSRdelete = (url, response) => {
   let result = {
@@ -83,26 +111,24 @@ let sync_metrics = {
 
   /**
    * IAB Transparency and Consent Framework v1
-   * https://github.com/InteractiveAdvertisingBureau/GDPR-Transparency-and-Consent-Framework/blob/master/CMP%20JS%20API%20v1.1%20Final.md
+   *
+   * @typedef {Object} IABTCFv1
+   * @property {boolean} present - Whether the `__cmp` API function is present on the window object.
+   * @property {Object} [data] - TCF v1 vendor consents data returned by `getVendorConsents`. See [VendorConsents](https://github.com/InteractiveAdvertisingBureau/GDPR-Transparency-and-Consent-Framework/blob/master/CMP%20JS%20API%20v1.1%20Final.md#vendorconsents-).
+   * @property {boolean} [compliant_setup] - Verifies whether the TCF v1 CMP setup is compliant with IAB standards.
    */
   iab_tcf_v1: (() => {
     let consentData = {
       present: typeof window.__cmp == 'function',
     };
-    // description of `__cmp`: https://github.com/InteractiveAdvertisingBureau/GDPR-Transparency-and-Consent-Framework/blob/master/CMP%20JS%20API%20v1.1%20Final.md#what-api-will-need-to-be-provided-by-the-cmp-
     try {
       if (consentData.present) {
-        // Standard command: 'getVendorConsents'
-        // cf. https://github.com/InteractiveAdvertisingBureau/GDPR-Transparency-and-Consent-Framework/blob/master/CMP%20JS%20API%20v1.1%20Final.md#what-api-will-need-to-be-provided-by-the-cmp-
         window.__cmp('getVendorConsents', null, (result, success) => {
           if (success) {
             consentData.data = result;
             consentData.compliant_setup = true;
           } else {
             // special case for consentmanager ('CMP settings are used that are not compliant with the IAB TCF')
-            // see warning at the top of https://help.consentmanager.net/books/cmp/page/changes-to-the-iab-cmp-framework-js-api
-            // cf. https://help.consentmanager.net/books/cmp/page/javascript-api
-            // Test site: https://www.pokellector.com/
             window.__cmp('noncompliant_getVendorConsents', null, (result, success) => {
               if (success) {
                 consentData.data = result;
@@ -121,25 +147,24 @@ let sync_metrics = {
 
   /**
    * IAB Transparency and Consent Framework v2
-   * https://github.com/InteractiveAdvertisingBureau/GDPR-Transparency-and-Consent-Framework/blob/master/TCFv2
+   *
+   * @typedef {Object} IABTCFv2
+   * @property {boolean} present - Whether the `__tcfapi` API function is present on the window object.
+   * @property {Object} [data] - TCF v2 vendor consents data returned by `getTCData`. See [TCData](https://github.com/InteractiveAdvertisingBureau/GDPR-Transparency-and-Consent-Framework/blob/master/TCFv2/IAB%20Tech%20Lab%20-%20CMP%20API%20v2.md#tcdata).
+   * @property {boolean} [compliant_setup] - Verifies whether the TCF v2 CMP setup is compliant with IAB standards.
    */
   iab_tcf_v2: (() => {
     let tcData = {
       present: typeof window.__tcfapi == 'function',
     };
-    // description of `__tcfapi`: https://github.com/InteractiveAdvertisingBureau/GDPR-Transparency-and-Consent-Framework/blob/master/TCFv2/IAB%20Tech%20Lab%20-%20CMP%20API%20v2.md#how-does-the-cmp-provide-the-api
     try {
       if (tcData.present) {
-        // based on https://github.com/InteractiveAdvertisingBureau/GDPR-Transparency-and-Consent-Framework/blob/master/TCFv2/IAB%20Tech%20Lab%20-%20CMP%20API%20v2.md#gettcdata
         window.__tcfapi('getTCData', 2, (result, success) => {
           if (success) {
             tcData.data = result;
             tcData.compliant_setup = true;
           } else {
             // special case for consentmanager ('CMP settings are used that are not compliant with the IAB TCF')
-            // see warning at the top of https://help.consentmanager.net/books/cmp/page/changes-to-the-iab-cmp-framework-js-api
-            // cf. https://help.consentmanager.net/books/cmp/page/javascript-api
-            // Test site: https://www.pokellector.com/
             window.__tcfapi('noncompliant_getTCData', 2, (result, success) => {
               if (success) {
                 tcData.data = result;
@@ -154,12 +179,14 @@ let sync_metrics = {
     }
 
     return tcData;
-
   })(),
 
   /**
    * Global Privacy Protocol (GPP)
-   * https://github.com/InteractiveAdvertisingBureau/Global-Privacy-Platform
+   *
+   * @typedef {Object} IABGPP
+   * @property {boolean} present - Whether the `__gpp` API function is present on the window object.
+   * @property {Object} [data] - Ping response data returned by the `__gpp` API.
    */
   iab_gpp: (() => {
     let gppData = {
@@ -182,7 +209,10 @@ let sync_metrics = {
 
   /**
    * IAB US Privacy User Signal Mechanism “USP API”
-   * https://github.com/InteractiveAdvertisingBureau/USPrivacy
+   *
+   * @typedef {Object} IABUSP
+   * @property {boolean} present - Whether the `__uspapi` API function is present on the window object.
+   * @property {string} [privacy_string] - US Privacy string returned by `getUSPData`.
    */
   iab_usp: (() => {
     let uspData = {
@@ -205,13 +235,11 @@ let sync_metrics = {
 
   /**
    * Do Not Track (DNT)
-   * https://www.eff.org/issues/do-not-track
    */
   navigator_doNotTrack: testPropertyStringInResponseBodies('doNotTrack'),
 
   /**
    * Global Privacy Control
-   * https://globalprivacycontrol.org/
    */
   navigator_globalPrivacyControl: testPropertyStringInResponseBodies(
     'globalPrivacyControl'
@@ -221,16 +249,24 @@ let sync_metrics = {
 
   /**
    * Permissions policy
-   * https://www.w3.org/TR/permissions-policy-1/#introspection
-   * Previously known as Feature policy
-   * iframes properties in `almanac` and `security` custom metrics.
    */
   document_permissionsPolicy: testPropertyStringInResponseBodies('document.+permissionsPolicy'),
   document_featurePolicy: testPropertyStringInResponseBodies('document.+featurePolicy'),
 
   /**
+   * @typedef {Object} ReferrerPolicyRequestEntry
+   * @property {string} tagName - HTML tag name of the element (e.g., IMG, SCRIPT).
+   * @property {string} referrerpolicy - Value of the referrerpolicy attribute.
+   * @property {number} count - Number of occurrences on the page.
+   */
+
+  /**
    * Referrer Policy
-   * https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Referrer-Policy
+   *
+   * @typedef {Object} ReferrerPolicyData
+   * @property {string|null} entire_document_policy - Referrer policy set for the entire document using meta tag.
+   * @property {ReferrerPolicyRequestEntry[]|null} individual_requests - Referrer policies specified on individual elements via referrerpolicy attribute.
+   * @property {Object.<string, number>|null} link_relations - Count of elements specifying rel="noreferrer" grouped by HTML tag name.
    */
   referrerPolicy: (() => {
     let rp = {
@@ -314,6 +350,12 @@ let sync_metrics = {
     return results;
   })(),
 
+  /**
+   * California Consumer Privacy Act (CCPA) compliance
+   *
+   * @typedef {Object} CCPAData
+   * @property {boolean} hasCCPALink - Whether links matching CCPA opt-out criteria were found on the page.
+   */
   ccpa_link: (() => {
     const allowedCCPALinkPhrases = [
       //https://petsymposium.org/popets/2022/popets-2022-0030.pdf page 612
@@ -384,10 +426,6 @@ let sync_metrics = {
 };
 
 
-/**
-  * IAB: Data Deletion Request Framework
-  * https://github.com/InteractiveAdvertisingBureau/Data-Subject-Rights/blob/main/Data%20Deletion%20Request%20Framework.md
-  */
 let iab_ddr = fetchAndParse("/dsrdelete.json", parseDSRdelete);
 
 return Promise.all([iab_ddr]).then(([iab_ddr]) => {
