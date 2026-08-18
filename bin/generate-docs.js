@@ -1,94 +1,32 @@
 #!/usr/bin/env node
+'use strict';
+
 const fs = require('fs');
 const path = require('path');
+const {
+  TOP_LEVEL_METRICS,
+  normalizeType,
+  extractCustomTypeName,
+  cleanDescription
+} = require('./lib/types.js');
+const {
+  getPrimaryTypedef
+} = require('./lib/jsdoc-parser.js');
+const {
+  getAnnotatedMetricFiles
+} = require('./lib/file-utils.js');
 const { validateMetric } = require('./validate-docs.js');
 
 /**
- * Normalizes JSDoc type strings to Starlight / har.fyi standard types.
+ * Recursively renders schema properties down to basic types in markdown format.
  */
-function normalizeType(typeStr) {
-  if (!typeStr) return 'unknown';
-
-  let clean = typeStr.trim();
-  if (clean.startsWith('{') && clean.endsWith('}')) {
-    clean = clean.slice(1, -1).trim();
-  }
-
-  // Handle unions with null / undefined first
-  const parts = clean.split('|').map(p => p.trim()).filter(p => p !== 'null' && p !== 'undefined');
-  if (parts.length === 1) {
-    clean = parts[0];
-  }
-
-  // Handle Object.<key, val> / Record<key, val>
-  if (/^Object\.<[^>]+>$/i.test(clean) || /^Record<[^>]+>$/i.test(clean)) {
-    return 'object';
-  }
-
-  // Handle Array<T> or T[]
-  if (clean.endsWith('[]')) {
-    const inner = clean.slice(0, -2);
-    return `array<${normalizeType(inner)}>`;
-  }
-  if (/^Array<(.+)>$/i.test(clean)) {
-    const match = clean.match(/^Array<(.+)>$/i);
-    return `array<${normalizeType(match[1])}>`;
-  }
-
-  const lower = clean.toLowerCase();
-  if (['string', 'boolean', 'number', 'integer', 'object'].includes(lower)) {
-    return lower;
-  }
-
-  return clean;
-}
-
-function cleanDescription(desc) {
-  if (!desc) return '';
-  return desc.replace(/^-\s*/, '').trim();
-}
-
-function getPrimaryTypedef(metricName, typedefs) {
-  const metricBase = metricName.toLowerCase().replace(/[^a-z0-9]/g, '');
-
-  for (const [name, td] of typedefs) {
-    const cleanName = name.toLowerCase().replace(/[^a-z0-9]/g, '');
-    if (cleanName.includes(metricBase) && cleanName.includes('metric')) {
-      return td;
-    }
-  }
-
-  for (const td of typedefs.values()) {
-    if (td.name.toLowerCase().endsWith('metrics')) {
-      return td;
-    }
-  }
-
-  return Array.from(typedefs.values())[0];
-}
-
-function getCustomTypeName(rawType, typedefs) {
-  if (!rawType) return null;
-  const parts = rawType.replace(/^{|}$/g, '').split('|').map(p => p.trim()).filter(p => p !== 'null' && p !== 'undefined');
-  for (const part of parts) {
-    const unwrapped = part.replace(/^Array<(.+)>$/i, '$1').replace(/\[\]$/, '').trim();
-    if (typedefs.has(unwrapped)) {
-      return unwrapped;
-    }
-  }
-  return null;
-}
-
-/**
- * Recursively renders properties down to basic types.
- */
-function renderProperties(properties, prefix, headingLevel, typedefs, visited = new Set()) {
+function renderProperties(properties, prefix = '', headingLevel = 3, typedefs = new Map(), visited = new Set()) {
   let mdx = '';
   const hashes = '#'.repeat(headingLevel);
 
   for (const prop of properties) {
     const rawType = prop.type || 'unknown';
-    const customTypeName = getCustomTypeName(rawType, typedefs);
+    const customTypeName = extractCustomTypeName(rawType, typedefs);
     const isArray = rawType.includes('[]') || /Array</i.test(rawType);
     const normalizedType = normalizeType(rawType);
 
@@ -113,15 +51,8 @@ function renderProperties(properties, prefix, headingLevel, typedefs, visited = 
   return mdx;
 }
 
-const TOP_LEVEL_METRICS = new Set([
-  'a11y', 'cms', 'cookies', 'css_variables', 'ecommerce', 'element_count',
-  'javascript', 'markup', 'media', 'origin_trials', 'performance', 'privacy',
-  'responsive_images', 'robots_txt', 'security', 'structured_data',
-  'third_parties', 'well_known', 'wpt_bodies', 'other'
-]);
-
 /**
- * Generates MDX content from parsed JSDoc typedefs.
+ * Generates Starlight-compliant MDX content from parsed JSDoc typedefs.
  */
 function generateMDX(metricName, typedefs) {
   const primaryTypedef = getPrimaryTypedef(metricName, typedefs);
@@ -146,22 +77,6 @@ ${parentLink}
   mdx += renderProperties(primaryTypedef.properties, '', 3, typedefs);
 
   return mdx;
-}
-
-function getAnnotatedMetricFiles() {
-  const distDir = path.join(__dirname, '../dist');
-  const files = fs.readdirSync(distDir).filter(f => f.endsWith('.js'));
-  const annotated = [];
-  const metricsTypedefRegex = /@typedef\s+\{[^}]+\}\s+\w+Metrics/i;
-
-  for (const f of files) {
-    const fullPath = path.join(distDir, f);
-    const content = fs.readFileSync(fullPath, 'utf8');
-    if (metricsTypedefRegex.test(content)) {
-      annotated.push(fullPath);
-    }
-  }
-  return annotated;
 }
 
 // CLI execution
@@ -208,5 +123,6 @@ if (require.main === module) {
 }
 
 module.exports = {
-  generateMDX
+  generateMDX,
+  renderProperties
 };

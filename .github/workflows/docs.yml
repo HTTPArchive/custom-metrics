@@ -7,16 +7,14 @@ on:
       - main
     paths:
       - 'dist/**'
-      - 'bin/validate-docs.js'
-      - 'bin/generate-docs.js'
+      - 'bin/**'
       - '.github/workflows/docs.yml'
   pull_request:
     branches:
       - main
     paths:
       - 'dist/**'
-      - 'bin/validate-docs.js'
-      - 'bin/generate-docs.js'
+      - 'bin/**'
       - '.github/workflows/docs.yml'
   workflow_dispatch:
 
