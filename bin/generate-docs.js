@@ -1,7 +1,7 @@
 #!/usr/bin/env node
 const fs = require('fs');
 const path = require('path');
-const { analyzeMetricFile, validateMetric } = require('./validate-docs.js');
+const { validateMetric } = require('./validate-docs.js');
 
 /**
  * Normalizes JSDoc type strings to Starlight / har.fyi standard types.

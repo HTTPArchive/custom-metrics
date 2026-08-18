@@ -248,7 +248,7 @@ function getAnnotatedMetricFiles() {
 // CLI execution
 if (require.main === module) {
   const args = process.argv.slice(2);
-  const targetFiles = args.length > 0 
+  const targetFiles = args.length > 0
     ? args.map(f => path.resolve(f))
     : getAnnotatedMetricFiles();
 
