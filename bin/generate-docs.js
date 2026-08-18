@@ -113,20 +113,31 @@ function renderProperties(properties, prefix, headingLevel, typedefs, visited = 
   return mdx;
 }
 
+const TOP_LEVEL_METRICS = new Set([
+  'a11y', 'cms', 'cookies', 'css_variables', 'ecommerce', 'element_count',
+  'javascript', 'markup', 'media', 'origin_trials', 'performance', 'privacy',
+  'responsive_images', 'robots_txt', 'security', 'structured_data',
+  'third_parties', 'well_known', 'wpt_bodies', 'other'
+]);
+
 /**
  * Generates MDX content from parsed JSDoc typedefs.
  */
 function generateMDX(metricName, typedefs) {
   const primaryTypedef = getPrimaryTypedef(metricName, typedefs);
   const capitalizedName = metricName.charAt(0).toUpperCase() + metricName.slice(1);
+  const isTopLevel = TOP_LEVEL_METRICS.has(metricName);
+
+  const parentLink = isTopLevel
+    ? `_Appears in: [\`custom_metrics\`](/reference/structs/custom-metrics/) struct_\\\n_As: [\`${metricName}\`](/reference/structs/custom-metrics/#${metricName})_`
+    : `_Appears in: [\`custom_metrics.other\`](/reference/custom-metrics/other/) struct_\\\n_As: [\`${metricName}\`](/reference/custom-metrics/other/#${metricName})_`;
 
   let mdx = `---
 title: ${capitalizedName} custom metric
 description: Reference docs for the ${metricName} custom metric
 ---
 
-_Appears in: [\`custom_metrics\`](/reference/structs/custom-metrics/) struct_\\
-_As: [\`${metricName}\`](/reference/structs/custom-metrics/#${metricName})_
+${parentLink}
 
 ## Schema
 
@@ -185,8 +196,12 @@ if (require.main === module) {
       process.exit(1);
     }
 
+    const isTopLevel = TOP_LEVEL_METRICS.has(metricName);
+    const targetDir = isTopLevel ? outDir : path.join(outDir, 'other');
+    fs.mkdirSync(targetDir, { recursive: true });
+
     const mdxContent = generateMDX(metricName, validation.typedefs);
-    const outFile = path.join(outDir, `${metricName}.mdx`);
+    const outFile = path.join(targetDir, `${metricName}.mdx`);
     fs.writeFileSync(outFile, mdxContent, 'utf8');
     console.log(`✅ Generated ${outFile}\n`);
   }

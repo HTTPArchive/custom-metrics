@@ -155,23 +155,33 @@ function analyzeMetricFile(filePath) {
             for (const k of keys) returnedKeys.add(k);
           }
         }
-        // Pattern: Promise.all(...).then(...) -> look for inner return
+        // Pattern: Promise chains (.then, .catch, .finally)
         else if (
           expr.type === 'CallExpression' &&
           expr.callee.type === 'MemberExpression' &&
-          expr.callee.property.name === 'then'
+          ['then', 'catch', 'finally'].includes(expr.callee.property.name)
         ) {
-          const thenCallback = expr.arguments[0];
-          if (thenCallback && (thenCallback.type === 'ArrowFunctionExpression' || thenCallback.type === 'FunctionExpression')) {
-            if (thenCallback.body.type === 'BlockStatement') {
-              for (const stmt of thenCallback.body.body) {
-                if (stmt.type === 'ReturnStatement') {
-                  extractFromExpression(stmt.argument);
+          const methodName = expr.callee.property.name;
+
+          // If .then(), extract return from primary success callback
+          if (methodName === 'then' && expr.arguments.length > 0) {
+            const thenCallback = expr.arguments[0];
+            if (thenCallback && (thenCallback.type === 'ArrowFunctionExpression' || thenCallback.type === 'FunctionExpression')) {
+              if (thenCallback.body.type === 'BlockStatement') {
+                for (const stmt of thenCallback.body.body) {
+                  if (stmt.type === 'ReturnStatement') {
+                    extractFromExpression(stmt.argument);
+                  }
                 }
+              } else {
+                extractFromExpression(thenCallback.body);
               }
-            } else {
-              extractFromExpression(thenCallback.body);
             }
+          }
+
+          // Recursively traverse up the promise chain
+          if (expr.callee.object) {
+            extractFromExpression(expr.callee.object);
           }
         }
         // Direct ObjectExpression
@@ -344,7 +354,8 @@ function validateMetric(filePath) {
 // Whitelist of metric files required to have JSDoc documentation.
 // Set to null or ['*'] to require JSDoc for all files in dist/.
 const REQUIRED_METRICS = [
-  'privacy.js'
+  'privacy.js',
+  'ads.js'
 ];
 
 /**
