@@ -14,6 +14,12 @@ function normalizeType(typeStr) {
     clean = clean.slice(1, -1).trim();
   }
 
+  // Handle unions with null / undefined first
+  const parts = clean.split('|').map(p => p.trim()).filter(p => p !== 'null' && p !== 'undefined');
+  if (parts.length === 1) {
+    clean = parts[0];
+  }
+
   // Handle Object.<key, val> / Record<key, val>
   if (/^Object\.<[^>]+>$/i.test(clean) || /^Record<[^>]+>$/i.test(clean)) {
     return 'object';
@@ -27,12 +33,6 @@ function normalizeType(typeStr) {
   if (/^Array<(.+)>$/i.test(clean)) {
     const match = clean.match(/^Array<(.+)>$/i);
     return `array<${normalizeType(match[1])}>`;
-  }
-
-  // Handle unions with null / undefined
-  const parts = clean.split('|').map(p => p.trim()).filter(p => p !== 'null' && p !== 'undefined');
-  if (parts.length === 1) {
-    clean = parts[0];
   }
 
   const lower = clean.toLowerCase();
@@ -67,6 +67,52 @@ function getPrimaryTypedef(metricName, typedefs) {
   return Array.from(typedefs.values())[0];
 }
 
+function getCustomTypeName(rawType, typedefs) {
+  if (!rawType) return null;
+  const parts = rawType.replace(/^{|}$/g, '').split('|').map(p => p.trim()).filter(p => p !== 'null' && p !== 'undefined');
+  for (const part of parts) {
+    const unwrapped = part.replace(/^Array<(.+)>$/i, '$1').replace(/\[\]$/, '').trim();
+    if (typedefs.has(unwrapped)) {
+      return unwrapped;
+    }
+  }
+  return null;
+}
+
+/**
+ * Recursively renders properties down to basic types.
+ */
+function renderProperties(properties, prefix, headingLevel, typedefs, visited = new Set()) {
+  let mdx = '';
+  const hashes = '#'.repeat(headingLevel);
+
+  for (const prop of properties) {
+    const rawType = prop.type || 'unknown';
+    const customTypeName = getCustomTypeName(rawType, typedefs);
+    const isArray = rawType.includes('[]') || /Array</i.test(rawType);
+    const normalizedType = normalizeType(rawType);
+
+    const displayType = customTypeName
+      ? (isArray ? 'array<object>' : 'object')
+      : normalizedType;
+
+    const fullPath = prefix ? `${prefix}.${prop.name}` : prop.name;
+
+    mdx += `${hashes} \`${fullPath}\`\n\n`;
+    mdx += `Type: \`${displayType}\`\n\n`;
+    mdx += `${cleanDescription(prop.description)}\n\n`;
+
+    if (customTypeName && typedefs.has(customTypeName) && !visited.has(customTypeName)) {
+      const nestedTypedef = typedefs.get(customTypeName);
+      const nextPrefix = isArray ? `${fullPath}[i]` : fullPath;
+      const nextVisited = new Set(visited).add(customTypeName);
+      mdx += renderProperties(nestedTypedef.properties, nextPrefix, headingLevel + 1, typedefs, nextVisited);
+    }
+  }
+
+  return mdx;
+}
+
 /**
  * Generates MDX content from parsed JSDoc typedefs.
  */
@@ -86,33 +132,7 @@ _As: [\`${metricName}\`](/reference/structs/custom-metrics/#${metricName})_
 
 `;
 
-  for (const prop of primaryTypedef.properties) {
-    const rawType = prop.type || 'unknown';
-    const normalizedType = normalizeType(rawType);
-    const isCustomType = typedefs.has(rawType.replace(/\[\]$/, '').replace(/^Array<(.+)>$/i, '$1'));
-    const displayType = isCustomType
-      ? (rawType.endsWith('[]') || /^Array</i.test(rawType) ? 'array<object>' : 'object')
-      : normalizedType;
-
-    mdx += `### \`${prop.name}\`\n\n`;
-    mdx += `Type: \`${displayType}\`\n\n`;
-    mdx += `${cleanDescription(prop.description)}\n\n`;
-
-    // Check if property references a custom typedef
-    const customTypeName = rawType.replace(/^Array<(.+)>$/i, '$1').replace(/\[\]$/, '').replace(/^{|}$/g, '').split('|')[0].trim();
-    if (typedefs.has(customTypeName)) {
-      const nestedTypedef = typedefs.get(customTypeName);
-      const isArray = rawType.endsWith('[]') || /^Array</i.test(rawType);
-      const prefix = isArray ? `${prop.name}[i]` : prop.name;
-
-      for (const subProp of nestedTypedef.properties) {
-        const subDisplayType = normalizeType(subProp.type);
-        mdx += `#### \`${prefix}.${subProp.name}\`\n\n`;
-        mdx += `Type: \`${subDisplayType}\`\n\n`;
-        mdx += `${cleanDescription(subProp.description)}\n\n`;
-      }
-    }
-  }
+  mdx += renderProperties(primaryTypedef.properties, '', 3, typedefs);
 
   return mdx;
 }
