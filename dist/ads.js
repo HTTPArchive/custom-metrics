@@ -2,15 +2,20 @@
 
 const SELLER_TYPES = ['publisher', 'intermediary', 'both'];
 
+/**
+ * @param {Response} response
+ * @param {string[]} endings
+ * @returns {boolean}
+ */
 const isPresent = (response, endings) => response.ok && endings.some(ending => response.url.endsWith(ending));
 
+/**
+ * Google's sellers.json size is 120Mb as of May 2024 - too big for custom metrics.
+ * It's available at realtimebidding.google.com/sellers.json, so not part of crawled pages list.
+ * More details: https://support.google.com/authorizedbuyers/answer/9895942
+ */
 const fetchAndParse = async (url, parser) => {
   const timeout = 5000;
-  /*
-  Google's sellers.json size is 120Mb as of May 2024 - too big for custom metrics.
-  It's available at realtimebidding.google.com/sellers.json, so not part of crawled pages list.
-  More details: https://support.google.com/authorizedbuyers/answer/9895942
-  */
   const controller = new AbortController();
   const { signal } = controller;
   setTimeout(() => controller.abort(), timeout);
@@ -30,8 +35,8 @@ const fetchAndParse = async (url, parser) => {
 /**
  * @typedef {Object} AdsAccountTypeInfo
  * @property {string[]} domains - List of domains with advertising accounts of this type.
- * @property {number} account_count - Number of advertising accounts of this type.
- * @property {number} domain_count - Number of unique domains with advertising accounts of this type.
+ * @property {integer} account_count - Number of advertising accounts of this type.
+ * @property {integer} domain_count - Number of unique domains with advertising accounts of this type.
  */
 
 /**
@@ -45,18 +50,17 @@ const fetchAndParse = async (url, parser) => {
  *
  * @typedef {Object} AdsTxtData
  * @property {boolean} present - Indicates if the ads.txt or app-ads.txt file is present.
- * @property {number} status - HTTP status code of the ads.txt file response.
+ * @property {integer} status - HTTP status code of the ads.txt file response.
  * @property {boolean} redirected - Indicates if the ads.txt file request was redirected.
  * @property {string|null} [redirected_to] - URL to which the ads.txt resource was redirected.
- * @property {number} [account_count] - Number of advertising accounts listed in the ads.txt file.
+ * @property {integer} [account_count] - Number of advertising accounts listed in the ads.txt file.
  * @property {AdsAccountTypes} [account_types] - Types of accounts (direct or reseller) listed in the ads.txt file.
- * @property {number} [line_count] - Total number of lines in the ads.txt file.
+ * @property {integer} [line_count] - Total number of lines in the ads.txt file.
  * @property {string[]} [variables] - List of variables found in the ads.txt file.
- * @property {number} [variable_count] - Number of variables found in the ads.txt file.
+ * @property {integer} [variable_count] - Number of variables found in the ads.txt file.
  * @property {string} [error] - Error message if fetch or parse failed.
  */
 
-// https://github.com/InteractiveAdvertisingBureau/Supply-Chain-Validation/blob/main/ads.txt%20v1.1.md
 const parseAdsTxt = async (response) => {
   let content = await response.text();
 
@@ -132,8 +136,8 @@ const parseAdsTxt = async (response) => {
 /**
  * @typedef {Object} SellerTypeInfo
  * @property {string[]} domains - List of domains associated with this seller type.
- * @property {number} seller_count - Number of sellers of this type.
- * @property {number} domain_count - Number of unique domains associated with this seller type.
+ * @property {integer} seller_count - Number of sellers of this type.
+ * @property {integer} domain_count - Number of unique domains associated with this seller type.
  */
 
 /**
@@ -148,17 +152,16 @@ const parseAdsTxt = async (response) => {
  *
  * @typedef {Object} SellersJsonData
  * @property {boolean} present - Indicates if the sellers.json file is present.
- * @property {number} status - HTTP status code of the sellers.json file response.
+ * @property {integer} status - HTTP status code of the sellers.json file response.
  * @property {boolean} redirected - Indicates if the sellers.json file request was redirected.
  * @property {string|null} [redirected_to] - URL to which the sellers.json resource was redirected.
- * @property {number} [seller_count] - Number of sellers listed in the sellers.json file.
+ * @property {integer} [seller_count] - Number of sellers listed in the sellers.json file.
  * @property {SellerTypes} [seller_types] - Types of sellers (publisher, intermediary, both) listed in the sellers.json file.
- * @property {number} [passthrough_count] - Number of passthrough sellers listed in the sellers.json file.
- * @property {number} [confidential_count] - Number of confidential sellers listed in the sellers.json file.
+ * @property {integer} [passthrough_count] - Number of passthrough sellers listed in the sellers.json file.
+ * @property {integer} [confidential_count] - Number of confidential sellers listed in the sellers.json file.
  * @property {string} [error] - Error message if fetch or parse failed.
  */
 
-// https://github.com/InteractiveAdvertisingBureau/Supply-Chain-Validation/blob/main/sellers-json.md
 const parseSellersJSON = async (response) => {
   let content;
   try {

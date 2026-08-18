@@ -90,6 +90,28 @@ function extractCustomTypeName(rawType, typedefs) {
   return null;
 }
 
+/**
+ * Checks whether an inferred AST type is compatible with the documented JSDoc type.
+ */
+function isTypeCompatible(inferredType, docType) {
+  if (!inferredType || !docType) return true;
+
+  const cleanDoc = docType.replace(/^{|}$/g, '').trim();
+  const docParts = cleanDoc.split('|').map(p => p.trim().toLowerCase());
+  const inferredParts = inferredType.split('|').map(p => p.trim().toLowerCase());
+
+  return inferredParts.every(inf => {
+    if (inf === 'null') return docParts.includes('null') || docParts.includes('undefined');
+    if (inf === 'boolean') return docParts.includes('boolean');
+    if (inf === 'integer') return docParts.includes('integer') || docParts.includes('number');
+    if (inf === 'number') return docParts.includes('number') || docParts.includes('integer') || docParts.includes('float');
+    if (inf === 'string') return docParts.includes('string');
+    if (inf === 'array') return docParts.some(p => p.startsWith('array') || p.endsWith('[]'));
+    if (inf === 'object') return docParts.some(p => p === 'object' || !BASIC_TYPES.has(p));
+    return true;
+  });
+}
+
 function cleanDescription(desc) {
   if (!desc) return '';
   return desc.replace(/^-\s*/, '').trim();
@@ -100,5 +122,6 @@ module.exports = {
   TOP_LEVEL_METRICS,
   normalizeType,
   extractCustomTypeName,
+  isTypeCompatible,
   cleanDescription
 };

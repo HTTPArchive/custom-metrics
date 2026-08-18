@@ -66,7 +66,7 @@ const fetchAndParse = async (url, parser) => {
  *
  * @typedef {Object} IABDataDeletionRequest
  * @property {boolean} present - Whether the `/dsrdelete.json` endpoint exists and returns valid JSON.
- * @property {number} status - HTTP status code of the `/dsrdelete.json` request.
+ * @property {integer} status - HTTP status code of the `/dsrdelete.json` request.
  * @property {boolean} [redirected] - Whether the request was redirected.
  * @property {Object[]} [identifiers] - Sanitized identifiers supported for data deletion requests.
  * @property {string} [endpointOrigin] - Target origin if redirected.
@@ -257,7 +257,7 @@ let sync_metrics = {
    * @typedef {Object} ReferrerPolicyRequestEntry
    * @property {string} tagName - HTML tag name of the element (e.g., IMG, SCRIPT).
    * @property {string} referrerpolicy - Value of the referrerpolicy attribute.
-   * @property {number} count - Number of occurrences on the page.
+   * @property {integer} count - Number of occurrences on the page.
    */
 
   /**
@@ -266,7 +266,7 @@ let sync_metrics = {
    * @typedef {Object} ReferrerPolicyData
    * @property {string|null} entire_document_policy - Referrer policy set for the entire document using meta tag.
    * @property {ReferrerPolicyRequestEntry[]|null} individual_requests - Referrer policies specified on individual elements via referrerpolicy attribute.
-   * @property {Object.<string, number>|null} link_relations - Count of elements specifying rel="noreferrer" grouped by HTML tag name.
+   * @property {Object.<string, integer>|null} link_relations - Count of elements specifying rel="noreferrer" grouped by HTML tag name.
    */
   referrerPolicy: (() => {
     let rp = {

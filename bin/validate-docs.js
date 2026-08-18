@@ -3,7 +3,7 @@
 
 const fs = require('fs');
 const path = require('path');
-const { BASIC_TYPES } = require('./lib/types.js');
+const { BASIC_TYPES, isTypeCompatible } = require('./lib/types.js');
 const {
   parseJSDocTypedefs,
   getPrimaryTypedef,
@@ -25,7 +25,7 @@ function validateMetric(filePath) {
   const code = fs.readFileSync(filePath, 'utf8');
 
   const typedefs = parseJSDocTypedefs(code);
-  const { returnedKeys, nestedReturnKeys } = extractReturnKeysAndNested(code);
+  const { returnedKeys, nestedReturnKeys, propertyTypes } = extractReturnKeysAndNested(code);
   const errors = [];
 
   if (typedefs.size === 0) {
@@ -57,7 +57,7 @@ function validateMetric(filePath) {
     }
   }
 
-  // Check 3: Property completeness and recursive type validity down to basic types
+  // Check 3: Property completeness, recursive type validity, and AST static type compatibility
   for (const [typeName, typedef] of typedefs) {
     for (const prop of typedef.properties) {
       if (!prop.type) {
@@ -82,6 +82,14 @@ function validateMetric(filePath) {
             `Property "${prop.name}" in @typedef ${typeName} references custom type "${unwrapArray}", but no @typedef for "${unwrapArray}" is defined in the file.`
           );
         }
+      }
+
+      // Check AST static type compatibility if inferred from code
+      const inferred = propertyTypes[prop.name];
+      if (inferred && !isTypeCompatible(inferred, prop.type)) {
+        errors.push(
+          `Type mismatch for property "${prop.name}" in @typedef ${typeName}: code assigns ${inferred}, but JSDoc documents ${prop.type}.`
+        );
       }
     }
   }
