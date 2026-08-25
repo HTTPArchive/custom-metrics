@@ -53,7 +53,7 @@ jobs:
         uses: actions/checkout@v7
         with:
           repository: HTTPArchive/har.fyi
-          token: ${{ secrets.DOCS_SYNC_PAT || secrets.GITHUB_TOKEN }}
+          token: ${{ secrets.AUTO_MERGE_PAT }}
           path: har.fyi
 
       - name: Setup Node.js
@@ -89,5 +89,3 @@ jobs:
 
             [commit]: https://github.com/HTTPArchive/custom-metrics/commit/${{ github.sha }}
           commit-message: "docs: sync custom metrics from custom-metrics@${{ github.sha }}"
-
-
