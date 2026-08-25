@@ -76,7 +76,7 @@ jobs:
       - name: Create Pull Request in har.fyi
         uses: peter-evans/create-pull-request@v7
         with:
-          token: ${{ secrets.DOCS_SYNC_PAT || secrets.GITHUB_TOKEN }}
+          token: ${{ secrets.AUTO_MERGE_PAT }}
           path: har.fyi
           branch: sync-custom-metrics
           base: main
