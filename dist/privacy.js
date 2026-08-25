@@ -11,7 +11,7 @@
  * @property {IABUSP} iab_usp - IAB US Privacy User Signal Mechanism (USP API) data. See [USPrivacy](https://github.com/InteractiveAdvertisingBureau/USPrivacy).
  * @property {boolean} navigator_doNotTrack - Whether the browser's "Do Not Track" setting was accessed or detected in response bodies. See [EFF Do Not Track](https://www.eff.org/issues/do-not-track).
  * @property {boolean} navigator_globalPrivacyControl - Whether the Global Privacy Control (GPC) property was accessed or detected in response bodies. See [Global Privacy Control](https://globalprivacycontrol.org/).
- * @property {boolean} document_permissionsPolicy - Whether document Permissions Policy is referenced in response bodies. See [W3C Permissions Policy](https://www.w3.org/TR/permissions-policy-1/#introspection).
+ * @property {boolean} document_permissionsPolicy - Whether document Permissions Policy is referenced in response bodies. See [W3C Permissions Policy](https://www.w3.org/TR/permissions-policy-1/#introspection). Iframes properties in `almanac` and `security` custom metrics.
  * @property {boolean} document_featurePolicy - Whether document Feature Policy (legacy Permissions Policy) is referenced in response bodies.
  * @property {ReferrerPolicyData} referrerPolicy - Referrer policy declared for the entire document, subresource requests, or link relations. See [MDN Referrer-Policy](https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Referrer-Policy).
  * @property {Object.<string, string[]>} request_hostnames_with_cname - Mapping of request hostnames to their canonical CNAME chains.
@@ -113,7 +113,7 @@ let sync_metrics = {
    * IAB Transparency and Consent Framework v1
    *
    * @typedef {Object} IABTCFv1
-   * @property {boolean} present - Whether the `__cmp` API function is present on the window object.
+   * @property {boolean} present - Whether the [`__cmp` API function](https://github.com/InteractiveAdvertisingBureau/GDPR-Transparency-and-Consent-Framework/blob/master/CMP%20JS%20API%20v1.1%20Final.md#what-api-will-need-to-be-provided-by-the-cmp-) is present on the window object.
    * @property {Object} [data] - TCF v1 vendor consents data returned by `getVendorConsents`. See [VendorConsents](https://github.com/InteractiveAdvertisingBureau/GDPR-Transparency-and-Consent-Framework/blob/master/CMP%20JS%20API%20v1.1%20Final.md#vendorconsents-).
    * @property {boolean} [compliant_setup] - Verifies whether the TCF v1 CMP setup is compliant with IAB standards.
    */
@@ -129,6 +129,7 @@ let sync_metrics = {
             consentData.compliant_setup = true;
           } else {
             // special case for consentmanager ('CMP settings are used that are not compliant with the IAB TCF')
+            // cf. https://help.consentmanager.net/books/cmp/page/javascript-api
             window.__cmp('noncompliant_getVendorConsents', null, (result, success) => {
               if (success) {
                 consentData.data = result;
@@ -149,7 +150,7 @@ let sync_metrics = {
    * IAB Transparency and Consent Framework v2
    *
    * @typedef {Object} IABTCFv2
-   * @property {boolean} present - Whether the `__tcfapi` API function is present on the window object.
+   * @property {boolean} present - Whether the [`__tcfapi` API function](https://github.com/InteractiveAdvertisingBureau/GDPR-Transparency-and-Consent-Framework/blob/master/TCFv2/IAB%20Tech%20Lab%20-%20CMP%20API%20v2.md#how-does-the-cmp-provide-the-api) is present on the window object.
    * @property {Object} [data] - TCF v2 vendor consents data returned by `getTCData`. See [TCData](https://github.com/InteractiveAdvertisingBureau/GDPR-Transparency-and-Consent-Framework/blob/master/TCFv2/IAB%20Tech%20Lab%20-%20CMP%20API%20v2.md#tcdata).
    * @property {boolean} [compliant_setup] - Verifies whether the TCF v2 CMP setup is compliant with IAB standards.
    */
@@ -165,6 +166,7 @@ let sync_metrics = {
             tcData.compliant_setup = true;
           } else {
             // special case for consentmanager ('CMP settings are used that are not compliant with the IAB TCF')
+            // cf. https://help.consentmanager.net/books/cmp/page/javascript-api
             window.__tcfapi('noncompliant_getTCData', 2, (result, success) => {
               if (success) {
                 tcData.data = result;
