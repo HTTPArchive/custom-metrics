@@ -150,6 +150,12 @@ return JSON.stringify({
       total_with_headers: document.querySelectorAll('td[headers]').length,
     };
   }),
+  th_with_headers_attribute: captureAndLogError(() => {
+    return {
+      total_ths: document.querySelectorAll('th').length,
+      total_with_headers: document.querySelectorAll('th[headers]').length,
+    };
+  }),
   total_anchors_with_role_button: captureAndLogError(() => {
     return document.querySelectorAll('a[role="button" i]').length;
   }),
