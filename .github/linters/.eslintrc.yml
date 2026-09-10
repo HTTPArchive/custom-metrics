@@ -67,6 +67,8 @@ overrides:
       - "plugin:react/recommended"
     parserOptions:
       ecmaVersion: latest
+      ecmaFeatures:
+        globalReturn: true
 
   - files:
       - "**/*.mjs"
