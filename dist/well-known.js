@@ -276,6 +276,32 @@ return Promise.all([
       return data;
     });
   }),
+  // Agentic Resource Discovery (ARD) - checked by Lighthouse's agentic-browsing category
+  // (core/gather/gatherers/agentic/ard.js falls back to this path)
+  parseResponse('/.well-known/ai-catalog.json', r => {
+    return r.text().then(text => {
+      let result = {
+        spec_version: null,
+        has_host: false,
+        entries_count: 0,
+        entry_types: []
+      };
+      try {
+        const data = JSON.parse(text);
+        result.spec_version = typeof data.specVersion === 'string' ? data.specVersion : null;
+        result.has_host = !!(data.host && typeof data.host === 'object');
+        if (Array.isArray(data.entries)) {
+          result.entries_count = data.entries.length;
+          result.entry_types = [...new Set(data.entries
+            .map(e => e && typeof e.type === 'string' ? e.type : null)
+            .filter(Boolean))].slice(0, 20);
+        }
+      } catch (e) {
+        // Failed to parse JSON, result will contain default values.
+      }
+      return result;
+    });
+  }),
   parseResponseWithRedirects('/.well-known/security.txt', r => {
     let data = {
       status: r.status,
