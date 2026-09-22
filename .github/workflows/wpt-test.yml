@@ -19,8 +19,19 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v7
         with:
-          ref: ${{ github.event.pull_request.head.sha }}
           fetch-depth: 0
+
+      - name: "Fetch PR changes (Internal branch: full checkout)"
+        if: github.event_name == 'pull_request_target' && github.event.pull_request.head.repo.full_name == github.repository
+        run: |
+          git fetch origin ${{ github.event.pull_request.head.sha }}
+          git checkout ${{ github.event.pull_request.head.sha }}
+
+      - name: "Fetch PR changes (Fork PR: dist/ only)"
+        if: github.event_name == 'pull_request_target' && github.event.pull_request.head.repo.full_name != github.repository
+        run: |
+          git fetch origin ${{ github.event.pull_request.head.sha }}
+          git checkout ${{ github.event.pull_request.head.sha }} -- dist/
 
       - name: Install dependencies
         run: npm install jest webpagetest
@@ -40,7 +51,7 @@ jobs:
 
       - name: Add comment to PR
         uses: mshick/add-pr-comment@v3
-        if: always()
+        if: always() && hashFiles('comment.md') != ''
         with:
           refresh-message-position: true
           message-path: comment.md
