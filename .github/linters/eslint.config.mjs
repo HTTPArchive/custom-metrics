@@ -17,6 +17,12 @@ export default defineConfig([
     rules: {
       ...js.configs.recommended.rules,
       "no-inner-declarations": "off",
+      "no-unused-vars": [
+        "error",
+        {
+          caughtErrors: "none",
+        },
+      ],
     },
   },
 
