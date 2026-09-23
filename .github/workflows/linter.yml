@@ -64,6 +64,7 @@ jobs:
         env:
           DEFAULT_BRANCH: main
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          JAVASCRIPT_ES_CONFIG_FILE: eslint.config.mjs
           VALIDATE_JAVASCRIPT_ES: true
           VALIDATE_EDITORCONFIG: true
           VALIDATE_MARKDOWN: true
