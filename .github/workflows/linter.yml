@@ -30,6 +30,9 @@ jobs:
     name: Lint Code Base
     # Set the agent to run on
     runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      statuses: write
 
     ##################
     # Load all steps #
@@ -65,6 +68,8 @@ jobs:
           DEFAULT_BRANCH: main
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           JAVASCRIPT_ES_CONFIG_FILE: eslint.config.mjs
+          ENABLE_GITHUB_ACTIONS_STEP_SUMMARY: true
+          ENABLE_GITHUB_PULL_REQUEST_SUMMARY_COMMENT: false
           VALIDATE_JAVASCRIPT_ES: true
           VALIDATE_EDITORCONFIG: true
           VALIDATE_MARKDOWN: true

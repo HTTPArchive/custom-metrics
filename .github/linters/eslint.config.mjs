@@ -1,39 +1,44 @@
 import { defineConfig, globalIgnores } from "eslint/config";
+import js from "@eslint/js";
+import globals from "globals";
 import n from "eslint-plugin-n";
 import prettier from "eslint-plugin-prettier";
-import globals from "globals";
 import eslintPluginJsonc from "eslint-plugin-jsonc";
-import typescriptEslint from "@typescript-eslint/eslint-plugin";
-import tsParser from "@typescript-eslint/parser";
-import pluginVue from "eslint-plugin-vue";
-import path from "node:path";
-import { fileURLToPath } from "node:url";
-import js from "@eslint/js";
-import { FlatCompat } from "@eslint/eslintrc";
-
-const __filename = fileURLToPath(import.meta.url);
-const __dirname = path.dirname(__filename);
-const compat = new FlatCompat({
-  baseDirectory: __dirname,
-  recommendedConfig: js.configs.recommended,
-  allConfig: js.configs.all,
-});
 
 export default defineConfig([
   globalIgnores(["!**/.*", "**/node_modules/.*", "dist/third-parties.js"]),
-  {
-    extends: compat.extends("eslint:recommended"),
 
+  // Base configuration: ESLint recommended, Node plugin, and Prettier integration
+  {
     plugins: {
       n,
       prettier,
     },
+    rules: {
+      ...js.configs.recommended.rules,
+      "no-inner-declarations": "off",
+    },
+  },
 
+  // JSON files
+  ...eslintPluginJsonc.configs["recommended-with-json"].map((config) => ({
+    ...config,
+    files: ["**/*.json"],
+  })),
+
+  // Custom metrics (Browser / WebPageTest context)
+  {
+    files: ["dist/**/*.js", "inject-dist/**/*.js"],
     languageOptions: {
+      ecmaVersion: "latest",
+      sourceType: "script",
+      parserOptions: {
+        ecmaFeatures: {
+          globalReturn: true,
+        },
+      },
       globals: {
         ...globals.browser,
-        ...globals.jest,
-        ...globals.node,
         $WPT_ACCESSIBILITY_TREE: "readonly",
         $WPT_BODIES: "readonly",
         $WPT_COOKIES: "readonly",
@@ -46,93 +51,42 @@ export default defineConfig([
         LaunchParams: "readonly",
       },
     },
-
-    rules: {
-      "no-inner-declarations": "off",
-    },
   },
-  ...eslintPluginJsonc.configs["recommended-with-json"].map((config) => ({
-    ...config,
-    files: ["**/*.json"],
-  })),
-  ...eslintPluginJsonc.configs["recommended-with-jsonc"].map((config) => ({
-    ...config,
-    files: ["**/*.jsonc"],
-  })),
-  ...eslintPluginJsonc.configs["recommended-with-json5"].map((config) => ({
-    ...config,
-    files: ["**/*.json5"],
-  })),
-  {
-    files: ["**/*.js"],
-    extends: compat.extends("plugin:react/recommended"),
 
+  // CLI and tooling scripts (Node.js context)
+  {
+    files: ["bin/**/*.js"],
     languageOptions: {
       ecmaVersion: "latest",
-      sourceType: "script",
-
-      parserOptions: {
-        ecmaFeatures: {
-          globalReturn: true,
-        },
-      },
-    },
-
-    settings: {
-      react: {
-        version: "detect",
+      sourceType: "commonjs",
+      globals: {
+        ...globals.node,
       },
     },
   },
-  {
-    files: ["**/*.mjs", "**/*.cjs", "**/*.jsx"],
-    extends: compat.extends("plugin:react/recommended"),
 
+  // Tests (Node.js + Jest context)
+  {
+    files: ["tests/**/*.js"],
+    languageOptions: {
+      ecmaVersion: "latest",
+      sourceType: "commonjs",
+      globals: {
+        ...globals.node,
+        ...globals.jest,
+      },
+    },
+  },
+
+  // Root configuration files (ESM context)
+  {
+    files: ["*.mjs", ".github/**/*.mjs"],
     languageOptions: {
       ecmaVersion: "latest",
       sourceType: "module",
-
-      parserOptions: {
-        ecmaFeatures: {
-          jsx: true,
-          modules: true,
-        },
-      },
-    },
-
-    settings: {
-      react: {
-        version: "detect",
+      globals: {
+        ...globals.node,
       },
     },
   },
-  {
-    files: ["**/*.ts", "**/*.cts", "**/*.mts", "**/*.tsx"],
-
-    extends: [
-      n.configs["flat/recommended"],
-      compat.extends(
-        "plugin:@typescript-eslint/recommended",
-        "plugin:react/recommended",
-        "prettier",
-      ),
-    ],
-
-    plugins: {
-      "@typescript-eslint": typescriptEslint,
-    },
-
-    languageOptions: {
-      parser: tsParser,
-      ecmaVersion: "latest",
-      sourceType: "module",
-    },
-
-    settings: {
-      react: {
-        version: "detect",
-      },
-    },
-  },
-  ...pluginVue.configs["flat/recommended"],
 ]);
