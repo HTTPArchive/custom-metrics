@@ -54,8 +54,9 @@ jobs:
       - name: Set VALIDATE_ALL_CODEBASE variable to false
         # Only run the full workflow for manual runs or if upgrading the super linter
         if: |
-            github.event_name != 'workflow_dispatch' &&
-            startsWith(github.event.pull_request.title,'Bump github/super-linter') != true
+          github.event_name != 'workflow_dispatch' &&
+          !contains(github.event.pull_request.title, 'super-linter') &&
+          !contains(github.event.pull_request.body, 'super-linter')
         run: |
           echo "VALIDATE_ALL_CODEBASE=false" >> $GITHUB_ENV
 
@@ -67,8 +68,6 @@ jobs:
         env:
           DEFAULT_BRANCH: main
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          JAVASCRIPT_ES_CONFIG_FILE: eslint.config.mjs
-          ENABLE_GITHUB_ACTIONS_STEP_SUMMARY: true
           ENABLE_GITHUB_PULL_REQUEST_SUMMARY_COMMENT: false
           VALIDATE_JAVASCRIPT_ES: true
           VALIDATE_EDITORCONFIG: true
