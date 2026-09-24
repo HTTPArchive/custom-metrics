@@ -279,26 +279,25 @@ return Promise.all([
   // Agentic Resource Discovery (ARD) - checked by Lighthouse's agentic-browsing category.
   // Resolution follows Lighthouse's ARD gatherer (core/gather/gatherers/agentic/ard.js):
   // <link rel="ai-catalog"> in the document wins, otherwise /.well-known/ai-catalog.json.
-  // Output is keyed by the well-known path either way so the BigQuery key stays stable;
-  // `catalog_url` and `source` say what was actually fetched.
+  // Keyed by the well-known path either way; `catalog_url` is added only when the
+  // link points somewhere other than the default location.
   (() => {
     const wellKnownUrl = '/.well-known/ai-catalog.json';
-    let catalogUrl = wellKnownUrl;
-    let source = 'well-known';
+    let catalogUrl = null;
     try {
       const link = document.querySelector('link[rel~="ai-catalog" i]');
       if (link && link.href) {
-        catalogUrl = link.href;
-        source = 'link';
+        const target = new URL(link.href, location.href);
+        if (target.origin !== location.origin || target.pathname !== wellKnownUrl) {
+          catalogUrl = target.href;
+        }
       }
     } catch (e) {
-      // No document access, fall back to the well-known path.
+      // No usable link, fall back to the well-known path.
     }
-    return parseResponse(catalogUrl, r => {
+    return parseResponse(catalogUrl || wellKnownUrl, r => {
       return r.text().then(text => {
         let result = {
-          catalog_url: catalogUrl,
-          source: source,
           spec_version: null,
           has_host: false,
           entries_count: 0,
@@ -320,9 +319,8 @@ return Promise.all([
         return result;
       });
     }).then(([, resultObj]) => {
-      if (!resultObj.data) {
+      if (catalogUrl) {
         resultObj.catalog_url = catalogUrl;
-        resultObj.source = source;
       }
       return [wellKnownUrl, resultObj];
     });
