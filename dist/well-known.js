@@ -48,6 +48,22 @@ function parseResponse(url, parser) {
     });
 }
 
+// Summarises the `entries` array of an Agentic Resource Discovery (ARD) manifest.
+// Shared by the /.well-known/ai-catalog.json and /.well-known/ard.json entries below.
+function summarizeArdEntries(data) {
+  const summary = {
+    entries_count: 0,
+    entry_types: []
+  };
+  if (data && Array.isArray(data.entries)) {
+    summary.entries_count = data.entries.length;
+    summary.entry_types = [...new Set(data.entries
+      .map(e => e && typeof e.type === 'string' ? e.type : null)
+      .filter(Boolean))].slice(0, 20);
+  }
+  return summary;
+}
+
 function parseResponseWithRedirects(url, parser) {
   return fetchWithTimeout(url)
     .then(request => {
@@ -307,12 +323,41 @@ return Promise.all([
           const data = JSON.parse(text);
           result.spec_version = typeof data.specVersion === 'string' ? data.specVersion : null;
           result.has_host = !!(data.host && typeof data.host === 'object');
-          if (Array.isArray(data.entries)) {
-            result.entries_count = data.entries.length;
-            result.entry_types = [...new Set(data.entries
-              .map(e => e && typeof e.type === 'string' ? e.type : null)
-              .filter(Boolean))].slice(0, 20);
-          }
+          Object.assign(result, summarizeArdEntries(data));
+        } catch (e) {
+          // Failed to parse JSON, result will contain default values.
+        }
+        return result;
+      });
+    }).then(([, resultObj]) => {
+      if (catalogUrl) {
+        resultObj.catalog_url = catalogUrl;
+      }
+      return [wellKnownUrl, resultObj];
+    });
+  })(),
+  // ARD v0.91 canonical path (ards-project/ard-spec, spec/ard.md section 5.1): consumers
+  // MUST fetch /.well-known/ard.json and MUST honour rel="ard"; ai-catalog.json above is
+  // the predecessor. The v0.91 manifest only requires `entries`, so only those are recorded.
+  (() => {
+    const wellKnownUrl = '/.well-known/ard.json';
+    let catalogUrl = null;
+    try {
+      const link = document.querySelector('link[rel~="ard" i]');
+      if (link && link.href) {
+        const target = new URL(link.href, location.href);
+        if (target.origin !== location.origin || target.pathname !== wellKnownUrl) {
+          catalogUrl = target.href;
+        }
+      }
+    } catch (e) {
+      // No usable link, fall back to the well-known path.
+    }
+    return parseResponse(catalogUrl || wellKnownUrl, r => {
+      return r.text().then(text => {
+        let result = summarizeArdEntries(null);
+        try {
+          result = summarizeArdEntries(JSON.parse(text));
         } catch (e) {
           // Failed to parse JSON, result will contain default values.
         }
