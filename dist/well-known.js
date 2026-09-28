@@ -454,8 +454,20 @@ return Promise.all([
   }),
   // NodeInfo - https://nodeinfo.diaspora.software/
   parseResponse('/.well-known/nodeinfo'),
-  // WebFinger - RFC 7033
-  parseResponse('/.well-known/webfinger'),
+  // WebFinger - RFC 7033 requires the `resource` query parameter, so a compliant
+  // server answers 400 to the bare path. A 400 therefore means the endpoint
+  // exists; treat 200 and 400 as "found".
+  fetchWithTimeout('/.well-known/webfinger')
+    .then(request => {
+      const found = !request.redirected && (request.status === 200 || request.status === 400);
+      return ['/.well-known/webfinger', {
+        found: found,
+        data: { status: request.status }
+      }];
+    })
+    .catch(error => {
+      return ['/.well-known/webfinger', { error: error.message }];
+    }),
   // OAuth 2.0 Authorization Server Metadata - RFC 8414 (redirects are part of
   // discovery via path insertion, so follow them like security.txt does)
   parseResponseWithRedirects('/.well-known/oauth-authorization-server'),
