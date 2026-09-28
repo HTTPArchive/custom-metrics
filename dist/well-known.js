@@ -452,6 +452,19 @@ return Promise.all([
       url: r.url
     });
   }),
+  // NodeInfo - https://nodeinfo.diaspora.software/
+  parseResponse('/.well-known/nodeinfo'),
+  // WebFinger - RFC 7033
+  parseResponse('/.well-known/webfinger'),
+  // OAuth 2.0 Authorization Server Metadata - RFC 8414 (redirects are part of
+  // discovery via path insertion, so follow them like security.txt does)
+  parseResponseWithRedirects('/.well-known/oauth-authorization-server'),
+  // OAuth 2.0 Protected Resource Metadata - RFC 9728
+  parseResponseWithRedirects('/.well-known/oauth-protected-resource'),
+  // OpenID Provider Metadata - OpenID Connect Discovery 1.0
+  parseResponseWithRedirects('/.well-known/openid-configuration'),
+  // Traffic Advice - https://github.com/WICG/traffic-advice
+  parseResponse('/.well-known/traffic-advice'),
   parseResponseWithRedirects('/.well-known/resource-that-should-not-exist-whose-status-code-should-not-be-200/', r => {
     return Promise.resolve({
       status: r.status,
