@@ -39,7 +39,7 @@ jobs:
         run: npm run validate:docs
 
   sync:
-    name: Sync Documentation to har.fyi
+    name: Sync Documentation to httparchive.org
     needs: validate
     if: github.ref == 'refs/heads/main' && (github.event_name == 'push' || github.event_name == 'workflow_dispatch')
     runs-on: ubuntu-latest
@@ -49,12 +49,12 @@ jobs:
         with:
           path: custom-metrics
 
-      - name: Checkout har.fyi
+      - name: Checkout httparchive.org
         uses: actions/checkout@v7
         with:
-          repository: HTTPArchive/har.fyi
+          repository: HTTPArchive/httparchive.org
           token: ${{ secrets.AUTO_MERGE_PAT }}
-          path: har.fyi
+          path: httparchive.org
 
       - name: Setup Node.js
         uses: actions/setup-node@v7
@@ -71,13 +71,13 @@ jobs:
       - name: Generate MDX Documentation
         run: |
           cd custom-metrics
-          node bin/generate-docs.js --out ../har.fyi/src/content/docs/reference/custom-metrics
+          node bin/generate-docs.js --out ../httparchive.org/src/content/docs/docs/reference/custom-metrics
 
-      - name: Create Pull Request in har.fyi
+      - name: Create Pull Request in httparchive.org
         uses: peter-evans/create-pull-request@v8
         with:
           token: ${{ secrets.AUTO_MERGE_PAT }}
-          path: har.fyi
+          path: httparchive.org
           branch: sync-custom-metrics
           base: main
           delete-branch: true
