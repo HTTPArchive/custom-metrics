@@ -22,11 +22,11 @@
   },
   "homepage": "https://github.com/HTTPArchive/custom-metrics#readme",
   "devDependencies": {
-    "@babel/parser": "^8.0.4",
-    "@babel/traverse": "^8.0.4",
-    "comment-parser": "^1.4.8",
+    "@babel/parser": "^8.0.6",
+    "@babel/traverse": "^8.0.6",
+    "comment-parser": "^1.4.9",
     "fugu-api-data": "^1.25.1",
-    "jest": "^30.5.1",
+    "jest": "^30.5.2",
     "webpagetest": "github:HTTPArchive/WebPageTest.api-nodejs"
   },
   "jest": {
