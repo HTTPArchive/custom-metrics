@@ -36,7 +36,7 @@ const TOP_LEVEL_METRICS = new Set([
 ]);
 
 /**
- * Normalizes JSDoc type strings to Starlight / har.fyi standard types.
+ * Normalizes JSDoc type strings to Starlight / httparchive.org standard types.
  */
 function normalizeType(typeStr) {
   if (!typeStr) return 'unknown';

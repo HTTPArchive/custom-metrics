@@ -262,6 +262,79 @@ return Promise.all([
       return result;
     });
   }),
+  // HTTP Message Signatures Directory - https://datatracker.ietf.org/doc/html/draft-ietf-webbotauth-httpsig-protocol
+  parseResponse('/.well-known/http-message-signatures-directory', r => {
+    return r.text().then(text => {
+      let result = {
+        keys_count: 0,
+        key_types: [],
+        curves: [],
+        algorithms: []
+      };
+      try {
+        const data = JSON.parse(text);
+        if (Array.isArray(data.keys)) {
+          result.keys_count = data.keys.length;
+          result.key_types = [...new Set(data.keys
+            .map(k => k && typeof k.kty === 'string' ? k.kty : null)
+            .filter(Boolean))].slice(0, 20);
+          result.curves = [...new Set(data.keys
+            .map(k => k && typeof k.crv === 'string' ? k.crv : null)
+            .filter(Boolean))].slice(0, 20);
+          result.algorithms = [...new Set(data.keys
+            .map(k => k && typeof k.alg === 'string' ? k.alg : null)
+            .filter(Boolean))].slice(0, 20);
+        }
+      } catch (e) {
+        // Failed to parse JSON
+      }
+      return result;
+    });
+  }),
+  // Well Known DID Configuration - https://identity.foundation/well-known-did-configuration/resources/did-configuration/
+  parseResponse('/.well-known/did-configuration.json', r => {
+    return r.text().then(text => {
+      let result = {
+        has_context: false,
+        linked_dids_count: 0,
+        proof_formats: [],
+        did_methods: []
+      };
+      try {
+        const data = JSON.parse(text);
+        result.has_context = Boolean(data['@context']);
+        if (Array.isArray(data.linked_dids)) {
+          result.linked_dids_count = data.linked_dids.length;
+          result.proof_formats = [...new Set(data.linked_dids
+            .map(entry => {
+              if (typeof entry === 'string') {
+                return 'jwt';
+              }
+              if (entry && typeof entry === 'object') {
+                return 'ldp';
+              }
+              return null;
+            })
+            .filter(Boolean))].slice(0, 20);
+          result.did_methods = [...new Set(data.linked_dids
+            .map(entry => {
+              const did = entry && typeof entry === 'object'
+                ? (entry.issuer || entry.credentialSubject?.id)
+                : null;
+              if (typeof did === 'string' && did.startsWith('did:')) {
+                const parts = did.split(':');
+                return parts.length >= 2 ? 'did:' + parts[1] : null;
+              }
+              return null;
+            })
+            .filter(Boolean))].slice(0, 20);
+        }
+      } catch (e) {
+        // Failed to parse JSON
+      }
+      return result;
+    });
+  }),
   // OAuth 2.0 Authorization Server Metadata - https://datatracker.ietf.org/doc/html/rfc8414
   parseResponse('/.well-known/oauth-authorization-server', r => {
     return r.text().then(text => {

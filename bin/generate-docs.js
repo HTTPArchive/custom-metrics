@@ -60,8 +60,8 @@ function generateMDX(metricName, typedefs) {
   const isTopLevel = TOP_LEVEL_METRICS.has(metricName);
 
   const parentLink = isTopLevel
-    ? `_Appears in: [\`custom_metrics\`](/reference/structs/custom-metrics/) struct_\\\n_As: [\`${metricName}\`](/reference/structs/custom-metrics/#${metricName})_`
-    : `_Appears in: [\`custom_metrics.other\`](/reference/custom-metrics/other/) struct_\\\n_As: [\`${metricName}\`](/reference/custom-metrics/other/#${metricName})_`;
+    ? `_Appears in: [\`custom_metrics\`](/docs/reference/structs/custom-metrics/) struct_\\\n_As: [\`${metricName}\`](/docs/reference/structs/custom-metrics/#${metricName})_`
+    : `_Appears in: [\`custom_metrics.other\`](/docs/reference/custom-metrics/other/) struct_\\\n_As: [\`${metricName}\`](/docs/reference/custom-metrics/other/#${metricName})_`;
 
   let mdx = `---
 title: ${capitalizedName} custom metric
@@ -82,7 +82,7 @@ ${parentLink}
 // CLI execution
 if (require.main === module) {
   const args = process.argv.slice(2);
-  let outDir = path.join(__dirname, '../../har.fyi/src/content/docs/reference/custom-metrics');
+  let outDir = path.join(__dirname, '../../httparchive.org/src/content/docs/docs/reference/custom-metrics');
   let explicitFiles = [];
 
   for (let i = 0; i < args.length; i++) {
