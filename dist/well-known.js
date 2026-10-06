@@ -335,6 +335,39 @@ return Promise.all([
       return result;
     });
   }),
+  // OAuth 2.0 Authorization Server Metadata - https://datatracker.ietf.org/doc/html/rfc8414
+  parseResponse('/.well-known/oauth-authorization-server', r => {
+    return r.text().then(text => {
+      let result = {
+        issuer: null,
+        authorization_endpoint: null,
+        token_endpoint: null,
+        jwks_uri: null,
+        registration_endpoint: null,
+        response_types_supported: [],
+        grant_types_supported: [],
+        code_challenge_methods_supported: [],
+        scopes_count: 0
+      };
+      try {
+        const data = JSON.parse(text);
+        result.issuer = data.issuer || null;
+        result.authorization_endpoint = data.authorization_endpoint || null;
+        result.token_endpoint = data.token_endpoint || null;
+        result.jwks_uri = data.jwks_uri || null;
+        result.registration_endpoint = data.registration_endpoint || null;
+        result.response_types_supported = Array.isArray(data.response_types_supported) ? data.response_types_supported.slice(0, 20) : [];
+        result.grant_types_supported = Array.isArray(data.grant_types_supported) ? data.grant_types_supported.slice(0, 20) : [];
+        result.code_challenge_methods_supported = Array.isArray(data.code_challenge_methods_supported) ? data.code_challenge_methods_supported.slice(0, 20) : [];
+        if (Array.isArray(data.scopes_supported)) {
+          result.scopes_count = data.scopes_supported.length;
+        }
+      } catch (e) {
+        // Failed to parse JSON
+      }
+      return result;
+    });
+  }),
   parseResponse('/robots.txt', r => {
     return r.text().then(text => {
       let data = { 'matched_disallows': {} };
