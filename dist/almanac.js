@@ -209,7 +209,7 @@ return JSON.stringify({
   'link-nodes': (() => {
     // Returns a JSON array of link nodes and their key/value attributes.
     // Used by 01.14, 01.15, 01.16, 10.6,  06.46, 12.18
-    var nodes = document.querySelectorAll('head link');
+    var nodes = document.querySelectorAll('link');
     return parseNodes(nodes);
   })(),
   'priority-hints': (() => {

@@ -150,6 +150,12 @@ return JSON.stringify({
       total_with_headers: document.querySelectorAll('td[headers]').length,
     };
   }),
+  th_with_headers_attribute: captureAndLogError(() => {
+    return {
+      total_ths: document.querySelectorAll('th').length,
+      total_with_headers: document.querySelectorAll('th[headers]').length,
+    };
+  }),
   total_anchors_with_role_button: captureAndLogError(() => {
     return document.querySelectorAll('a[role="button" i]').length;
   }),
@@ -215,7 +221,7 @@ return JSON.stringify({
     };
   }),
   screen_reader_classes: captureAndLogError(() => {
-    return document.querySelectorAll('.sr-only', '.visually-hidden', '.screen-reader-text', '.element-invisible').length > 0;
+    return document.querySelectorAll('.sr-only', '.visually-hidden', '.screen-reader-text', '.element-invisible', '.visuallyhidden',  '.skip-link', '.scrn-rdr',  '.usa-skipnav',  '.usa-sr-only', '.a11y-hide').length > 0;
   }),
   form_control_a11y_tree: captureAndLogError(() => {
     const attributes_to_track_regex = /^(aria-.+|type|id|name|placeholder|accept|autocomplete|autofocus|capture|max|maxlength|min|minlength|required|readonly|pattern|multiple|step)$/i;

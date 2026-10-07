@@ -294,6 +294,33 @@ try { // whole process is placed in a try/catch so we can log uncaught errors
       }
     })(),
 
+    // rel attribute usage
+    'rel': (() => {
+      try {
+        let result = {rels_total: 0, rels: {}};
+
+        const nodes = document.querySelectorAll('*[rel]');
+
+        nodes.forEach((n) => {
+
+            result.rels_total++;
+
+            if (result.rels[n.rel]) {
+              result.rels[n.rel]++;
+            }
+            else {
+              result.rels[n.rel] = 1;
+            }
+
+        });
+
+        return result;
+      }
+      catch(e) {
+        return logError("rel", e);
+      }
+    })(),
+
     // id attribute usage
     // Used by Markup
     'ids': (() => {

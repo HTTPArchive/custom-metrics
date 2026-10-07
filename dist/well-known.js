@@ -10,42 +10,58 @@
 
 function fetchWithTimeout(url) {
   var controller = new AbortController();
-  setTimeout(() => {controller.abort()}, 5000);
-  return fetch(url, {signal: controller.signal});
+  setTimeout(() => { controller.abort() }, 5000);
+  return fetch(url, { signal: controller.signal });
 }
 
 function parseResponse(url, parser) {
   return fetchWithTimeout(url)
-  .then(request => {
-    let resultObj = {};
-    if(!request.redirected && request.status === 200) {
-      resultObj['found'] = true;
-      if(parser) {
-        let promise = parser(request);
-        if (promise) {
-          return promise
-          .then(data => {
-            resultObj['data'] = data;
+    .then(request => {
+      let resultObj = {};
+      if (!request.redirected && request.status === 200) {
+        resultObj['found'] = true;
+        if (parser) {
+          let promise = parser(request);
+          if (promise) {
+            return promise
+              .then(data => {
+                resultObj['data'] = data;
+                return [url, resultObj];
+              })
+              .catch(error => {
+                return [url, { 'error': error.message }];
+              });
+          } else {
+            resultObj['error'] = 'parser did not return a promise';
             return [url, resultObj];
-          })
-          .catch(error => {
-            return [url, {'error': error.message}];
-          });
+          }
         } else {
-          resultObj['error'] = 'parser did not return a promise';
           return [url, resultObj];
         }
       } else {
+        resultObj['found'] = false;
         return [url, resultObj];
       }
-    } else {
-      resultObj['found'] = false;
-      return [url, resultObj];
-    }
-  })
-  .catch(error => {
-    return [url, {'error': error.message}];
-  });
+    })
+    .catch(error => {
+      return [url, { 'error': error.message }];
+    });
+}
+
+// Summarises the `entries` array of an Agentic Resource Discovery (ARD) manifest.
+// Shared by the /.well-known/ai-catalog.json and /.well-known/ard.json entries below.
+function summarizeArdEntries(data) {
+  const summary = {
+    entries_count: 0,
+    entry_types: []
+  };
+  if (data && Array.isArray(data.entries)) {
+    summary.entries_count = data.entries.length;
+    summary.entry_types = [...new Set(data.entries
+      .map(e => e && typeof e.type === 'string' ? e.type : null)
+      .filter(Boolean))].slice(0, 20);
+  }
+  return summary;
 }
 
 function parseResponseWithRedirects(url, parser) {
@@ -150,58 +166,211 @@ return Promise.all([
   // FedCM
   parseResponse('/.well-known/web-identity', r => {
     return r.text().then(text => {
-        let result = {
-            provider_urls: [],
-            accounts_endpoint: null,
-            login_url: null
-        };
-        try {
-            let data = JSON.parse(text);
-            result.provider_urls = Array.isArray(data.provider_urls) && data.provider_urls.length > 0 ? data.provider_urls : [];
-            result.accounts_endpoint = data.accounts_endpoint || null;
-            result.login_url = data.login_url || null;
-        } catch (e) {
-            // Failed to parse JSON
-        }
-        return result;
+      let result = {
+        provider_urls: [],
+        accounts_endpoint: null,
+        login_url: null
+      };
+      try {
+        let data = JSON.parse(text);
+        result.provider_urls = Array.isArray(data.provider_urls) && data.provider_urls.length > 0 ? data.provider_urls : [];
+        result.accounts_endpoint = data.accounts_endpoint || null;
+        result.login_url = data.login_url || null;
+      } catch (e) {
+        // Failed to parse JSON
+      }
+      return result;
     });
   }),
   // Passkey
   parseResponse('/.well-known/passkey-endpoints', r => {
     return r.text().then(text => {
-        let result = {
-            enroll: null,
-            manage: null
-        };
-        try {
-            let data = JSON.parse(text);
-            result.enroll = data.enroll || null;
-            result.manage = data.manage || null;
-        } catch (e) {
-            // Failed to parse JSON
-        }
-        return result;
+      let result = {
+        enroll: null,
+        manage: null
+      };
+      try {
+        let data = JSON.parse(text);
+        result.enroll = data.enroll || null;
+        result.manage = data.manage || null;
+      } catch (e) {
+        // Failed to parse JSON
+      }
+      return result;
     });
   }),
   // Related Origin Requests
   parseResponse('/.well-known/webauthn', r => {
     return r.text().then(text => {
-        let result = {
-            origins: []
-        };
-        try {
-            let data = JSON.parse(text);
-            result.origins = Array.isArray(data.origins) && data.origins.length > 0 ? data.origins : [];
-        } catch (e) {
-            // Failed to parse JSON
-        }
-        return result;
+      let result = {
+        origins: []
+      };
+      try {
+        let data = JSON.parse(text);
+        result.origins = Array.isArray(data.origins) && data.origins.length > 0 ? data.origins : [];
+      } catch (e) {
+        // Failed to parse JSON
+      }
+      return result;
     });
   }),
-  // security
+  // UCP
+  parseResponse('/.well-known/ucp', r => {
+    return r.text().then(text => {
+      let result = {
+        has_ucp: false,
+        version: null,
+        has_payment_handlers: false,
+        signing_keys_count: 0
+      };
+      try {
+        const data = JSON.parse(text);
+        if (data.ucp) {
+          result.has_ucp = true;
+          result.version = data.ucp.version || null;
+
+          if (data.ucp.payment_handlers && Object.keys(data.ucp.payment_handlers).length > 0) {
+            result.has_payment_handlers = true;
+          }
+        }
+        if (Array.isArray(data?.payment?.handlers) && data.payment.handlers.length > 0) {
+          result.has_payment_handlers = true;
+        }
+        if (Array.isArray(data.signing_keys)) {
+          result.signing_keys_count = data.signing_keys.length;
+        }
+      } catch (e) {
+        // Failed to parse JSON
+      }
+      return result;
+    });
+  }),
+  // Email Verification Protocol (EVP) - https://github.com/WICG/email-verification
+  parseResponse('/.well-known/email-verification', r => {
+    return r.text().then(text => {
+      let result = {
+        issuance_endpoint: null,
+        signing_alg_values_supported: []
+      };
+      try {
+        const data = JSON.parse(text);
+        result.issuance_endpoint = data.issuance_endpoint || null;
+        result.signing_alg_values_supported = Array.isArray(data.signing_alg_values_supported) ? data.signing_alg_values_supported : [];
+      } catch (e) {
+        // Failed to parse JSON
+      }
+      return result;
+    });
+  }),
+  // HTTP Message Signatures Directory - https://datatracker.ietf.org/doc/html/draft-ietf-webbotauth-httpsig-protocol
+  parseResponse('/.well-known/http-message-signatures-directory', r => {
+    return r.text().then(text => {
+      let result = {
+        keys_count: 0,
+        key_types: [],
+        curves: [],
+        algorithms: []
+      };
+      try {
+        const data = JSON.parse(text);
+        if (Array.isArray(data.keys)) {
+          result.keys_count = data.keys.length;
+          result.key_types = [...new Set(data.keys
+            .map(k => k && typeof k.kty === 'string' ? k.kty : null)
+            .filter(Boolean))].slice(0, 20);
+          result.curves = [...new Set(data.keys
+            .map(k => k && typeof k.crv === 'string' ? k.crv : null)
+            .filter(Boolean))].slice(0, 20);
+          result.algorithms = [...new Set(data.keys
+            .map(k => k && typeof k.alg === 'string' ? k.alg : null)
+            .filter(Boolean))].slice(0, 20);
+        }
+      } catch (e) {
+        // Failed to parse JSON
+      }
+      return result;
+    });
+  }),
+  // Well Known DID Configuration - https://identity.foundation/well-known-did-configuration/resources/did-configuration/
+  parseResponse('/.well-known/did-configuration.json', r => {
+    return r.text().then(text => {
+      let result = {
+        has_context: false,
+        linked_dids_count: 0,
+        proof_formats: [],
+        did_methods: []
+      };
+      try {
+        const data = JSON.parse(text);
+        result.has_context = Boolean(data['@context']);
+        if (Array.isArray(data.linked_dids)) {
+          result.linked_dids_count = data.linked_dids.length;
+          result.proof_formats = [...new Set(data.linked_dids
+            .map(entry => {
+              if (typeof entry === 'string') {
+                return 'jwt';
+              }
+              if (entry && typeof entry === 'object') {
+                return 'ldp';
+              }
+              return null;
+            })
+            .filter(Boolean))].slice(0, 20);
+          result.did_methods = [...new Set(data.linked_dids
+            .map(entry => {
+              const did = entry && typeof entry === 'object'
+                ? (entry.issuer || entry.credentialSubject?.id)
+                : null;
+              if (typeof did === 'string' && did.startsWith('did:')) {
+                const parts = did.split(':');
+                return parts.length >= 2 ? 'did:' + parts[1] : null;
+              }
+              return null;
+            })
+            .filter(Boolean))].slice(0, 20);
+        }
+      } catch (e) {
+        // Failed to parse JSON
+      }
+      return result;
+    });
+  }),
+  // OAuth 2.0 Authorization Server Metadata - https://datatracker.ietf.org/doc/html/rfc8414
+  parseResponse('/.well-known/oauth-authorization-server', r => {
+    return r.text().then(text => {
+      let result = {
+        issuer: null,
+        authorization_endpoint: null,
+        token_endpoint: null,
+        jwks_uri: null,
+        registration_endpoint: null,
+        response_types_supported: [],
+        grant_types_supported: [],
+        code_challenge_methods_supported: [],
+        scopes_count: 0
+      };
+      try {
+        const data = JSON.parse(text);
+        result.issuer = data.issuer || null;
+        result.authorization_endpoint = data.authorization_endpoint || null;
+        result.token_endpoint = data.token_endpoint || null;
+        result.jwks_uri = data.jwks_uri || null;
+        result.registration_endpoint = data.registration_endpoint || null;
+        result.response_types_supported = Array.isArray(data.response_types_supported) ? data.response_types_supported.slice(0, 20) : [];
+        result.grant_types_supported = Array.isArray(data.grant_types_supported) ? data.grant_types_supported.slice(0, 20) : [];
+        result.code_challenge_methods_supported = Array.isArray(data.code_challenge_methods_supported) ? data.code_challenge_methods_supported.slice(0, 20) : [];
+        if (Array.isArray(data.scopes_supported)) {
+          result.scopes_count = data.scopes_supported.length;
+        }
+      } catch (e) {
+        // Failed to parse JSON
+      }
+      return result;
+    });
+  }),
   parseResponse('/robots.txt', r => {
     return r.text().then(text => {
-      let data = {'matched_disallows': {}};
+      let data = { 'matched_disallows': {} };
       let keywords = [
         'login',
         'log-in',
@@ -213,7 +382,7 @@ return Promise.all([
         'account'
       ]
       let currUserAgent = null;
-      for(let line of text.split('\n')) {
+      for (let line of text.split('\n')) {
         if (line.toLowerCase().startsWith('user-agent: ')) {
           currUserAgent = line.substring(12);
         } else if (line.toLowerCase().startsWith('disallow: ')) {
@@ -229,6 +398,84 @@ return Promise.all([
       return data;
     });
   }),
+  // Agentic Resource Discovery (ARD) - checked by Lighthouse's agentic-browsing category.
+  // Resolution follows Lighthouse's ARD gatherer (core/gather/gatherers/agentic/ard.js):
+  // <link rel="ai-catalog"> in the document wins, otherwise /.well-known/ai-catalog.json.
+  // Keyed by the well-known path either way; `catalog_url` is added only when the
+  // link points somewhere other than the default location.
+  (() => {
+    const wellKnownUrl = '/.well-known/ai-catalog.json';
+    let catalogUrl = null;
+    try {
+      const link = document.querySelector('link[rel~="ai-catalog" i]');
+      if (link && link.href) {
+        const target = new URL(link.href, location.href);
+        if (target.origin !== location.origin || target.pathname !== wellKnownUrl) {
+          catalogUrl = target.href;
+        }
+      }
+    } catch (e) {
+      // No usable link, fall back to the well-known path.
+    }
+    return parseResponse(catalogUrl || wellKnownUrl, r => {
+      return r.text().then(text => {
+        let result = {
+          spec_version: null,
+          has_host: false,
+          entries_count: 0,
+          entry_types: []
+        };
+        try {
+          const data = JSON.parse(text);
+          result.spec_version = typeof data.specVersion === 'string' ? data.specVersion : null;
+          result.has_host = !!(data.host && typeof data.host === 'object');
+          Object.assign(result, summarizeArdEntries(data));
+        } catch (e) {
+          // Failed to parse JSON, result will contain default values.
+        }
+        return result;
+      });
+    }).then(([, resultObj]) => {
+      if (catalogUrl) {
+        resultObj.catalog_url = catalogUrl;
+      }
+      return [wellKnownUrl, resultObj];
+    });
+  })(),
+  // ARD v0.91 canonical path (ards-project/ard-spec, spec/ard.md section 5.1): consumers
+  // MUST fetch /.well-known/ard.json and MUST honour rel="ard"; ai-catalog.json above is
+  // the predecessor. The v0.91 manifest only requires `entries`, so only those are recorded.
+  (() => {
+    const wellKnownUrl = '/.well-known/ard.json';
+    let catalogUrl = null;
+    try {
+      const link = document.querySelector('link[rel~="ard" i]');
+      if (link && link.href) {
+        const target = new URL(link.href, location.href);
+        if (target.origin !== location.origin || target.pathname !== wellKnownUrl) {
+          catalogUrl = target.href;
+        }
+      }
+    } catch (e) {
+      // No usable link, fall back to the well-known path.
+    }
+    return parseResponse(catalogUrl || wellKnownUrl, r => {
+      return r.text().then(text => {
+        let result = summarizeArdEntries(null);
+        try {
+          result = summarizeArdEntries(JSON.parse(text));
+        } catch (e) {
+          // Failed to parse JSON, result will contain default values.
+        }
+        return result;
+      });
+    }).then(([, resultObj]) => {
+      if (catalogUrl) {
+        resultObj.catalog_url = catalogUrl;
+      }
+      return [wellKnownUrl, resultObj];
+    });
+  })(),
   parseResponseWithRedirects('/.well-known/security.txt', r => {
     let data = {
       status: r.status,
@@ -344,5 +591,5 @@ return Promise.all([
 ]).then((all_data) => {
   return JSON.stringify(Object.fromEntries(all_data));
 }).catch(error => {
-  return JSON.stringify({message: error.message, error: error});
+  return JSON.stringify({ message: error.message, error: error });
 });
