@@ -574,9 +574,6 @@ return Promise.all([
     .catch(error => {
       return ['/.well-known/webfinger', { error: error.message }];
     }),
-  // OAuth 2.0 Authorization Server Metadata - RFC 8414 (redirects are part of
-  // discovery via path insertion, so follow them like security.txt does)
-  parseResponseWithRedirects('/.well-known/oauth-authorization-server'),
   // OAuth 2.0 Protected Resource Metadata - RFC 9728
   parseResponseWithRedirects('/.well-known/oauth-protected-resource'),
   // OpenID Provider Metadata - OpenID Connect Discovery 1.0
