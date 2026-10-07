@@ -558,6 +558,28 @@ return Promise.all([
       url: r.url
     });
   }),
+  // NodeInfo - https://nodeinfo.diaspora.software/
+  parseResponse('/.well-known/nodeinfo'),
+  // WebFinger - RFC 7033 requires the `resource` query parameter, so a compliant
+  // server answers 400 to the bare path. A 400 therefore means the endpoint
+  // exists; treat 200 and 400 as "found".
+  fetchWithTimeout('/.well-known/webfinger')
+    .then(request => {
+      const found = !request.redirected && (request.status === 200 || request.status === 400);
+      return ['/.well-known/webfinger', {
+        found: found,
+        data: { status: request.status }
+      }];
+    })
+    .catch(error => {
+      return ['/.well-known/webfinger', { error: error.message }];
+    }),
+  // OAuth 2.0 Protected Resource Metadata - RFC 9728
+  parseResponseWithRedirects('/.well-known/oauth-protected-resource'),
+  // OpenID Provider Metadata - OpenID Connect Discovery 1.0
+  parseResponseWithRedirects('/.well-known/openid-configuration'),
+  // Traffic Advice - https://github.com/WICG/traffic-advice
+  parseResponse('/.well-known/traffic-advice'),
   parseResponseWithRedirects('/.well-known/resource-that-should-not-exist-whose-status-code-should-not-be-200/', r => {
     return Promise.resolve({
       status: r.status,
