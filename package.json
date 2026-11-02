@@ -22,8 +22,8 @@
   },
   "homepage": "https://github.com/HTTPArchive/custom-metrics#readme",
   "devDependencies": {
-    "@babel/parser": "^8.0.6",
-    "@babel/traverse": "^8.0.6",
+    "@babel/parser": "^8.0.8",
+    "@babel/traverse": "^8.0.7",
     "comment-parser": "^1.4.9",
     "fugu-api-data": "^1.25.1",
     "jest": "^30.5.2",
