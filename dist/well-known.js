@@ -368,6 +368,45 @@ return Promise.all([
       return result;
     });
   }),
+  // Personal Agent Protocol (Poppy) - https://personalagentprotocol.org/docs/spec
+  parseResponse('/.well-known/poppy.json', r => {
+    return r.text().then(text => {
+      let result = {
+        protocol_version: null,
+        has_organization: false,
+        has_auth: false,
+        auth_methods: [],
+        has_agent: false,
+        apis_count: 0,
+        api_types: [],
+        has_web: false,
+        has_browser_session_endpoint: false
+      };
+      try {
+        const data = JSON.parse(text);
+        result.protocol_version = typeof data.protocol_version === 'string' ? data.protocol_version : null;
+        result.has_organization = Boolean(data.organization && typeof data.organization === 'object' && !Array.isArray(data.organization));
+        if (data.auth && typeof data.auth === 'object' && !Array.isArray(data.auth)) {
+          result.has_auth = true;
+          result.auth_methods = ['direct', 'device', 'mediated'].filter(m => Boolean(data.auth[m] && typeof data.auth[m] === 'object'));
+        }
+        result.has_agent = Array.isArray(data?.agent?.protocols) && data.agent.protocols.length > 0;
+        if (Array.isArray(data.apis)) {
+          result.apis_count = data.apis.length;
+          result.api_types = [...new Set(data.apis
+            .map(a => a && typeof a.type === 'string' ? a.type : null)
+            .filter(Boolean))].slice(0, 20);
+        }
+        if (data.web && typeof data.web === 'object' && !Array.isArray(data.web)) {
+          result.has_web = true;
+          result.has_browser_session_endpoint = typeof data.web.browser_session_endpoint === 'string' && data.web.browser_session_endpoint.length > 0;
+        }
+      } catch (e) {
+        // Failed to parse JSON
+      }
+      return result;
+    });
+  }),
   parseResponse('/robots.txt', r => {
     return r.text().then(text => {
       let data = { 'matched_disallows': {} };
