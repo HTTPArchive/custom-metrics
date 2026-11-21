@@ -64,6 +64,83 @@ function summarizeArdEntries(data) {
   return summary;
 }
 
+// JWK members that only appear in private keys (RFC 7518 §6.2.2, §6.3.2, §6.4; RFC 8037 §2).
+const PRIVATE_JWK_MEMBERS = ['d', 'p', 'q', 'dp', 'dq', 'qi', 'oth', 'k'];
+
+// Well-known alg/crv pairs (RFC 7518 §3.4, RFC 8037 §3.1).
+const ALG_FOR_CRV = { 'P-256': 'ES256', 'P-384': 'ES384', 'P-521': 'ES512', 'Ed25519': 'EdDSA' };
+
+function base64url(bytes) {
+  let binary = '';
+  bytes.forEach(b => { binary += String.fromCharCode(b); });
+  return btoa(binary).replace(/\+/g, '-').replace(/\//g, '_').replace(/=+$/, '');
+}
+
+// JWK SHA-256 Thumbprint (RFC 7638 §3.2; RFC 8037 Appendix A.3 for OKP).
+// Resolves to null when the key type is unknown, members are missing,
+// or WebCrypto is unavailable (for example on plain-HTTP pages).
+function jwkThumbprint(key) {
+  let members = null;
+  if (key.kty === 'OKP') {
+    members = { crv: key.crv, kty: key.kty, x: key.x };
+  } else if (key.kty === 'EC') {
+    members = { crv: key.crv, kty: key.kty, x: key.x, y: key.y };
+  } else if (key.kty === 'RSA') {
+    members = { e: key.e, kty: key.kty, n: key.n };
+  }
+  if (!members || Object.values(members).some(v => typeof v !== 'string')) {
+    return Promise.resolve(null);
+  }
+  if (!(globalThis.crypto && globalThis.crypto.subtle)) {
+    return Promise.resolve(null);
+  }
+  // Members above are already in lexicographic order, as RFC 7638 requires.
+  return globalThis.crypto.subtle.digest('SHA-256', new TextEncoder().encode(JSON.stringify(members)))
+    .then(buf => base64url(new Uint8Array(buf)))
+    .catch(() => null);
+}
+
+// Summarises a JWK array: types, curves and algorithms, plus hygiene checks
+// shared by the Web Bot Auth key directory and UCP profile keys.
+function summarizeJwks(keys) {
+  const valid = Array.isArray(keys) ? keys.filter(k => k && typeof k === 'object') : [];
+  const now = Math.floor(Date.now() / 1000);
+  const summary = {
+    keys_count: Array.isArray(keys) ? keys.length : 0,
+    key_types: [...new Set(valid.map(k => typeof k.kty === 'string' ? k.kty : null).filter(Boolean))].slice(0, 20),
+    curves: [...new Set(valid.map(k => typeof k.crv === 'string' ? k.crv : null).filter(Boolean))].slice(0, 20),
+    algorithms: [...new Set(valid.map(k => typeof k.alg === 'string' ? k.alg : null).filter(Boolean))].slice(0, 20),
+    // Keys that expose private key material. Any value above 0 is a key leak.
+    private_material_count: valid.filter(k => PRIVATE_JWK_MEMBERS.some(m => m in k)).length,
+    // Keys whose alg contradicts their curve, e.g. ES256 on Ed25519.
+    alg_crv_mismatch_count: valid.filter(k => typeof k.alg === 'string' && ALG_FOR_CRV[k.crv] && ALG_FOR_CRV[k.crv] !== k.alg).length,
+    expired_count: valid.filter(k => typeof k.exp === 'number' && k.exp < now).length,
+    not_yet_valid_count: valid.filter(k => typeof k.nbf === 'number' && k.nbf > now).length,
+    kid_count: valid.filter(k => typeof k.kid === 'string').length,
+    kid_thumbprint_checked: 0,
+    kid_thumbprint_match_count: 0
+  };
+  const withKid = valid.filter(k => typeof k.kid === 'string').slice(0, 20);
+  return Promise.all(withKid.map(k => jwkThumbprint(k).then(tp => ({ kid: k.kid, tp }))))
+    .then(results => {
+      results.forEach(r => {
+        if (r.tp !== null) {
+          summary.kid_thumbprint_checked++;
+          if (r.tp === r.kid) {
+            summary.kid_thumbprint_match_count++;
+          }
+        }
+      });
+      return summary;
+    });
+}
+
+// Seconds from a Cache-Control max-age directive, or null.
+function maxAge(cacheControl) {
+  const match = /(?:^|,)\s*max-age\s*=\s*"?(\d+)"?/i.exec(cacheControl || '');
+  return match ? parseInt(match[1], 10) : null;
+}
+
 function parseResponseWithRedirects(url, parser) {
   return fetchWithTimeout(url)
     .then(request => {
@@ -214,23 +291,52 @@ return Promise.all([
       return result;
     });
   }),
-  // UCP
+  // UCP - https://ucp.dev/schemas/profile.json
+  // Since UCP #566 (July 2026) signing keys are published in the top-level `keys`
+  // JWK Set. `signing_keys` is the earlier field name and is kept for comparison.
   parseResponse('/.well-known/ucp', r => {
     return r.text().then(text => {
       let result = {
         has_ucp: false,
         version: null,
+        version_is_date: false,
+        content_type: r.headers.get('content-type'),
         has_payment_handlers: false,
-        signing_keys_count: 0
+        payment_handlers: [],
+        services: [],
+        transports: [],
+        capabilities: [],
+        signing_keys_count: 0,
+        keys_count: 0,
+        keys: null
       };
+      let keys = null;
       try {
         const data = JSON.parse(text);
         if (data.ucp) {
           result.has_ucp = true;
           result.version = data.ucp.version || null;
+          result.version_is_date = typeof result.version === 'string' && /^\d{4}-\d{2}-\d{2}$/.test(result.version);
 
           if (data.ucp.payment_handlers && Object.keys(data.ucp.payment_handlers).length > 0) {
             result.has_payment_handlers = true;
+            if (!Array.isArray(data.ucp.payment_handlers)) {
+              result.payment_handlers = Object.keys(data.ucp.payment_handlers).slice(0, 20);
+            }
+          }
+          const services = data.ucp.services;
+          if (services && typeof services === 'object' && !Array.isArray(services)) {
+            result.services = Object.keys(services).slice(0, 20);
+            result.transports = [...new Set(Object.values(services)
+              .flatMap(bindings => Array.isArray(bindings) ? bindings : [])
+              .map(b => b && typeof b.transport === 'string' ? b.transport : null)
+              .filter(Boolean))].slice(0, 10);
+          }
+          const capabilities = data.ucp.capabilities;
+          if (capabilities && typeof capabilities === 'object') {
+            result.capabilities = (Array.isArray(capabilities)
+              ? capabilities.map(c => c && typeof c.name === 'string' ? c.name : null).filter(Boolean)
+              : Object.keys(capabilities)).slice(0, 30);
           }
         }
         if (Array.isArray(data?.payment?.handlers) && data.payment.handlers.length > 0) {
@@ -239,10 +345,21 @@ return Promise.all([
         if (Array.isArray(data.signing_keys)) {
           result.signing_keys_count = data.signing_keys.length;
         }
+        if (Array.isArray(data.keys)) {
+          result.keys_count = data.keys.length;
+          keys = data.keys;
+        }
       } catch (e) {
         // Failed to parse JSON
       }
-      return result;
+      if (!keys) {
+        return result;
+      }
+      return summarizeJwks(keys).then(summary => {
+        delete summary.keys_count;
+        result.keys = summary;
+        return result;
+      });
     });
   }),
   // Email Verification Protocol (EVP) - https://github.com/WICG/email-verification
@@ -263,7 +380,19 @@ return Promise.all([
     });
   }),
   // HTTP Message Signatures Directory - https://datatracker.ietf.org/doc/html/draft-ietf-webbotauth-httpsig-protocol
+  // Media type and kid rules: §5.5 and §5.5.1. Directory response signature: Appendix B.1.
   parseResponse('/.well-known/http-message-signatures-directory', r => {
+    const contentType = r.headers.get('content-type');
+    const signatureInput = r.headers.get('signature-input') || '';
+    const response = {
+      content_type: contentType,
+      media_type_ok: /^application\/http-message-signatures-directory\+json\s*(;|$)/i.test(contentType || ''),
+      cache_max_age: maxAge(r.headers.get('cache-control')),
+      has_signature: r.headers.has('signature'),
+      has_signature_input: r.headers.has('signature-input'),
+      directory_tag: /;\s*tag\s*=\s*"http-message-signatures-directory"/i.test(signatureInput),
+      has_content_digest: r.headers.has('content-digest')
+    };
     return r.text().then(text => {
       let result = {
         keys_count: 0,
@@ -271,24 +400,19 @@ return Promise.all([
         curves: [],
         algorithms: []
       };
+      let keys = null;
       try {
         const data = JSON.parse(text);
         if (Array.isArray(data.keys)) {
-          result.keys_count = data.keys.length;
-          result.key_types = [...new Set(data.keys
-            .map(k => k && typeof k.kty === 'string' ? k.kty : null)
-            .filter(Boolean))].slice(0, 20);
-          result.curves = [...new Set(data.keys
-            .map(k => k && typeof k.crv === 'string' ? k.crv : null)
-            .filter(Boolean))].slice(0, 20);
-          result.algorithms = [...new Set(data.keys
-            .map(k => k && typeof k.alg === 'string' ? k.alg : null)
-            .filter(Boolean))].slice(0, 20);
+          keys = data.keys;
         }
       } catch (e) {
         // Failed to parse JSON
       }
-      return result;
+      if (!keys) {
+        return Object.assign(result, response);
+      }
+      return summarizeJwks(keys).then(summary => Object.assign(result, summary, response));
     });
   }),
   // Well Known DID Configuration - https://identity.foundation/well-known-did-configuration/resources/did-configuration/
