@@ -847,7 +847,7 @@ try { // whole process is placed in a try/catch so we can log uncaught errors
                 target.logo = true;
               }
               if (item instanceof Object || item instanceof Array) {
-                nestedJsonldLookup(target, jsonldIds, item, depth++, context);
+                nestedJsonldLookup(target, jsonldIds, item, depth + 1, context);
               }
             });
           }

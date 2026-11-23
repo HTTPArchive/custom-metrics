@@ -238,7 +238,7 @@ return JSON.stringify({
         var item = items[keys[i]];
         // if array or object, dive into it
         if (item instanceof Object || item instanceof Array) {
-          nestedLookup(item, depth++);
+          nestedLookup(item, depth + 1);
         }
       }
       if (items['@type']) {
